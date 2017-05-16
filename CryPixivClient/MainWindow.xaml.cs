@@ -25,13 +25,20 @@ namespace CryPixivClient
         {
             InitializeComponent();
 
+            PixivAccount.AuthFailed += AuthenticationFailed;
+
             LoadAccount();
             ShowLoginPrompt();
         }
 
-        void ShowLoginPrompt()
+        private void AuthenticationFailed(object sender, string e)
         {
-            if (Account?.AuthDetails?.IsExpired == false) return;
+            ShowLoginPrompt(true);
+        }
+
+        async void ShowLoginPrompt(bool force = false)
+        {
+            if (Account?.AuthDetails?.IsExpired == false && force == false) return;
 
             LoginWindow login = new LoginWindow(Account != null);
             login.ShowDialog();

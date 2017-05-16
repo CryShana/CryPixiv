@@ -32,6 +32,9 @@
     <Setting Name="AuthAccessToken" Type="System.String" Scope="User">
       <Value Profile="(Default)" />
     </Setting>
+    <Setting Name="AuthPassword" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
     <Setting Name="AuthRefreshToken" Type="System.String" Scope="User">
       <Value Profile="(Default)" />
     </Setting>

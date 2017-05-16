@@ -31,11 +31,13 @@ namespace CryPixivClient.Windows
             }
             else
             {
+                txtUsername.Text = Settings.Default.Username;
                 ToggleState(false);
-                ShowProgress();
                 SetProgressState(true);
+                ShowProgress();
 
-                // get new accesstoken with refreshtoken...                
+                // get new accesstoken with refreshtoken...      
+                AttemptUpdateLogin();
             }
         }
 
@@ -50,11 +52,10 @@ namespace CryPixivClient.Windows
             ShowProgress();
 
             // attempt login
-            MainWindow.Account = new PixivAccount(txtUsername.Text);
-            var result = await MainWindow.Account.Login(txtPassword.Password);
+            var result = await AttemptLogin(txtUsername.Text, txtPassword.Password);
 
             // respond to result
-            if (result.Item1 == false)
+            if (result == false)
             {
                 SetProgressState(false);
                 ToggleState(true);
@@ -65,6 +66,33 @@ namespace CryPixivClient.Windows
             else Close();
         }
 
+        async Task<bool> AttemptLogin(string username, string password)
+        {
+            MainWindow.Account = new PixivAccount(txtUsername.Text);            
+            var result = await MainWindow.Account.Login(txtPassword.Password);
+            if (result.Item1)
+            {
+                // automatically store encrypted password - because refresh tokens are not working with pixiv
+                Settings.Default.AuthPassword = PixivAccount.EncryptPassword(txtPassword.Password, MainWindow.Account.AuthDetails.RefreshToken);
+                Settings.Default.Save();
+            }
+            return result.Item1;
+        }
+        async void AttemptUpdateLogin()
+        {
+            var result = await MainWindow.Account.UpdateLogin(Settings.Default.AuthPassword);
+
+            if (result == false)
+            {
+                SetProgressState(false);
+                ToggleState(true);
+
+                txtPassword.Focus();
+                txtPassword.SelectAll();
+            }
+            else Close();
+        }
+        
         void ToggleState(bool state)
         {
             txtUsername.IsEnabled = state;

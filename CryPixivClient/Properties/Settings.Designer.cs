@@ -140,6 +140,18 @@ namespace CryPixivClient.Properties {
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string AuthPassword {
+            get {
+                return ((string)(this["AuthPassword"]));
+            }
+            set {
+                this["AuthPassword"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
         public string AuthRefreshToken {
             get {
                 return ((string)(this["AuthRefreshToken"]));

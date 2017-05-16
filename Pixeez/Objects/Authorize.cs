@@ -24,11 +24,11 @@ namespace Pixeez.Objects
 
         [JsonProperty("refresh_token")]
         public string RefreshToken { get; set; }
-
+        
         [JsonProperty("user")]
         public User User { get; set; }
 
         public DateTime TimeIssued { get; set; }
-        public bool IsExpired => DateTime.Now.Subtract(TimeIssued.AddSeconds(ExpiresIn ?? 0)).TotalSeconds >= 0;
+        public bool IsExpired => DateTime.Now.Subtract(TimeIssued.AddSeconds(ExpiresIn ?? 0)).TotalSeconds >= 5;
     }
 }

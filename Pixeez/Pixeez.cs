@@ -7,6 +7,8 @@ using Newtonsoft.Json.Linq;
 using Pixeez.Objects;
 using System.Linq;
 using System.IO;
+using System.Text;
+using Newtonsoft.Json;
 
 namespace Pixeez
 {
@@ -23,7 +25,7 @@ namespace Pixeez
         {
             this.Source = source;
         }
-        
+
         public HttpResponseMessage Source { get; }
 
         public Task<Stream> GetResponseStreamAsync()
@@ -49,6 +51,9 @@ namespace Pixeez
 
     public class Auth
     {
+        const string ClientId = "bYGKuGVw91e0NMfPGp44euvGt59s";
+        const string ClientSecret = "HP3RmkgAmEGro0gn1x9ioawQE8WMfvLXDz3ZqxpK";
+
         /// <summary>
         /// <para>Available parameters:</para>
         /// <para>- <c>string</c> username (required)</para>
@@ -61,17 +66,19 @@ namespace Pixeez
             httpClient.DefaultRequestHeaders.Add("Referer", "http://www.pixiv.net/");
             httpClient.DefaultRequestHeaders.Add("User-Agent", "PixivIOSApp/5.8.0");
 
+            // Invalid grant_type parameter or parameter missing
+            
             var param = new FormUrlEncodedContent(new Dictionary<string, string>
             {
                 { "username", username },
                 { "password", password },
                 { "grant_type", "password" },
-                { "client_id", "bYGKuGVw91e0NMfPGp44euvGt59s" },
-                { "client_secret", "HP3RmkgAmEGro0gn1x9ioawQE8WMfvLXDz3ZqxpK" },
+                { "client_id", ClientId },
+                { "client_secret", ClientSecret },
             });
-
+            
             var requestIssued = DateTime.Now;
-            var response = await httpClient.PostAsync("https://oauth.secure.pixiv.net/auth/token", param);
+            var response = await httpClient.PostAsync("https://oauth.secure.pixiv.net/auth/token", param); 
             if (!response.IsSuccessStatusCode)
                 throw new InvalidOperationException();
 
@@ -84,7 +91,8 @@ namespace Pixeez
 
         public static Tokens AuthorizeWithAccessToken(string accessToken, string refreshToken, int expires, DateTime issued)
         {
-            return new Tokens(new Authorize() {
+            return new Tokens(new Authorize()
+            {
                 AccessToken = accessToken,
                 RefreshToken = refreshToken,
                 ExpiresIn = expires,
@@ -150,7 +158,7 @@ namespace Pixeez
                     }
                     uri += query_string;
                 }
-                
+
                 var response = await httpClient.DeleteAsync(uri);
                 asyncResponse = new AsyncResponse(response);
             }
@@ -261,7 +269,7 @@ namespace Pixeez
                 { "type", "touch_nottext" } ,
                 { "show_r18", Convert.ToInt32(showR18).ToString() } ,
             };
-            
+
             if (maxId != 0)
                 param.Add("max_id", maxId.ToString());
 
@@ -293,7 +301,7 @@ namespace Pixeez
 
             return await this.AccessApiAsync<Paginated<UsersFavoriteWork>>(MethodType.GET, url, param);
         }
-        
+
         /// <summary>
         /// <para>Available parameters:</para>
         /// <para>- <c>long</c> workID (required)</para>
