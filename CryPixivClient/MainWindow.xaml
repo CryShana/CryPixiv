@@ -33,10 +33,10 @@
             </ListView.ItemTemplate>
         </ListView>
         <TextBox x:Name="txtSearchQuery" Height="24" Margin="10,14,84,0" TextWrapping="Wrap" VerticalAlignment="Top" FontSize="14" MaxLength="300" MaxLines="1" TabIndex="1"/>
-        <Button x:Name="btnSearch" Content="Search" Margin="0,14,10,0" VerticalAlignment="Top" Height="24" BorderBrush="#FFABADB3" HorizontalAlignment="Right" Width="75" IsDefault="True" TabIndex="2"/>
+        <Button x:Name="btnSearch" Content="Search" Margin="0,14,10,0" VerticalAlignment="Top" Height="24" BorderBrush="#FFABADB3" HorizontalAlignment="Right" Width="75" IsDefault="True" TabIndex="2" Click="btnSearch_Click"/>
         <ProgressBar x:Name="mainProgessBar" Height="10" Margin="0,53,0,0" VerticalAlignment="Top" Foreground="#FF009CFF" Grid.ColumnSpan="2" IsTabStop="False" 
                      IsIndeterminate="{Binding IsWorking, Source={StaticResource mainViewModel}}"/>
-        <Button x:Name="btnBookmarks" Content="Bookmarks" Grid.Column="1" HorizontalAlignment="Left" Margin="182,14,0,0" VerticalAlignment="Top" Width="80" Height="24" TabIndex="5"/>
+        <Button x:Name="btnBookmarks" Content="Bookmarks" Grid.Column="1" HorizontalAlignment="Left" Margin="182,14,0,0" VerticalAlignment="Top" Width="80" Height="24" TabIndex="5" Click="btnBookmarks_Click"/>
         <Button x:Name="btnDailyRankings" Content="Daily Ranking" Grid.Column="1" HorizontalAlignment="Left" Margin="10,14,0,0" VerticalAlignment="Top" Width="94" Height="24" Background="#FFCAE7FF" Click="btnDailyRankings_Click" TabIndex="3"/>
         <StatusBar Height="22" VerticalAlignment="Bottom" Grid.ColumnSpan="2">
             <StatusBarItem Margin="0,-2,0,0">

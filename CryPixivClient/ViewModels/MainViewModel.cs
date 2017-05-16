@@ -23,9 +23,10 @@ namespace CryPixivClient.ViewModels
         string title = "CryPixiv";
         bool isWorking = false;
         string titleSuffix = "";
-        List<Work> dailyRankings;
-        List<Work> bookmarks;
-        List<Work> results;
+        List<Work> dailyRankings = new List<Work>();
+        List<Work> bookmarks = new List<Work>();
+        List<Work> following = new List<Work>();
+        List<Work> results = new List<Work>();
         int columns = 4;
         SynchronizationContext UIContext;
         #endregion
@@ -77,40 +78,39 @@ namespace CryPixivClient.ViewModels
             Changed("Columns");
         }
 
-        public async void ShowDailyRankings()
+        public async Task Show(List<Work> cache, PixivAccount.WorkMode mode, string titleSuffix, string statusPrefix, 
+            Func<int, Task<List<Work>>> getWorks, bool waitForUser = true)
         {
-            // load cached results if they exist
-            int count = dailyRankings?.Count ?? 0;
-            if (dailyRankings != null)
-            {
-                FoundWorks.SwapCollection(dailyRankings);
-            }
-
             // set starting values
-            MainWindow.CurrentWorkMode = PixivAccount.WorkMode.Ranking;
+            MainWindow.CurrentWorkMode = mode;
             MainWindow.DynamicWorksLimit = MainWindow.DefaultWorksLimit;
 
+            // load cached results if they exist
+            FoundWorks.Clear();
+            int count = cache?.Count ?? 0;
+            if (cache != null) FoundWorks.SwapCollection(cache);
+
             // show status
-            TitleSuffix = "Daily Ranking";
-            Status = "Getting daily ranking...";
+            TitleSuffix = titleSuffix;
+            Status = $"{statusPrefix}...";
 
             // start searching...
             await Task.Run(async () =>
             {
-                dailyRankings = new List<Work>();
+                cache.Clear();
                 bool first = false;
                 int currentPage = 0;
                 for (;;)
                 {
                     // if limit exceeded, stop downloading until user scrolls
-                    if (MainWindow.DynamicWorksLimit < dailyRankings.Count)
+                    if (MainWindow.DynamicWorksLimit < cache.Count && waitForUser)
                     {
                         Status = "Waiting for user to scroll to get more works... (" + FoundWorks.Count + " works displayed)";
                         IsWorking = false;
                         await Task.Delay(200);
                         continue;
                     }
-                    if (MainWindow.CurrentWorkMode != PixivAccount.WorkMode.Ranking) break;  // if user changes mode - break;
+                    if (MainWindow.CurrentWorkMode != mode) break;  // if user changes mode - break;
 
                     try
                     {
@@ -119,22 +119,21 @@ namespace CryPixivClient.ViewModels
                         currentPage++;
 
                         // download current page
-                        var works = await MainWindow.Account.GetDailyRanking(currentPage);
-                        if (works == null) break;
+                        var works = await getWorks(currentPage);
+                        if (works == null || MainWindow.CurrentWorkMode != mode) break;
 
                         // if cache has less entries than downloaded - swap cache with newest entries and keep updating...
-                        if (dailyRankings.Count + works.Count > FoundWorks.Count)
+                        if (cache.Count + works.Count > FoundWorks.Count)
                         {
-                            UIContext.Send((a) =>
-                            {
-                                if (first == false) FoundWorks.SwapCollection(dailyRankings);
-                                dailyRankings.AddRange(works);
-                                FoundWorks.AddList(works);
-                                first = true;
-                            }, null);
-                        }
+                            if (first == false) UIContext.Send((a) => FoundWorks.SwapCollection(cache), null);
 
-                        Status = "Getting daily ranking... " + FoundWorks.Count + " works";
+                            cache.AddRange(works);
+                            UIContext.Send((a) => FoundWorks.AddList(works), null);
+                            first = true;
+                        }
+                        else cache.AddRange(works);
+
+                        Status = $"{statusPrefix}... " + FoundWorks.Count + " works";
                     }
                     catch (Exception ex)
                     {
@@ -147,9 +146,18 @@ namespace CryPixivClient.ViewModels
             });
         }
 
-        public async void ShowFollowing()
+        public async void ShowDailyRankings() =>
+            await Show(dailyRankings, PixivAccount.WorkMode.Ranking, "Daily Ranking", "Getting daily ranking", (page) => MainWindow.Account.GetDailyRanking(page));
+
+        public async void ShowFollowing() =>
+            await Show(following, PixivAccount.WorkMode.Following, "Following", "Getting following", (page) => MainWindow.Account.GetFollowing(page));
+
+        public async void ShowBookmarks() =>
+            await Show(bookmarks, PixivAccount.WorkMode.Bookmarks, "Bookmarks", "Getting bookmarks", (page) => MainWindow.Account.GetBookmarks(page));
+
+        internal void ShowSearch()
         {
-            // do stuff
+            throw new NotImplementedException();
         }
     }
 

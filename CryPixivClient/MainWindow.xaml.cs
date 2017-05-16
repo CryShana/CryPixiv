@@ -33,22 +33,26 @@ namespace CryPixivClient
         public MainWindow()
         {
             InitializeComponent();
+
+            // set up all data
+            MainModel = (MainViewModel)FindResource("mainViewModel");
+            PixivAccount.AuthFailed += AuthenticationFailed;
             UIContext = SynchronizationContext.Current;
             LoadWindowData();
             LoadAccount();
 
-            PixivAccount.AuthFailed += AuthenticationFailed;
-            MainModel = (MainViewModel)FindResource("mainViewModel");
+            // set datacontext
             DataContext = MainModel;
 
+            // start
             ShowLoginPrompt();
-            MainModel.ShowDailyRankings();
-            this.Loaded += (a,b) => txtSearchQuery.Focus();
+            btnDailyRankings_Click(this, null);
+            this.Loaded += (a, b) => txtSearchQuery.Focus();
         }
 
         private void AuthenticationFailed(object sender, string e)
         {
-            UIContext.Send((a) => ShowLoginPrompt(true), null);           
+            UIContext.Send((a) => ShowLoginPrompt(true), null);
         }
 
         void ShowLoginPrompt(bool force = false)
@@ -62,6 +66,8 @@ namespace CryPixivClient
 
             SaveAccount();
         }
+
+        #region Saving/Loading
 
         void LoadWindowData()
         {
@@ -106,11 +112,36 @@ namespace CryPixivClient
             Settings.Default.WindowTop = Top;
             Settings.Default.Save();
         }
+        #endregion
 
-        void btnDailyRankings_Click(object sender, RoutedEventArgs e) => MainModel.ShowDailyRankings();
+        #region Main Buttons
+        void btnDailyRankings_Click(object sender, RoutedEventArgs e)
+        {
+            ToggleButton(PixivAccount.WorkMode.Ranking);
+            MainModel.ShowDailyRankings();
+        }
 
-        void btnFollowing_Click(object sender, RoutedEventArgs e) => MainModel.ShowFollowing();
+        void btnFollowing_Click(object sender, RoutedEventArgs e)
+        {
+            ToggleButton(PixivAccount.WorkMode.Following);
+            MainModel.ShowFollowing();
+        }
 
+        void btnBookmarks_Click(object sender, RoutedEventArgs e)
+        {
+            ToggleButton(PixivAccount.WorkMode.Bookmarks);
+            MainModel.ShowBookmarks();
+        }
+
+        void btnSearch_Click(object sender, RoutedEventArgs e)
+        {
+            ToggleButton(PixivAccount.WorkMode.Search);
+            CurrentWorkMode = PixivAccount.WorkMode.Search;
+            MainModel.ShowSearch();
+        }
+        #endregion
+
+        #region Column display control
         void Window_SizeChanged(object sender, SizeChangedEventArgs e)
         {
             MainModel.UpdateColumns(ActualWidth - 20);
@@ -126,14 +157,22 @@ namespace CryPixivClient
 
             // Get scrollviewer
             ScrollViewer scrollViewer = border.Child as ScrollViewer;
-            
+
             // how much further can it go until it asks for updates
             double pointForUpade = scrollViewer.ScrollableHeight * 0.7;
             if (scrollViewer.VerticalOffset > pointForUpade)
             {
                 // update it
                 DynamicWorksLimit += 30;
-            }            
+            }
+        }
+        #endregion
+
+        void ToggleButton(PixivAccount.WorkMode mode)
+        {
+            btnDailyRankings.IsEnabled = mode != PixivAccount.WorkMode.Ranking;
+            btnBookmarks.IsEnabled = mode != PixivAccount.WorkMode.Bookmarks;
+            btnFollowing.IsEnabled = mode != PixivAccount.WorkMode.Following;
         }
     }
 }

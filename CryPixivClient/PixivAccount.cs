@@ -81,11 +81,17 @@ namespace CryPixivClient
             var works = result.First().Works.Select(x => x.Work).ToList();
             return works;
         }
-        public async Task<Paginated<Work>> GetFollowing(int page = 1, Publicity publicity = Publicity.Public)
+        public async Task<List<Work>> GetFollowing(int page = 1, Publicity publicity = Publicity.Public)
         {
             var result = await GetData(() => tokens.GetMyFollowingWorksAsync(page: page, publicity: publicity.ToString().ToLower()));
-            return result;
+            return result.ToList();
         }
+        public async Task<List<Work>> GetBookmarks(int page = 1, Publicity publicity = Publicity.Public)
+        {
+            var result = await GetData(() => tokens.GetMyFavoriteWorksAsync(page: page, publicity: publicity.ToString().ToLower()));
+            return result.Select(x => x.Work).ToList();
+        }
+
         async Task<T> GetData<T>(Func<Task<T>> toDo)
         {
             try
@@ -171,7 +177,8 @@ namespace CryPixivClient
         {
             Ranking,
             Following,
-            Search
+            Search,
+            Bookmarks
         }
     }
 }
