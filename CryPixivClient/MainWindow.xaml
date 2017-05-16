@@ -3,10 +3,30 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="clr-namespace:CryPixivClient.ViewModels"
         xmlns:local="clr-namespace:CryPixivClient"
         mc:Ignorable="d"
         Title="CryPixiv" MinHeight="350" MinWidth="525" Height="350" Width="525" Icon="Images/pixiv.ico" Closing="Window_Closing">
+    <Window.Resources>
+        <vm:MainViewModel x:Key="mainViewModel"></vm:MainViewModel>
+    </Window.Resources>
     <Grid>
-        
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="22*"/>
+            <ColumnDefinition Width="25*"/>
+        </Grid.ColumnDefinitions>
+        <ListView x:Name="mainList" Margin="0,62,0,22" ItemsSource="{Binding FoundWorks, Source={StaticResource mainViewModel}}" Grid.ColumnSpan="2">
+
+        </ListView>
+        <TextBox x:Name="txtSearchQuery" Height="24" Margin="10,14,84,0" TextWrapping="Wrap" VerticalAlignment="Top" FontSize="14" MaxLength="300" MaxLines="1" TabIndex="1"/>
+        <Button x:Name="btnSearch" Content="Search" Margin="0,14,10,0" VerticalAlignment="Top" Height="24" BorderBrush="#FFABADB3" HorizontalAlignment="Right" Width="75" IsDefault="True" TabIndex="2"/>
+        <ProgressBar x:Name="mainProgessBar" Height="10" Margin="0,53,0,0" VerticalAlignment="Top" Foreground="#FF009CFF" Grid.ColumnSpan="2" IsTabStop="False"/>
+        <Button x:Name="btnBookmarks" Content="Bookmarks" Grid.Column="1" HorizontalAlignment="Left" Margin="10,14,0,0" VerticalAlignment="Top" Width="80" Height="24"/>
+        <Button x:Name="btnDailyRankings" Content="Daily Rankings" Grid.Column="1" HorizontalAlignment="Left" Margin="98,14,0,0" VerticalAlignment="Top" Width="94" Height="24" Background="#FFCAE7FF"/>
+        <StatusBar Height="22" VerticalAlignment="Bottom" Grid.ColumnSpan="2">
+            <StatusBarItem Margin="0,-2,0,0">
+                <TextBlock x:Name="txtStatus" Text="{Binding Status, Source={StaticResource mainViewModel}}"></TextBlock>
+            </StatusBarItem>
+        </StatusBar>
     </Grid>
 </Window>

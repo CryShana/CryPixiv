@@ -1,4 +1,5 @@
 ﻿using CryPixivClient.Properties;
+using CryPixivClient.ViewModels;
 using CryPixivClient.Windows;
 using System;
 using System.Collections.Generic;
@@ -20,14 +21,18 @@ namespace CryPixivClient
 {
     public partial class MainWindow : Window
     {
+        public static MainViewModel MainModel;
         public static PixivAccount Account = null;
         public MainWindow()
         {
             InitializeComponent();
+            LoadWindowData();
+            LoadAccount();
 
             PixivAccount.AuthFailed += AuthenticationFailed;
+            MainModel = (MainViewModel)FindResource("mainViewModel");
+            DataContext = MainModel;
 
-            LoadAccount();
             ShowLoginPrompt();
         }
 
@@ -36,7 +41,7 @@ namespace CryPixivClient
             ShowLoginPrompt(true);
         }
 
-        async void ShowLoginPrompt(bool force = false)
+        void ShowLoginPrompt(bool force = false)
         {
             if (Account?.AuthDetails?.IsExpired == false && force == false) return;
 
@@ -46,6 +51,17 @@ namespace CryPixivClient
             if (Account == null || Account.IsLoggedIn == false) { Environment.Exit(1); return; }
 
             SaveAccount();
+        }
+
+        void LoadWindowData()
+        {
+            if (Settings.Default.WindowHeight > 10)
+            {
+                Height = Settings.Default.WindowHeight;
+                Width = Settings.Default.WindowWidth;
+                Left = Settings.Default.WindowLeft;
+                Top = Settings.Default.WindowTop;
+            }
         }
 
         void LoadAccount()
