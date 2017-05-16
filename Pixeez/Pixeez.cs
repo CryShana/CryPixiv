@@ -70,29 +70,37 @@ namespace Pixeez
                 { "client_secret", "HP3RmkgAmEGro0gn1x9ioawQE8WMfvLXDz3ZqxpK" },
             });
 
+            var requestIssued = DateTime.Now;
             var response = await httpClient.PostAsync("https://oauth.secure.pixiv.net/auth/token", param);
             if (!response.IsSuccessStatusCode)
                 throw new InvalidOperationException();
 
             var json = await response.Content.ReadAsStringAsync();
             var authorize = JToken.Parse(json).SelectToken("response").ToObject<Authorize>();
+            authorize.TimeIssued = requestIssued;
 
-            return new Tokens(authorize.AccessToken);
+            return new Tokens(authorize);
         }
 
-        public static Tokens AuthorizeWithAccessToken(string accessToken)
+        public static Tokens AuthorizeWithAccessToken(string accessToken, string refreshToken, int expires, DateTime issued)
         {
-            return new Tokens(accessToken);
+            return new Tokens(new Authorize() {
+                AccessToken = accessToken,
+                RefreshToken = refreshToken,
+                ExpiresIn = expires,
+                TimeIssued = issued
+            });
         }
     }
 
     public class Tokens
     {
-        public string AccessToken { get; private set; }
+        public Authorize AuthDetails { get; private set; }
+        public string AccessToken => AuthDetails.AccessToken;
 
-        internal Tokens(string accessToken)
+        internal Tokens(Authorize auth)
         {
-            this.AccessToken = accessToken;
+            AuthDetails = auth;
         }
 
         /// <summary>

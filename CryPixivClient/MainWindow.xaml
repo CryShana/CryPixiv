@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:CryPixivClient"
         mc:Ignorable="d"
-        Title="CryPixiv" MinHeight="350" MinWidth="525" Height="350" Width="525">
+        Title="CryPixiv" MinHeight="350" MinWidth="525" Height="350" Width="525" Icon="Images/pixiv.ico" Closing="Window_Closing">
     <Grid>
         
     </Grid>

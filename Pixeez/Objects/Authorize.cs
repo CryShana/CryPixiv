@@ -27,5 +27,8 @@ namespace Pixeez.Objects
 
         [JsonProperty("user")]
         public User User { get; set; }
+
+        public DateTime TimeIssued { get; set; }
+        public bool IsExpired => DateTime.Now.Subtract(TimeIssued.AddSeconds(ExpiresIn ?? 0)).TotalSeconds >= 0;
     }
 }

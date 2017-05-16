@@ -1,0 +1,20 @@
+﻿<Window x:Class="CryPixivClient.Windows.LoginWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:CryPixivClient.Windows"
+        mc:Ignorable="d"
+        Title="Login" Height="166" Width="328" ResizeMode="NoResize" Topmost="True" WindowStartupLocation="CenterScreen" Icon="/CryPixivClient;component/Images/pixiv.ico">
+    <Grid>
+        <TextBox x:Name="txtUsername" Height="26" Margin="42,13,10,0" TextWrapping="Wrap" VerticalAlignment="Top" TabIndex="1" FontSize="16"/>
+        <PasswordBox x:Name="txtPassword" Margin="42,44,85,0" Height="26" VerticalAlignment="Top" TabIndex="2" FontSize="16"/>
+        <Image HorizontalAlignment="Left" Height="23" Margin="16,15,0,0" VerticalAlignment="Top" Width="22" Panel.ZIndex="1" Source="/CryPixivClient;component/Images/username.png" RenderOptions.BitmapScalingMode="Fant"/>
+        <Canvas HorizontalAlignment="Left" Height="26" Margin="12,13,0,0" VerticalAlignment="Top" Width="30" Background="#FFABADB3"/>
+        <Image HorizontalAlignment="Left" Height="19" Margin="18,47,0,0" VerticalAlignment="Top" Width="19" Panel.ZIndex="1" Source="/CryPixivClient;component/Images/password.png" RenderOptions.BitmapScalingMode="Fant"/>
+        <Canvas HorizontalAlignment="Left" Height="26" Margin="12,44,0,0" VerticalAlignment="Top" Width="30" Background="#FFABADB3"/>
+        <Button x:Name="btnLogin" Content="Login" Padding="0" Margin="236,44,10,0" VerticalAlignment="Top" Height="26" BorderBrush="#FFABADB3" IsDefault="True" TabIndex="3" Click="Login_Click"/>
+        <ProgressBar x:Name="progressBar" Height="10" Margin="12,88,10,0" VerticalAlignment="Top" IsIndeterminate="True" Foreground="#FF009CFF"/>
+        <TextBlock x:Name="txtStatus" HorizontalAlignment="Left" Margin="12,103,0,0" TextWrapping="Wrap" Text="Idle." VerticalAlignment="Top" Foreground="#FF11A4C5"/>
+    </Grid>
+</Window>
