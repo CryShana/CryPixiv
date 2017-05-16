@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Net.Http;
 using System.Text;
@@ -135,6 +136,10 @@ namespace Pixeez.Objects
 
         [JsonProperty("content_type")]
         public string ContentType { get; set; }
+
+        public string AccessToken = "";
+
+
 
         public string GetImageUri(string baseUri, int pageNumber = 0)
         {

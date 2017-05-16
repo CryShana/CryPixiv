@@ -200,8 +200,8 @@ namespace Pixeez
                 }
                 catch(NullReferenceException nex)
                 {
-                    // NOT FOUND ERROR
-                    return null;
+                    if (json.Contains("存在しないランキングページを参照しています")) return null; // reached end
+                    else throw;
                 }
 
                 if (obj is IPagenated)
@@ -211,14 +211,23 @@ namespace Pixeez
             }
         }
 
-        public async Task<byte[]> DownloadImage(Work work, string baseUri = null, int pageNumber = 0)
+        public byte[] DownloadImage(string baseUri = null)
         {
             HttpClient client = new HttpClient();
             client.DefaultRequestHeaders.Add("Referer", "http://spapi.pixiv.net/");
             client.DefaultRequestHeaders.Add("User-Agent", "PixivIOSApp/5.8.0");
             client.DefaultRequestHeaders.Add("Authorization", "Bearer " + this.AccessToken);
 
-            return await client.GetByteArrayAsync(work.GetImageUri(baseUri, pageNumber));
+            return client.GetByteArrayAsync(baseUri).Result;
+        }
+        public async Task<byte[]> DownloadImageAsync(string baseUri = null)
+        {
+            HttpClient client = new HttpClient();
+            client.DefaultRequestHeaders.Add("Referer", "http://spapi.pixiv.net/");
+            client.DefaultRequestHeaders.Add("User-Agent", "PixivIOSApp/5.8.0");
+            client.DefaultRequestHeaders.Add("Authorization", "Bearer " + this.AccessToken);
+
+            return await client.GetByteArrayAsync(baseUri);
         }
 
         /// <summary>

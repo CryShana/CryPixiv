@@ -29,6 +29,7 @@ namespace CryPixivClient
         public static int DynamicWorksLimit = 100;
         public const int DefaultWorksLimit = 100;
         public static PixivAccount.WorkMode CurrentWorkMode;
+        public static CollectionViewSource MainCollectionView;
 
         public MainWindow()
         {
@@ -36,6 +37,7 @@ namespace CryPixivClient
 
             // set up all data
             MainModel = (MainViewModel)FindResource("mainViewModel");
+            MainCollectionView = (CollectionViewSource)FindResource("ItemListViewSource");
             PixivAccount.AuthFailed += AuthenticationFailed;
             UIContext = SynchronizationContext.Current;
             LoadWindowData();
@@ -117,27 +119,35 @@ namespace CryPixivClient
         #region Main Buttons
         void btnDailyRankings_Click(object sender, RoutedEventArgs e)
         {
-            ToggleButton(PixivAccount.WorkMode.Ranking);
-            MainModel.ShowDailyRankings();
+            ToggleButtons(PixivAccount.WorkMode.Ranking);
+            MainCollectionView.SortDescriptions.Clear();
+            MainModel.ShowDailyRankings(); 
         }
 
         void btnFollowing_Click(object sender, RoutedEventArgs e)
         {
-            ToggleButton(PixivAccount.WorkMode.Following);
+            ToggleButtons(PixivAccount.WorkMode.Following);
+            MainCollectionView.SortDescriptions.Clear();
             MainModel.ShowFollowing();
         }
 
         void btnBookmarks_Click(object sender, RoutedEventArgs e)
         {
-            ToggleButton(PixivAccount.WorkMode.Bookmarks);
+            ToggleButtons(PixivAccount.WorkMode.Bookmarks);
+            MainCollectionView.SortDescriptions.Clear();
             MainModel.ShowBookmarks();
         }
 
         void btnSearch_Click(object sender, RoutedEventArgs e)
         {
-            ToggleButton(PixivAccount.WorkMode.Search);
-            CurrentWorkMode = PixivAccount.WorkMode.Search;
-            MainModel.ShowSearch();
+            ToggleButtons(PixivAccount.WorkMode.Search);           
+            MainModel.ShowSearch(txtSearchQuery.Text, checkPopular.IsChecked == true);
+        }
+        private void btnResults_Click(object sender, RoutedEventArgs e)
+        {
+            ToggleButtons(PixivAccount.WorkMode.Search);
+            txtSearchQuery.Text = MainModel.LastSearchQuery;
+            MainModel.ShowSearch(null, checkPopular.IsChecked == true);  // "null" as search query will attempt to use the previous query
         }
         #endregion
 
@@ -168,11 +178,20 @@ namespace CryPixivClient
         }
         #endregion
 
-        void ToggleButton(PixivAccount.WorkMode mode)
+        void ToggleButtons(PixivAccount.WorkMode mode)
         {
             btnDailyRankings.IsEnabled = mode != PixivAccount.WorkMode.Ranking;
             btnBookmarks.IsEnabled = mode != PixivAccount.WorkMode.Bookmarks;
             btnFollowing.IsEnabled = mode != PixivAccount.WorkMode.Following;
+            btnResults.IsEnabled = mode != PixivAccount.WorkMode.Search && MainModel.LastSearchQuery != null;
+        }
+
+        void checkPopular_Click(object sender, RoutedEventArgs e)
+        {
+            if (CurrentWorkMode != PixivAccount.WorkMode.Search) return;
+
+            MainCollectionView.SortDescriptions.Clear();
+            if (checkPopular.IsChecked == true) MainCollectionView.SortDescriptions.Add(new System.ComponentModel.SortDescription("Stats.Score", System.ComponentModel.ListSortDirection.Descending));
         }
     }
 }

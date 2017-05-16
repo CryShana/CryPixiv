@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
@@ -9,16 +10,19 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows.Data;
 
 namespace CryPixivClient.ViewModels
 {
     public class MainViewModel : INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler PropertyChanged;
+
         public void Changed([CallerMemberName]string name = "") => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
 
         #region Private fields
         ObservableCollection<Work> foundWorks = new ObservableCollection<Work>();
+
         string status = "Idle";
         string title = "CryPixiv";
         bool isWorking = false;
@@ -27,6 +31,7 @@ namespace CryPixivClient.ViewModels
         List<Work> bookmarks = new List<Work>();
         List<Work> following = new List<Work>();
         List<Work> results = new List<Work>();
+        string lastSearchQuery = null;
         int columns = 4;
         SynchronizationContext UIContext;
         #endregion
@@ -60,11 +65,12 @@ namespace CryPixivClient.ViewModels
 
         public int Columns => columns;
 
+        public string LastSearchQuery => lastSearchQuery;
         #endregion
 
         public MainViewModel()
         {
-            UIContext = SynchronizationContext.Current;
+            UIContext = SynchronizationContext.Current;         
         }
 
         public void UpdateColumns(double w)
@@ -78,7 +84,7 @@ namespace CryPixivClient.ViewModels
             Changed("Columns");
         }
 
-        public async Task Show(List<Work> cache, PixivAccount.WorkMode mode, string titleSuffix, string statusPrefix, 
+        public async Task Show(List<Work> cache, PixivAccount.WorkMode mode, string titleSuffix, string statusPrefix,
             Func<int, Task<List<Work>>> getWorks, bool waitForUser = true)
         {
             // set starting values
@@ -102,6 +108,8 @@ namespace CryPixivClient.ViewModels
                 int currentPage = 0;
                 for (;;)
                 {
+                    if (MainWindow.CurrentWorkMode != mode) break;  // if user changes mode - break;
+
                     // if limit exceeded, stop downloading until user scrolls
                     if (MainWindow.DynamicWorksLimit < cache.Count && waitForUser)
                     {
@@ -110,7 +118,6 @@ namespace CryPixivClient.ViewModels
                         await Task.Delay(200);
                         continue;
                     }
-                    if (MainWindow.CurrentWorkMode != mode) break;  // if user changes mode - break;
 
                     try
                     {
@@ -141,8 +148,11 @@ namespace CryPixivClient.ViewModels
                     }
                 }
 
-                IsWorking = false;
-                Status = "Done. (Found " + FoundWorks.Count + " works)";
+                if (MainWindow.CurrentWorkMode == mode)
+                {
+                    IsWorking = false;
+                    Status = "Done. (Found " + FoundWorks.Count + " works)";
+                }
             });
         }
 
@@ -155,9 +165,91 @@ namespace CryPixivClient.ViewModels
         public async void ShowBookmarks() =>
             await Show(bookmarks, PixivAccount.WorkMode.Bookmarks, "Bookmarks", "Getting bookmarks", (page) => MainWindow.Account.GetBookmarks(page));
 
-        internal void ShowSearch()
+        Queue<CancellationTokenSource> queuedTasks = new Queue<CancellationTokenSource>();
+        public async void ShowSearch(string query, bool autosort = true)
         {
-            throw new NotImplementedException();
+            bool otherWasRunning = LastSearchQuery != query && query != null;
+
+            if (query == null) query = LastSearchQuery;
+            int maxResultCount = -1;
+            lastSearchQuery = query;
+
+            // cancel other running tasks
+            while (queuedTasks.Count != 0)
+            {
+                var dq = queuedTasks.Dequeue();
+                if (dq.IsCancellationRequested) continue;
+                else dq.Cancel();
+            }
+
+            // set starting values
+            var mode = PixivAccount.WorkMode.Search;
+            MainWindow.CurrentWorkMode = mode;
+
+            // load cached results if they exist
+            FoundWorks.Clear();
+            int count = results?.Count ?? 0;
+            if (results != null && otherWasRunning == false) FoundWorks.SwapCollection(results);
+
+            // show status
+            TitleSuffix = "";
+            Status = "Searching...";
+
+            var csrc = new CancellationTokenSource();
+            queuedTasks.Enqueue(csrc);
+
+            // start searching...
+            await Task.Run(async () =>
+            {
+                results.Clear();
+                bool first = false;
+                int currentPage = 0;
+                for (;;)
+                {
+                    if (MainWindow.CurrentWorkMode != mode || csrc.IsCancellationRequested) break; // if user changes mode or requests task to be cancelled - break;
+                    // check if max results reached
+                    if (maxResultCount != -1 && maxResultCount <= results.Count) break;
+
+                    try
+                    {
+                        // start downloading next page
+                        IsWorking = true;
+                        currentPage++;
+
+                        // download current page
+                        var works = await MainWindow.Account.SearchWorks(query, currentPage);
+                        if (works == null || MainWindow.CurrentWorkMode != mode || csrc.IsCancellationRequested) break;
+                        if (maxResultCount == -1) maxResultCount = works.Pagination.Total ?? 0;
+
+                        // if cache has less entries than downloaded - swap cache with newest entries and keep updating...
+                        if (results.Count + works.Count > FoundWorks.Count)
+                        {
+                            if (first == false) UIContext.Send((a) => FoundWorks.SwapCollection(results), null);
+
+                            results.AddRange(works);
+
+                            UIContext.Send((a) =>
+                            {
+                                FoundWorks.AddList(works);
+                            }, null);
+                            first = true;
+                        }
+                        else results.AddRange(works);
+
+                        Status = $"Searching... {FoundWorks.Count}/{maxResultCount} works";
+                    }
+                    catch (Exception ex)
+                    {
+                        break;
+                    }
+                }
+
+                if (MainWindow.CurrentWorkMode == mode)
+                {
+                    IsWorking = false;
+                    Status = "Done. (Found " + FoundWorks.Count + " works)";
+                }
+            }, csrc.Token);
         }
     }
 

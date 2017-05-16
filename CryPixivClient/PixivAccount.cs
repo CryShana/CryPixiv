@@ -109,6 +109,9 @@ namespace CryPixivClient
             }
         }
 
+        public byte[] DownloadImage(string url) => tokens.DownloadImage(url);
+        public async Task<byte[]> DownloadImageAsync(string url) => await tokens.DownloadImageAsync(url);
+
         public static string EncryptPassword(string password, string refreshtoken)
         {
             try
