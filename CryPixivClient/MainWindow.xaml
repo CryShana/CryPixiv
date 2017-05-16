@@ -5,28 +5,44 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:vm="clr-namespace:CryPixivClient.ViewModels"
         xmlns:local="clr-namespace:CryPixivClient"
-        mc:Ignorable="d"
-        Title="CryPixiv" MinHeight="350" MinWidth="525" Height="350" Width="525" Icon="Images/pixiv.ico" Closing="Window_Closing">
+        mc:Ignorable="d" MinHeight="350" MinWidth="525" Height="350" Width="525" Icon="Images/pixiv.ico" Closing="Window_Closing" SizeChanged="Window_SizeChanged" StateChanged="Window_StateChanged">
     <Window.Resources>
         <vm:MainViewModel x:Key="mainViewModel"></vm:MainViewModel>
     </Window.Resources>
+    <Window.Title>
+        <Binding Mode="OneWay" Path="Title" Source="{StaticResource mainViewModel}"/>
+    </Window.Title>
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="22*"/>
             <ColumnDefinition Width="25*"/>
         </Grid.ColumnDefinitions>
-        <ListView x:Name="mainList" Margin="0,62,0,22" ItemsSource="{Binding FoundWorks, Source={StaticResource mainViewModel}}" Grid.ColumnSpan="2">
-
+        <ListView x:Name="mainList" Margin="0,62,0,22" ItemsSource="{Binding FoundWorks, Source={StaticResource mainViewModel}}" Grid.ColumnSpan="2" ScrollViewer.CanContentScroll="False"
+                  ScrollViewer.ScrollChanged="mainList_ScrollChanged">
+            <ListView.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <UniformGrid Columns="{Binding Columns, Mode=OneWay, Source={StaticResource mainViewModel}}" HorizontalAlignment="Center" VerticalAlignment="Top"/>
+                </ItemsPanelTemplate>
+            </ListView.ItemsPanel>
+            <ListView.ItemTemplate>
+                <DataTemplate>
+                    <StackPanel>
+                        <Image Source="{Binding ImageUrls.Px128x128}" Stretch="Uniform"/>
+                    </StackPanel>
+                </DataTemplate>
+            </ListView.ItemTemplate>
         </ListView>
         <TextBox x:Name="txtSearchQuery" Height="24" Margin="10,14,84,0" TextWrapping="Wrap" VerticalAlignment="Top" FontSize="14" MaxLength="300" MaxLines="1" TabIndex="1"/>
         <Button x:Name="btnSearch" Content="Search" Margin="0,14,10,0" VerticalAlignment="Top" Height="24" BorderBrush="#FFABADB3" HorizontalAlignment="Right" Width="75" IsDefault="True" TabIndex="2"/>
-        <ProgressBar x:Name="mainProgessBar" Height="10" Margin="0,53,0,0" VerticalAlignment="Top" Foreground="#FF009CFF" Grid.ColumnSpan="2" IsTabStop="False"/>
-        <Button x:Name="btnBookmarks" Content="Bookmarks" Grid.Column="1" HorizontalAlignment="Left" Margin="10,14,0,0" VerticalAlignment="Top" Width="80" Height="24"/>
-        <Button x:Name="btnDailyRankings" Content="Daily Rankings" Grid.Column="1" HorizontalAlignment="Left" Margin="98,14,0,0" VerticalAlignment="Top" Width="94" Height="24" Background="#FFCAE7FF"/>
+        <ProgressBar x:Name="mainProgessBar" Height="10" Margin="0,53,0,0" VerticalAlignment="Top" Foreground="#FF009CFF" Grid.ColumnSpan="2" IsTabStop="False" 
+                     IsIndeterminate="{Binding IsWorking, Source={StaticResource mainViewModel}}"/>
+        <Button x:Name="btnBookmarks" Content="Bookmarks" Grid.Column="1" HorizontalAlignment="Left" Margin="182,14,0,0" VerticalAlignment="Top" Width="80" Height="24" TabIndex="5"/>
+        <Button x:Name="btnDailyRankings" Content="Daily Ranking" Grid.Column="1" HorizontalAlignment="Left" Margin="10,14,0,0" VerticalAlignment="Top" Width="94" Height="24" Background="#FFCAE7FF" Click="btnDailyRankings_Click" TabIndex="3"/>
         <StatusBar Height="22" VerticalAlignment="Bottom" Grid.ColumnSpan="2">
             <StatusBarItem Margin="0,-2,0,0">
                 <TextBlock x:Name="txtStatus" Text="{Binding Status, Source={StaticResource mainViewModel}}"></TextBlock>
             </StatusBarItem>
         </StatusBar>
+        <Button x:Name="btnFollowing" Content="Following" Grid.Column="1" HorizontalAlignment="Left" Margin="109,14,0,0" VerticalAlignment="Top" Width="68" Height="24" Background="#FFFFF8CA" Click="btnFollowing_Click" TabIndex="4"/>
     </Grid>
 </Window>

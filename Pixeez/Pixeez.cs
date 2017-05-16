@@ -193,7 +193,16 @@ namespace Pixeez
             using (var response = await this.SendRequestAsync(type, url, param, headers))
             {
                 var json = await response.GetResponseStringAsync();
-                var obj = JToken.Parse(json).SelectToken("response").ToObject<T>();
+                T obj = default(T);
+                try
+                {
+                    obj = JToken.Parse(json).SelectToken("response").ToObject<T>();
+                }
+                catch(NullReferenceException nex)
+                {
+                    // NOT FOUND ERROR
+                    return null;
+                }
 
                 if (obj is IPagenated)
                     ((IPagenated)obj).Pagination = JToken.Parse(json).SelectToken("pagination").ToObject<Pagination>();
@@ -372,7 +381,7 @@ namespace Pixeez
         /// <para>- <c>bool</c> includeSanityLevel (optional)</para>
         /// </summary>
         /// <returns>UsersWorks. (Pagenated)</returns>
-        public async Task<Paginated<UsersWork>> GetMyFollowingWorksAsync(int page = 1, int perPage = 30, string publicity = "public", bool includeSanityLevel = true)
+        public async Task<Paginated<Work>> GetMyFollowingWorksAsync(int page = 1, int perPage = 30, string publicity = "public", bool includeSanityLevel = true)
         {
             var url = "https://public-api.secure.pixiv.net/v1/me/following/works.json";
 
@@ -387,7 +396,7 @@ namespace Pixeez
                 { "profile_image_sizes", "px_170x170,px_50x50" } ,
             };
 
-            return await this.AccessApiAsync<Paginated<UsersWork>>(MethodType.GET, url, param);
+            return await this.AccessApiAsync<Paginated<Work>>(MethodType.GET, url, param);
         }
 
         /// <summary>
@@ -399,7 +408,7 @@ namespace Pixeez
         /// <para>- <c>bool</c> includeSanityLevel (optional)</para>
         /// </summary>
         /// <returns>UsersWorks. (Pagenated)</returns>
-        public async Task<Paginated<UsersWork>> GetUsersWorksAsync(long authorId, int page = 1, int perPage = 30, string publicity = "public", bool includeSanityLevel = true)
+        public async Task<Paginated<Work>> GetUsersWorksAsync(long authorId, int page = 1, int perPage = 30, string publicity = "public", bool includeSanityLevel = true)
         {
             var url = "https://public-api.secure.pixiv.net/v1/users/" + authorId.ToString() + "/works.json";
 
@@ -414,7 +423,7 @@ namespace Pixeez
                 { "profile_image_sizes", "px_170x170,px_50x50" } ,
             };
 
-            return await this.AccessApiAsync<Paginated<UsersWork>>(MethodType.GET, url, param);
+            return await this.AccessApiAsync<Paginated<Work>>(MethodType.GET, url, param);
         }
 
         /// <summary>

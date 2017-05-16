@@ -72,9 +72,20 @@ namespace CryPixivClient
                 return new Tuple<bool, string>(false, ex.Message);
             }
         }
-        public async Task<Paginated<Work>> SearchWorks(string searchQuery, int page = 1) 
-            => await GetData(() => tokens.SearchWorksAsync(searchQuery, page));
+        public async Task<Paginated<Work>> SearchWorks(string searchQuery, int page = 1) => await GetData(() => tokens.SearchWorksAsync(searchQuery, page));
+        public async Task<List<Work>> GetDailyRanking(int page = 1)
+        {
+            var result = await GetData(() => tokens.GetRankingAllAsync(page: page));
+            if (result == null) return null;
 
+            var works = result.First().Works.Select(x => x.Work).ToList();
+            return works;
+        }
+        public async Task<Paginated<Work>> GetFollowing(int page = 1, Publicity publicity = Publicity.Public)
+        {
+            var result = await GetData(() => tokens.GetMyFollowingWorksAsync(page: page, publicity: publicity.ToString().ToLower()));
+            return result;
+        }
         async Task<T> GetData<T>(Func<Task<T>> toDo)
         {
             try
@@ -149,6 +160,18 @@ namespace CryPixivClient
             {
                 return "";
             }
+        }
+
+        public enum Publicity
+        {
+            Public,
+            Private
+        }
+        public enum WorkMode
+        {
+            Ranking,
+            Following,
+            Search
         }
     }
 }

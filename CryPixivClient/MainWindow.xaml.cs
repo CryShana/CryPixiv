@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -23,9 +24,16 @@ namespace CryPixivClient
     {
         public static MainViewModel MainModel;
         public static PixivAccount Account = null;
+        public static SynchronizationContext UIContext;
+
+        public static int DynamicWorksLimit = 100;
+        public const int DefaultWorksLimit = 100;
+        public static PixivAccount.WorkMode CurrentWorkMode;
+
         public MainWindow()
         {
             InitializeComponent();
+            UIContext = SynchronizationContext.Current;
             LoadWindowData();
             LoadAccount();
 
@@ -34,11 +42,13 @@ namespace CryPixivClient
             DataContext = MainModel;
 
             ShowLoginPrompt();
+            MainModel.ShowDailyRankings();
+            this.Loaded += (a,b) => txtSearchQuery.Focus();
         }
 
         private void AuthenticationFailed(object sender, string e)
         {
-            ShowLoginPrompt(true);
+            UIContext.Send((a) => ShowLoginPrompt(true), null);           
         }
 
         void ShowLoginPrompt(bool force = false)
@@ -95,6 +105,35 @@ namespace CryPixivClient
             Settings.Default.WindowLeft = Left;
             Settings.Default.WindowTop = Top;
             Settings.Default.Save();
+        }
+
+        void btnDailyRankings_Click(object sender, RoutedEventArgs e) => MainModel.ShowDailyRankings();
+
+        void btnFollowing_Click(object sender, RoutedEventArgs e) => MainModel.ShowFollowing();
+
+        void Window_SizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            MainModel.UpdateColumns(ActualWidth - 20);
+            mainList_ScrollChanged(mainList, null);
+        }
+
+        void Window_StateChanged(object sender, EventArgs e) => Window_SizeChanged(this, null);
+
+        void mainList_ScrollChanged(object sender, ScrollChangedEventArgs e)
+        {
+            // Get the border of the listview(first child of a listview)
+            Decorator border = VisualTreeHelper.GetChild((ListView)sender, 0) as Decorator;
+
+            // Get scrollviewer
+            ScrollViewer scrollViewer = border.Child as ScrollViewer;
+            
+            // how much further can it go until it asks for updates
+            double pointForUpade = scrollViewer.ScrollableHeight * 0.7;
+            if (scrollViewer.VerticalOffset > pointForUpade)
+            {
+                // update it
+                DynamicWorksLimit += 30;
+            }            
         }
     }
 }
