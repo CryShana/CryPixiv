@@ -22,7 +22,7 @@ namespace CryPixivClient.Objects
         {
             this.CheckReentrancy();
             foreach (var item in items) if(predicate(item)) this.Items.Add(item);
-            this.OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset);
+            this.OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
         }
     }
 }

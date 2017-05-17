@@ -24,7 +24,11 @@ namespace CryPixivClient.ViewModels
         public void Changed([CallerMemberName]string name = "") => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
 
         #region Private fields
-        MyObservableCollection<PixivWork> foundWorks = new MyObservableCollection<PixivWork>();
+        MyObservableCollection<PixivWork> displayedWorks_Results = new MyObservableCollection<PixivWork>();
+        MyObservableCollection<PixivWork> displayedWorks_Ranking = new MyObservableCollection<PixivWork>();
+        MyObservableCollection<PixivWork> displayedWorks_Following = new MyObservableCollection<PixivWork>();
+        MyObservableCollection<PixivWork> displayedWorks_Bookmarks = new MyObservableCollection<PixivWork>();
+
         readonly SemaphoreSlim semaphore;
         string status = "Idle";
         string title = "CryPixiv";
@@ -44,10 +48,25 @@ namespace CryPixivClient.ViewModels
         #endregion
 
         #region Properties
-        public MyObservableCollection<PixivWork> FoundWorks
+        public MyObservableCollection<PixivWork> DisplayedWorks_Results
         {
-            get => foundWorks;
-            set { foundWorks = value; Changed(); }
+            get => displayedWorks_Results;
+            set { displayedWorks_Results = value; Changed(); }
+        }
+        public MyObservableCollection<PixivWork> DisplayedWorks_Ranking
+        {
+            get => displayedWorks_Ranking;
+            set { displayedWorks_Ranking = value; Changed(); }
+        }
+        public MyObservableCollection<PixivWork> DisplayedWorks_Following
+        {
+            get => displayedWorks_Following;
+            set { displayedWorks_Following = value; Changed(); }
+        }
+        public MyObservableCollection<PixivWork> DisplayedWorks_Bookmarks
+        {
+            get => displayedWorks_Bookmarks;
+            set { displayedWorks_Bookmarks = value; Changed(); }
         }
 
         public int CurrentPageResults { get => currentPageResults; set { currentPageResults = value; } }
@@ -100,7 +119,7 @@ namespace CryPixivClient.ViewModels
 
 
         #region Show Methods
-        public async Task Show(List<PixivWork> cache, PixivAccount.WorkMode mode, string titleSuffix, string statusPrefix,
+        public async Task Show(List<PixivWork> cache, MyObservableCollection<PixivWork> displayCollection, PixivAccount.WorkMode mode, string titleSuffix, string statusPrefix,
             Func<int, Task<List<PixivWork>>> getWorks, bool waitForUser = true)
         {
             // set starting values
@@ -109,9 +128,8 @@ namespace CryPixivClient.ViewModels
 
             // load cached results if they exist
             await semaphore.WaitAsync();
-            FoundWorks.Clear();
-            int count = cache?.Count ?? 0;
-            if (cache != null) FoundWorks.SwapCollection(cache);
+            MainWindow.MainCollectionView.Source = displayCollection;
+            // refresh if necessary
             semaphore.Release();
 
             // show status
@@ -121,9 +139,7 @@ namespace CryPixivClient.ViewModels
             // start searching...
             await Task.Run(async () =>
             {
-                var backupCache = cache.Copy();
                 cache.Clear();
-                bool first = false;
                 int currentPage = 0;
                 for (;;)
                 {
@@ -132,7 +148,7 @@ namespace CryPixivClient.ViewModels
                     // if limit exceeded, stop downloading until user scrolls
                     if (MainWindow.DynamicWorksLimit < cache.Count && waitForUser)
                     {
-                        Status = "Waiting for user to scroll to get more works... (" + FoundWorks.Count + " works displayed)";
+                        Status = "Waiting for user to scroll to get more works... (" + displayCollection.Count + " works displayed)";
                         IsWorking = false;
                         await Task.Delay(200);
                         continue;
@@ -148,28 +164,15 @@ namespace CryPixivClient.ViewModels
                         var works = await getWorks(currentPage);
                         if (works == null || MainWindow.CurrentWorkMode != mode || works.Count == 0) break;
 
-                        // if cache has less entries than downloaded - swap cache with newest entries and keep updating...
-                        if (cache.Count + works.Count > FoundWorks.Count)
+                        cache.AddRange(works);
+                        UIContext.Send(async (a) =>
                         {
-                            if (first == false) UIContext.Send(async (a) =>
-                            {
-                                await semaphore.WaitAsync();
-                                FoundWorks.AddToCollection(cache);
-                                semaphore.Release();
-                            }, null);
+                            await semaphore.WaitAsync();
+                            displayCollection.AddToCollection(works);
+                            semaphore.Release();
+                        }, null);
 
-                            cache.AddRange(works);
-                            UIContext.Send(async (a) =>
-                            {
-                                await semaphore.WaitAsync();
-                                FoundWorks.AddList(works);
-                                semaphore.Release();
-                            }, null);
-                            first = true;
-                        }
-                        else cache.AddRange(works);
-
-                        Status = $"{statusPrefix}... " + cache.Count + " works" + ((FoundWorks.Count > cache.Count) ? $" (Displayed: {FoundWorks.Count} works from cache)" : "");
+                        Status = $"{statusPrefix}... " + cache.Count + " works" + ((displayCollection.Count > cache.Count) ? $" (Displayed: {displayCollection.Count} works from cache)" : "");
                     }
                     catch (Exception ex)
                     {
@@ -177,11 +180,10 @@ namespace CryPixivClient.ViewModels
                     }
                 }
 
-                if (cache.Count < backupCache.Count) cache.SwapList(backupCache);
                 if (MainWindow.CurrentWorkMode == mode)
                 {
                     IsWorking = false;
-                    Status = "Done. (Found " + FoundWorks.Count + " works)";
+                    Status = "Done. (Found " + displayCollection.Count + " works)";
                 }
             });
         }
@@ -207,9 +209,13 @@ namespace CryPixivClient.ViewModels
 
             // load cached results if they exist
             await semaphore.WaitAsync();
-            FoundWorks.Clear();
-            int count = results?.Count ?? 0;
-            if (results != null && otherWasRunning == false) FoundWorks.SwapCollection(results);
+            if (otherWasRunning)
+            {
+                DisplayedWorks_Results = new MyObservableCollection<PixivWork>();
+            }
+
+            MainWindow.MainCollectionView.Source = DisplayedWorks_Results;
+            // refresh if necessary
             semaphore.Release();
 
             // show status
@@ -222,9 +228,7 @@ namespace CryPixivClient.ViewModels
             // start searching...
             await Task.Run(async () =>
             {
-                if (otherWasRunning) results.Clear();
-
-                bool first = false;
+                results.Clear();
                 int currentPage = continuePage - 1;
                 for (;;)
                 {
@@ -244,31 +248,18 @@ namespace CryPixivClient.ViewModels
                         if (maxResultCount == -1) maxResultCount = works.Pagination.Total ?? 0;
 
                         var wworks = works.ToPixivWork();
-                        // if cache has less entries than downloaded - swap cache with newest entries and keep updating...
-                        if (results.Count + works.Count > FoundWorks.Count || continuePage > 1)
+                        results.AddToList(wworks);
+
+                        UIContext.Send(async (a) =>
                         {
-                            if (first == false) UIContext.Send(async (a) =>
-                            {
-                                await semaphore.WaitAsync();
-                                FoundWorks.AddToCollection(results);
-                                semaphore.Release();
-                            }, null);
+                            await semaphore.WaitAsync();
+                            DisplayedWorks_Results.AddToCollection(wworks);
+                            semaphore.Release();
+                        }, null);
 
-                            results.AddToList(wworks);
+                        currentPageResults = currentPage;
 
-                            UIContext.Send(async (a) =>
-                            {
-                                await semaphore.WaitAsync();
-                                FoundWorks.AddToCollection(wworks);
-                                semaphore.Release();
-                            }, null);
-
-                            currentPageResults = currentPage;
-                            first = true;
-                        }
-                        else results.AddRange(wworks);
-
-                        Status = $"Searching... {FoundWorks.Count}/{maxResultCount} works";
+                        Status = $"Searching... {DisplayedWorks_Results.Count}/{maxResultCount} works";
                     }
                     catch (Exception ex)
                     {
@@ -279,20 +270,20 @@ namespace CryPixivClient.ViewModels
                 if (MainWindow.CurrentWorkMode == mode)
                 {
                     IsWorking = false;
-                    Status = "Done. (Found " + FoundWorks.Count + " works)";
+                    Status = "Done. (Found " + DisplayedWorks_Results.Count + " works)";
                 }
             }, csrc.Token);
         }
         #endregion
 
         public async void ShowDailyRankings() =>
-            await Show(dailyRankings, PixivAccount.WorkMode.Ranking, "Daily Ranking", "Getting daily ranking", (page) => MainWindow.Account.GetDailyRanking(page));
+            await Show(dailyRankings, DisplayedWorks_Ranking, PixivAccount.WorkMode.Ranking, "Daily Ranking", "Getting daily ranking", (page) => MainWindow.Account.GetDailyRanking(page));
 
         public async void ShowFollowing() =>
-            await Show(following, PixivAccount.WorkMode.Following, "Following", "Getting following", (page) => MainWindow.Account.GetFollowing(page));
+            await Show(following, DisplayedWorks_Following, PixivAccount.WorkMode.Following, "Following", "Getting following", (page) => MainWindow.Account.GetFollowing(page));
 
         public async void ShowBookmarks() =>
-            await Show(bookmarks, PixivAccount.WorkMode.Bookmarks, "Bookmarks", "Getting bookmarks", (page) => MainWindow.Account.GetBookmarks(page));
+            await Show(bookmarks, DisplayedWorks_Bookmarks, PixivAccount.WorkMode.Bookmarks, "Bookmarks", "Getting bookmarks", (page) => MainWindow.Account.GetBookmarks(page));
 
         Queue<CancellationTokenSource> queuedTasks = new Queue<CancellationTokenSource>();
 

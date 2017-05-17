@@ -12,7 +12,7 @@
         <vm:MainViewModel x:Key="mainViewModel"/>
         <vm:DesignMainViewModel x:Key="designViewModel"/>
         <BitmapImage x:Key="missingImage" UriSource="Images/missingImage.jpg" />
-        <CollectionViewSource x:Key="ItemListViewSource" Source="{Binding FoundWorks, Source={StaticResource mainViewModel}}" d:Source="{Binding FoundWorks, Source={StaticResource designViewModel}}"/>
+        <CollectionViewSource x:Key="ItemListViewSource" d:Source="{Binding FoundWorks, Source={StaticResource designViewModel}}"/>
         <Style x:Key="buttonStyle" TargetType="Button">
             <Setter Property="Width" Value="45"/>
             <Setter Property="Background" Value="Transparent"/>
@@ -122,14 +122,14 @@
         <ProgressBar x:Name="mainProgessBar" Height="10" Margin="0,67,0,0" VerticalAlignment="Top" Foreground="#FF009CFF" Grid.ColumnSpan="2" IsTabStop="False" 
                      IsIndeterminate="{Binding IsWorking, Source={StaticResource mainViewModel}}"/>
         <Button x:Name="btnBookmarks" Content="Bookmarks" Grid.Column="1" HorizontalAlignment="Left" Margin="260,14,0,0" VerticalAlignment="Top" Width="80" Height="40" TabIndex="5" Click="btnBookmarks_Click"/>
-        <Button x:Name="btnDailyRankings" Content="Daily Ranking" Grid.Column="1" HorizontalAlignment="Left" Margin="94,14,0,0" VerticalAlignment="Top" Width="94" Height="40" Background="#FFCAE7FF" Click="btnDailyRankings_Click" TabIndex="3"/>
+        <Button x:Name="btnDailyRankings" Content="Daily Ranking" Grid.Column="1" HorizontalAlignment="Left" Margin="94,14,0,0" VerticalAlignment="Top" Width="94" Height="40" Background="#FFDDDDDD" Click="btnDailyRankings_Click" TabIndex="3"/>
         <StatusBar Height="22" VerticalAlignment="Bottom" Grid.ColumnSpan="2">
             <StatusBarItem Margin="0,-2,0,0">
                 <TextBlock x:Name="txtStatus" Text="{Binding Status, Source={StaticResource mainViewModel}}"></TextBlock>
             </StatusBarItem>
         </StatusBar>
-        <Button x:Name="btnFollowing" Content="Following" Grid.Column="1" HorizontalAlignment="Left" Margin="187,14,0,0" VerticalAlignment="Top" Width="74" Height="40" Background="#FFFFF8CA" Click="btnFollowing_Click" TabIndex="4"/>
+        <Button x:Name="btnFollowing" Content="Following" Grid.Column="1" HorizontalAlignment="Left" Margin="187,14,0,0" VerticalAlignment="Top" Width="74" Height="40" Background="#FFDDDDDD" Click="btnFollowing_Click" TabIndex="4"/>
         <CheckBox x:Name="checkPopular" Content="Autosort by Popularity" HorizontalAlignment="Left" Margin="10,43,0,0" VerticalAlignment="Top" IsChecked="True" Click="checkPopular_Click"/>
-        <Button x:Name="btnResults" Content="Results" Grid.Column="1" HorizontalAlignment="Left" Margin="15,14,0,0" VerticalAlignment="Top" Width="80" Height="40" TabIndex="5" Click="btnResults_Click" Background="#FF93C1E8"/>
+        <Button x:Name="btnResults" Content="Results" Grid.Column="1" HorizontalAlignment="Left" Margin="15,14,0,0" VerticalAlignment="Top" Width="80" Height="40" TabIndex="5" Click="btnResults_Click" Background="#FFB9B9B9"/>
     </Grid>
 </Window>
