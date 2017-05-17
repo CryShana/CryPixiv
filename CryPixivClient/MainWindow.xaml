@@ -7,34 +7,34 @@
         xmlns:cmd="clr-namespace:CryPixivClient.Commands"
         xmlns:local="clr-namespace:CryPixivClient"
         xmlns:scm="clr-namespace:System.ComponentModel;assembly=WindowsBase"
-        mc:Ignorable="d" MinHeight="350" MinWidth="525" Height="350" Width="525" Icon="Images/pixiv.ico" Closing="Window_Closing" SizeChanged="Window_SizeChanged" StateChanged="Window_StateChanged">
+        mc:Ignorable="d" MinHeight="350" MinWidth="655" Height="350" Width="655" Icon="Images/pixiv.ico" Closing="Window_Closing" SizeChanged="Window_SizeChanged" StateChanged="Window_StateChanged">
     <Window.Resources>
         <vm:MainViewModel x:Key="mainViewModel"/>
         <vm:DesignMainViewModel x:Key="designViewModel"/>
         <BitmapImage x:Key="missingImage" UriSource="Images/missingImage.jpg" />
-        
+
         <!-- COLLECTION VIEW SOURCES START HERE -->
         <CollectionViewSource x:Key="ItemListViewSource" d:Source="{Binding FoundWorks, Source={StaticResource designViewModel}}"/>
-        
+
         <CollectionViewSource x:Key="ItemListViewSourceRanking" d:Source="{Binding FoundWorks, Source={StaticResource designViewModel}}">
             <CollectionViewSource.SortDescriptions>
                 <scm:SortDescription PropertyName="OrderNumber" Direction="Ascending"/>
             </CollectionViewSource.SortDescriptions>
         </CollectionViewSource>
-        
+
         <CollectionViewSource x:Key="ItemListViewSourceFollowing" d:Source="{Binding FoundWorks, Source={StaticResource designViewModel}}">
             <CollectionViewSource.SortDescriptions>
                 <scm:SortDescription PropertyName="CreatedTime" Direction="Descending"/>
             </CollectionViewSource.SortDescriptions>
         </CollectionViewSource>
-        
+
         <CollectionViewSource x:Key="ItemListViewSourceBookmarks" d:Source="{Binding FoundWorks, Source={StaticResource designViewModel}}">
             <CollectionViewSource.SortDescriptions>
                 <scm:SortDescription PropertyName="OrderNumber" Direction="Ascending"/>
             </CollectionViewSource.SortDescriptions>
         </CollectionViewSource>
         <!-- COLLECTION VIEW SOURCES END HERE -->
-        
+
         <Style x:Key="buttonStyle" TargetType="Button">
             <Setter Property="Width" Value="45"/>
             <Setter Property="Background" Value="Transparent"/>
@@ -63,7 +63,7 @@
             <ColumnDefinition Width="15*"/>
             <ColumnDefinition Width="32*"/>
         </Grid.ColumnDefinitions>
-        
+
         <!-- LIST VIEWS START HERE-->
         <ListView x:Name="mainList" Margin="0,76,0,22" ItemsSource="{Binding Mode=OneWay, Source={StaticResource ItemListViewSource}}" DataContext="{StaticResource mainViewModel}" 
                   Grid.ColumnSpan="2" ScrollViewer.CanContentScroll="False" ScrollViewer.ScrollChanged="mainList_ScrollChanged" d:DataContext="{StaticResource designViewModel}">
@@ -370,7 +370,7 @@
             </ListView.ItemTemplate>
         </ListView>
         <!-- LIST VIEWS END HERE-->
-        
+
         <TextBox x:Name="txtSearchQuery" Height="24" Margin="10,14,65,0" TextWrapping="Wrap" VerticalAlignment="Top" FontSize="14" MaxLength="300" MaxLines="1" TabIndex="1"/>
         <Button x:Name="btnSearch" Content="Search" Margin="0,14,10,0" VerticalAlignment="Top" Height="24" BorderBrush="#FFABADB3" HorizontalAlignment="Right" Width="56" IsDefault="True" TabIndex="2" Click="btnSearch_Click"/>
         <ProgressBar x:Name="mainProgessBar" Height="10" Margin="0,67,0,0" VerticalAlignment="Top" Foreground="#FF009CFF" Grid.ColumnSpan="2" IsTabStop="False" 

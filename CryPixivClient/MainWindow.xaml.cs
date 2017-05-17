@@ -162,14 +162,40 @@ namespace CryPixivClient
             MainModel.ShowBookmarks();
         }
 
+        bool searching = false;
+        void SetSearchButtonState(bool isSearching)
+        {
+            if (isSearching)
+            {
+                btnSearch.Content = "Stop";
+                btnSearch.Background = (SolidColorBrush)new BrushConverter().ConvertFromString("#FFFFA5A5");
+            }
+            else
+            {
+                btnSearch.Content = "Search";
+                btnSearch.Background = (SolidColorBrush)new BrushConverter().ConvertFromString("#FFDDDDDD");
+            }
+        }
+
         void btnSearch_Click(object sender, RoutedEventArgs e)
         {
+            if (searching)
+            {
+                searching = false;
+                MainModel.CancelRunningSearches();
+                SetSearchButtonState(false);
+                return;
+            }
+
             if (txtSearchQuery.Text.Length < 2) return;
 
             ToggleButtons(PixivAccount.WorkMode.Search);
             ToggleLists(PixivAccount.WorkMode.Search);
             UpdateSearchFilter(PixivAccount.WorkMode.Search, checkPopular.IsChecked == true);
             if (MainModel?.LastSearchQuery != txtSearchQuery.Text) MainModel.CurrentPageResults = 1;
+
+            searching = true;
+            SetSearchButtonState(true);
 
             MainModel.ShowSearch(txtSearchQuery.Text, checkPopular.IsChecked == true, MainModel.CurrentPageResults);
         }
@@ -180,6 +206,10 @@ namespace CryPixivClient
             ToggleButtons(PixivAccount.WorkMode.Search);
             ToggleLists(PixivAccount.WorkMode.Search);
             UpdateSearchFilter(PixivAccount.WorkMode.Search, checkPopular.IsChecked == true);
+
+            searching = true;
+            SetSearchButtonState(true);
+
             MainModel.ShowSearch(null, checkPopular.IsChecked == true, MainModel.CurrentPageResults);  // "null" as search query will attempt to use the previous query
         }
         void checkPopular_Click(object sender, RoutedEventArgs e)

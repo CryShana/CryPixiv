@@ -209,13 +209,7 @@ namespace CryPixivClient.ViewModels
             int maxResultCount = -1;
             lastSearchQuery = query;
 
-            // cancel other running tasks
-            while (queuedTasks.Count != 0)
-            {
-                var dq = queuedTasks.Dequeue();
-                if (dq.IsCancellationRequested) continue;
-                else dq.Cancel();
-            }
+            CancelRunningSearches();
 
             // set starting values
             var mode = PixivAccount.WorkMode.Search;
@@ -237,7 +231,7 @@ namespace CryPixivClient.ViewModels
             Status = "Searching...";
 
             var csrc = new CancellationTokenSource();
-            queuedTasks.Enqueue(csrc);
+            queuedSearches.Enqueue(csrc);
 
             // start searching...
             await Task.Run(async () =>
@@ -284,7 +278,7 @@ namespace CryPixivClient.ViewModels
                 if (MainWindow.CurrentWorkMode == mode)
                 {
                     IsWorking = false;
-                    Status = "Done. (Found " + DisplayedWorks_Results.Count + " works)";
+                    Status = ((csrc.IsCancellationRequested) ? "Stopped. " : "Done. ") + "(Found " + DisplayedWorks_Results.Count + " works)";
                 }
             }, csrc.Token);
         }
@@ -302,7 +296,17 @@ namespace CryPixivClient.ViewModels
             await Show(bookmarks, DisplayedWorks_Bookmarks, MainWindow.MainCollectionViewBookmarks, PixivAccount.WorkMode.Bookmarks, "Bookmarks", 
                 "Getting bookmarks", (page) => MainWindow.Account.GetBookmarks(page));
 
-        Queue<CancellationTokenSource> queuedTasks = new Queue<CancellationTokenSource>();
+        Queue<CancellationTokenSource> queuedSearches = new Queue<CancellationTokenSource>();
+        public void CancelRunningSearches()
+        {
+            // cancel other running searches
+            while (queuedSearches.Count != 0)
+            {
+                var dq = queuedSearches.Dequeue();
+                if (dq.IsCancellationRequested) continue;
+                else dq.Cancel();
+            }
+        }
 
         #region Command Methods
         public async void OpenInBrowser(PixivWork work)
