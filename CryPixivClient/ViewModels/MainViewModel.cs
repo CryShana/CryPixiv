@@ -32,6 +32,7 @@ namespace CryPixivClient.ViewModels
         List<PixivWork> bookmarks = new List<PixivWork>();
         List<PixivWork> following = new List<PixivWork>();
         List<PixivWork> results = new List<PixivWork>();
+        int currentPageResults = 1;
         string lastSearchQuery = null;
         int columns = 4;
         SynchronizationContext UIContext;
@@ -44,6 +45,7 @@ namespace CryPixivClient.ViewModels
             set { foundWorks = value; Changed(); }
         }
 
+        public int CurrentPageResults { get => currentPageResults; set { currentPageResults = value; } }
         public string Status
         {
             get => status;
@@ -158,7 +160,7 @@ namespace CryPixivClient.ViewModels
                 }
             });
         }
-        public async void ShowSearch(string query, bool autosort = true)
+        public async void ShowSearch(string query, bool autosort = true, int continuePage = 1)
         {
             bool otherWasRunning = LastSearchQuery != query && query != null;
 
@@ -193,10 +195,10 @@ namespace CryPixivClient.ViewModels
             // start searching...
             await Task.Run(async () =>
             {
-                var backupCache = results.Copy();
-                results.Clear();
+                if (otherWasRunning) results.Clear();
+
                 bool first = false;
-                int currentPage = 0;
+                int currentPage = continuePage - 1;
                 for (;;)
                 {
                     if (MainWindow.CurrentWorkMode != mode || csrc.IsCancellationRequested) break; // if user changes mode or requests task to be cancelled - break;
@@ -216,29 +218,29 @@ namespace CryPixivClient.ViewModels
 
                         var wworks = works.ToPixivWork();
                         // if cache has less entries than downloaded - swap cache with newest entries and keep updating...
-                        if (results.Count + works.Count > FoundWorks.Count)
+                        if (results.Count + works.Count > FoundWorks.Count || continuePage > 1)
                         {
                             if (first == false) UIContext.Send((a) => FoundWorks.AddToCollection(results), null);
 
-                            results.AddRange(wworks);
+                            results.AddToList(wworks);
 
                             UIContext.Send((a) =>
                             {
-                                FoundWorks.AddList(wworks);
+                                FoundWorks.AddToCollection(wworks);
                             }, null);
+
+                            currentPageResults = currentPage;
                             first = true;
                         }
                         else results.AddRange(wworks);
 
-                        Status = $"Searching... {results.Count}/{maxResultCount} works" + ((FoundWorks.Count > results.Count) ? $" (Displayed: {FoundWorks.Count} works from cache)" : ""); ;
+                        Status = $"Searching... {FoundWorks.Count}/{maxResultCount} works";
                     }
                     catch (Exception ex)
                     {
                         break;
                     }
                 }
-
-                if (results.Count < backupCache.Count) results.SwapList(backupCache);
 
                 if (MainWindow.CurrentWorkMode == mode)
                 {
@@ -269,12 +271,21 @@ namespace CryPixivClient.ViewModels
             collection.AddList(target);
         }
 
-        public static void AddToCollection<T>(this ObservableCollection<T> collection, IEnumerable<T> target)
+        public static void AddToCollection(this ObservableCollection<PixivWork> collection, IEnumerable<PixivWork> target)
         {
             // add to collection, ignore existing ones
             foreach (var i in target)
             {
-                if (collection.Contains(i)) continue;
+                if (collection.Count(x => x.Id == i.Id) > 0) continue;
+                else collection.Add(i); 
+            }
+        }
+        public static void AddToList(this List<PixivWork> collection, IEnumerable<PixivWork> target)
+        {
+            // add to collection, ignore existing ones
+            foreach (var i in target)
+            {
+                if (collection.Count(x => x.Id == i.Id) > 0) continue;
                 else collection.Add(i);
             }
         }

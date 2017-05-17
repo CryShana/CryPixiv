@@ -141,7 +141,9 @@ namespace CryPixivClient
         {
             ToggleButtons(PixivAccount.WorkMode.Search);
             PrepareFilter(PixivAccount.WorkMode.Search, checkPopular.IsChecked == true);
-            MainModel.ShowSearch(txtSearchQuery.Text, checkPopular.IsChecked == true);
+            if (MainModel?.LastSearchQuery != txtSearchQuery.Text) MainModel.CurrentPageResults = 1;
+
+            MainModel.ShowSearch(txtSearchQuery.Text, checkPopular.IsChecked == true, MainModel.CurrentPageResults);
         }
         private void btnResults_Click(object sender, RoutedEventArgs e)
         {
@@ -149,7 +151,7 @@ namespace CryPixivClient
 
             ToggleButtons(PixivAccount.WorkMode.Search);
             PrepareFilter(PixivAccount.WorkMode.Search, checkPopular.IsChecked == true);
-            MainModel.ShowSearch(null, checkPopular.IsChecked == true);  // "null" as search query will attempt to use the previous query
+            MainModel.ShowSearch(null, checkPopular.IsChecked == true, MainModel.CurrentPageResults);  // "null" as search query will attempt to use the previous query
         }
         void checkPopular_Click(object sender, RoutedEventArgs e)
         {
