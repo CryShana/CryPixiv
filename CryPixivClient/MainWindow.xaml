@@ -31,6 +31,34 @@
             <ListView.ItemTemplate>
                 <DataTemplate>
                     <StackPanel>
+                        <StackPanel.Triggers>
+                            <EventTrigger RoutedEvent="MouseEnter">
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation To="40" Duration="0:00:00.4"
+                                                         Storyboard.TargetName="toolbar"
+                                                         Storyboard.TargetProperty="Height">
+                                            <DoubleAnimation.EasingFunction>
+                                                <PowerEase Power="2"/>
+                                            </DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </EventTrigger>
+                            <EventTrigger RoutedEvent="MouseLeave">
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation To="0" Duration="0:00:00.4"
+                                                         Storyboard.TargetName="toolbar"
+                                                         Storyboard.TargetProperty="Height">
+                                            <DoubleAnimation.EasingFunction>
+                                                <PowerEase Power="2"/>
+                                            </DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </EventTrigger>
+                        </StackPanel.Triggers>
                         <Grid>
                             <TextBlock Panel.ZIndex="2" Margin="5" FontWeight="Bold" Text="{Binding PageCountText, Mode=OneWay}" Foreground="White" FontSize="20">
                                 <TextBlock.Effect>
@@ -44,22 +72,23 @@
                                     </PriorityBinding>
                                 </Image.Source>
                             </Image>
+                            <StackPanel x:Name="toolbar" Orientation="Horizontal" VerticalAlignment="Bottom" HorizontalAlignment="Center" Height="0" Background="White">
+                                <!-- Height goes to 40/45 when mouse over -->
+                                <Image x:Name="internetImage" RenderOptions.BitmapScalingMode="Fant" Width="35" Source="Images/internet.png" Margin="10,5,5,5"/>
+                                <Image x:Name="likeImage" RenderOptions.BitmapScalingMode="Fant" Width="35" Margin="0,5,10,5">
+                                    <Image.Style>
+                                        <Style TargetType="Image">
+                                            <Setter Property="Source" Value="Images\dislike.png" />
+                                            <Style.Triggers>
+                                                <DataTrigger Value="True" Binding="{Binding IsFavorited}">
+                                                    <Setter Property="Source" Value="Images\like.png"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Image.Style>
+                                </Image>
+                            </StackPanel>
                         </Grid>
-                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                            <Image RenderOptions.BitmapScalingMode="Fant" Width="35" Source="Images/internet.png" Margin="4,5,5,5"/>
-                            <Image RenderOptions.BitmapScalingMode="Fant" Width="35" Margin="0,5,10,5">
-                                <Image.Style>
-                                    <Style TargetType="Image">
-                                        <Setter Property="Source" Value="Images\dislike.png" />
-                                        <Style.Triggers>
-                                            <DataTrigger Value="True" Binding="{Binding IsFavorited}">
-                                                <Setter Property="Source" Value="Images\like.png"/>
-                                            </DataTrigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                </Image.Style>
-                            </Image>
-                        </StackPanel>
                     </StackPanel>
                 </DataTemplate>
             </ListView.ItemTemplate>
