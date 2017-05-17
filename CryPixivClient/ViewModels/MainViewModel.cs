@@ -133,7 +133,7 @@ namespace CryPixivClient.ViewModels
                         // if cache has less entries than downloaded - swap cache with newest entries and keep updating...
                         if (cache.Count + works.Count > FoundWorks.Count)
                         {
-                            if (first == false) UIContext.Send((a) => FoundWorks.SwapCollection(cache), null);
+                            if (first == false) UIContext.Send((a) => FoundWorks.AddToCollection(cache), null);
 
                             cache.AddRange(works);
                             UIContext.Send((a) => FoundWorks.AddList(works), null);
@@ -226,7 +226,7 @@ namespace CryPixivClient.ViewModels
                         // if cache has less entries than downloaded - swap cache with newest entries and keep updating...
                         if (results.Count + works.Count > FoundWorks.Count)
                         {
-                            if (first == false) UIContext.Send((a) => FoundWorks.SwapCollection(results), null);
+                            if (first == false) UIContext.Send((a) => FoundWorks.AddToCollection(results), null);
 
                             results.AddRange(wworks);
 
@@ -261,6 +261,16 @@ namespace CryPixivClient.ViewModels
         {
             collection.Clear();
             collection.AddList(target);
+        }
+
+        public static void AddToCollection<T>(this ObservableCollection<T> collection, IEnumerable<T> target)
+        {
+            // add to collection, ignore existing ones
+            foreach (var i in target)
+            {
+                if (collection.Contains(i)) continue;
+                else collection.Add(i);
+            }
         }
 
         public static void AddList<T>(this ObservableCollection<T> collection, IEnumerable<T> target)
