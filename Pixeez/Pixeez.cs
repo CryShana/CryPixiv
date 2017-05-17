@@ -78,7 +78,7 @@ namespace Pixeez
             });
             
             var requestIssued = DateTime.Now;
-            var response = await httpClient.PostAsync("https://oauth.secure.pixiv.net/auth/token", param); 
+            var response = await httpClient.PostAsync("https://oauth.secure.pixiv.net/auth/token", param);
             if (!response.IsSuccessStatusCode)
                 throw new InvalidOperationException();
 
@@ -192,8 +192,11 @@ namespace Pixeez
         {
             using (var response = await this.SendRequestAsync(type, url, param, headers))
             {
-                var json = await response.GetResponseStringAsync();
+                var json = await response.GetResponseStringAsync();               
                 T obj = default(T);
+
+                if (json == "{}") return obj;
+
                 try
                 {
                     obj = JToken.Parse(json).SelectToken("response").ToObject<T>();
@@ -345,40 +348,22 @@ namespace Pixeez
 
         /// <summary>
         /// <para>Available parameters:</para>
-        /// <para>- <c>IEnumerable</c> workIds (required)</para>
-        /// <para>- <c>string</c> publicity (optional) [ public, private ]</para>
-        /// </summary>
-        /// <returns>UsersWorks. (Pagenated)</returns>
-        public async Task<List<UsersFavoriteWork>> DeleteMyFavoriteWorksAsync(IEnumerable<long> workIds, string publicity = "public")
-        {
-            var url = "https://public-api.secure.pixiv.net/v1/me/favorite_works.json";
-
-            var param = new Dictionary<string, string>
-            {
-                { "work_id", string.Join(",", workIds.Select(x => x.ToString())) } ,
-                { "publicity", publicity } ,
-            };
-
-            return await this.AccessApiAsync<List<UsersFavoriteWork>>(MethodType.DELETE, url, param);
-        }
-
-        /// <summary>
-        /// <para>Available parameters:</para>
         /// <para>- <c>long</c> workId (required)</para>
         /// <para>- <c>string</c> publicity (optional) [ public, private ]</para>
         /// </summary>
         /// <returns>UsersWorks. (Pagenated)</returns>
         public async Task<Paginated<UsersFavoriteWork>> DeleteMyFavoriteWorksAsync(long workId, string publicity = "public")
         {
-            var url = "https://public-api.secure.pixiv.net/v1/me/favorite_works.json";
+            //var url = "https://public-api.secure.pixiv.net/v1/me/favorite_works.json";
+            var url = "https://app-api.pixiv.net/v1/illust/bookmark/delete";  // new way of doing it :D
 
             var param = new Dictionary<string, string>
             {
-                { "work_id", workId.ToString() } ,
-                { "publicity", publicity } ,
+                { "illust_id", workId.ToString() } ,
+                { "restrict", publicity } ,
             };
 
-            return await this.AccessApiAsync<Paginated<UsersFavoriteWork>>(MethodType.DELETE, url, param);
+            return await this.AccessApiAsync<Paginated<UsersFavoriteWork>>(MethodType.POST, url, param);
         }
 
         /// <summary>

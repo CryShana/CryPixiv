@@ -24,7 +24,7 @@ namespace CryPixivClient
 
         public PixivAccount(string username)
         {
-            Username = username;           
+            Username = username;
         }
 
         public Tuple<bool, string> LoginWithAccessToken(string accesstoken, string refreshtoken, int expiresin, DateTime issued)
@@ -73,6 +73,8 @@ namespace CryPixivClient
                 return new Tuple<bool, string>(false, ex.Message);
             }
         }
+
+        #region Getting Data
         public async Task<Paginated<Work>> SearchWorks(string searchQuery, int page = 1) => await GetData(() => tokens.SearchWorksAsync(searchQuery, page, mode: "tag"));
         public async Task<List<PixivWork>> GetDailyRanking(int page = 1)
         {
@@ -91,7 +93,6 @@ namespace CryPixivClient
             var result = await GetData(() => tokens.GetMyFavoriteWorksAsync(page: page, publicity: publicity.ToString().ToLower()));
             return result.Select(x => x.Work).ToPixivWork();
         }
-
         async Task<T> GetData<T>(Func<Task<T>> toDo)
         {
             try
@@ -106,6 +107,32 @@ namespace CryPixivClient
                 IsLoggedIn = false;
                 AuthFailed?.Invoke(this, ex.Message);
                 return default(T);
+            }
+        }
+        #endregion
+
+        public async Task<Tuple<bool,long?>> AddToBookmarks(long workId)
+        {
+            try
+            {
+                var result = await tokens.AddMyFavoriteWorksAsync(workId);
+                return new Tuple<bool, long?>(true, result.First().Id);
+            }
+            catch
+            {
+                return new Tuple<bool, long?>(false, null); ;
+            }
+        }
+        public async Task<bool> RemoveFromBookmarks(long workId)
+        {
+            try
+            {
+                var result = await tokens.DeleteMyFavoriteWorksAsync(workId);
+                return true;
+            }
+            catch
+            {
+                return false;
             }
         }
 
@@ -123,11 +150,11 @@ namespace CryPixivClient
                 aes.IV = Encoding.ASCII.GetBytes(refreshtoken.ToUpper()).Take(16).ToArray();
                 aes.Key = Encoding.ASCII.GetBytes(refreshtoken).Take(32).ToArray();
 
-                using(var mstream = new MemoryStream())
+                using (var mstream = new MemoryStream())
                 {
-                    using(var crstream = new CryptoStream(mstream, aes.CreateEncryptor(), CryptoStreamMode.Write))
+                    using (var crstream = new CryptoStream(mstream, aes.CreateEncryptor(), CryptoStreamMode.Write))
                     {
-                        using(var writer = new StreamWriter(crstream))
+                        using (var writer = new StreamWriter(crstream))
                         {
                             writer.Write(password);
                         }

@@ -274,21 +274,33 @@ namespace CryPixivClient.ViewModels
         Queue<CancellationTokenSource> queuedTasks = new Queue<CancellationTokenSource>();
 
         #region Command Methods
-        public void OpenInBrowser(PixivWork work)
+        public async void OpenInBrowser(PixivWork work)
         {
             Process.Start($"https://www.pixiv.net/member_illust.php?mode=medium&illust_id={work.Id}");
         }
-        public void BookmarkWork(PixivWork work)
+        public async void BookmarkWork(PixivWork work)
         {
+            if (work.Id == null) return;
+
             if (work.IsFavorited)
             {
                 // remove from bookmarks
-
+                var result = await MainWindow.Account.RemoveFromBookmarks(work.Id.Value);
+                if (result)
+                {
+                    work.FavoriteId = null;
+                    work.UpdateFavorite();
+                }
             }
             else
             {
                 // add to bookmarks
-                
+                var result = await MainWindow.Account.AddToBookmarks(work.Id.Value);
+                if (result.Item1)
+                {
+                    work.FavoriteId = result.Item2;
+                    work.UpdateFavorite();
+                }
             }
         }
         #endregion

@@ -1,6 +1,7 @@
 ﻿using Pixeez.Objects;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -11,12 +12,15 @@ using System.Windows.Media.Imaging;
 
 namespace CryPixivClient.Objects
 {
-    public class PixivWork : Work
+    public class PixivWork : Work, INotifyPropertyChanged
     {
+        public event PropertyChangedEventHandler PropertyChanged;
+
         public string PageCountText => (PageCount == null || PageCount.Value == 1) ? "" : PageCount.Value.ToString();
         public bool IsFavorited => (FavoriteId == null || FavoriteId == 0) ? false : true;
 
         ImageSource img = null;
+
         public ImageSource ImageThumbnail
         {
             get
@@ -79,6 +83,11 @@ namespace CryPixivClient.Objects
             Type = work.Type;
             Metadata = work.Metadata;
             ContentType = work.ContentType;
+        }
+
+        public void UpdateFavorite()
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("IsFavorited"));
         }
     }
 }

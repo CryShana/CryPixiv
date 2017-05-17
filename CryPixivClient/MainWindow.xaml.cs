@@ -212,10 +212,14 @@ namespace CryPixivClient
                 case PixivAccount.WorkMode.Search:
                     break;
                 case PixivAccount.WorkMode.Ranking:
+                    // sort this by ACTUAL ORDER - maybe don't keep backup at all
                     break;
                 case PixivAccount.WorkMode.Bookmarks:
+                    // sort this by ORDER ADDED TO BOOKMARK
+                    // refresh existing ones - ALWAYS CHECK HOW EXISTING ONES ARE CHECKED - check properties, not just Id
                     break;
                 case PixivAccount.WorkMode.Following:
+                    MainCollectionView.SortDescriptions.Add(new System.ComponentModel.SortDescription("CreatedTime", System.ComponentModel.ListSortDirection.Descending));
                     break;
             }
         }
