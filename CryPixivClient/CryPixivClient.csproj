@@ -60,6 +60,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Commands\RelayCommand.cs" />
     <Compile Include="Objects\PixivWork.cs" />
     <Compile Include="ViewModels\DesignMainViewModel.cs" />
     <Compile Include="ViewModels\MainViewModel.cs" />

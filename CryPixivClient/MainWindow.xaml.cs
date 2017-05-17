@@ -20,6 +20,10 @@ using System.Windows.Shapes;
 
 namespace CryPixivClient
 {
+    class MeMe
+    {
+        public int Value { get; set; }
+    }
     public partial class MainWindow : Window
     {
         public static MainViewModel MainModel;
@@ -44,7 +48,7 @@ namespace CryPixivClient
 
             // events
             PixivAccount.AuthFailed += AuthenticationFailed;
-
+            
             // start
             ShowLoginPrompt();
             btnDailyRankings_Click(this, null);
@@ -139,6 +143,8 @@ namespace CryPixivClient
 
         void btnSearch_Click(object sender, RoutedEventArgs e)
         {
+            if (txtSearchQuery.Text.Length < 2) return;
+
             ToggleButtons(PixivAccount.WorkMode.Search);
             PrepareFilter(PixivAccount.WorkMode.Search, checkPopular.IsChecked == true);
             if (MainModel?.LastSearchQuery != txtSearchQuery.Text) MainModel.CurrentPageResults = 1;

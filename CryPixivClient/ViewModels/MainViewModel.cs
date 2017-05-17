@@ -1,4 +1,5 @@
-﻿using CryPixivClient.Objects;
+﻿using CryPixivClient.Commands;
+using CryPixivClient.Objects;
 using Pixeez.Objects;
 using System;
 using System.Collections.Generic;
@@ -12,6 +13,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Data;
+using System.Windows.Input;
 
 namespace CryPixivClient.ViewModels
 {
@@ -36,6 +38,9 @@ namespace CryPixivClient.ViewModels
         string lastSearchQuery = null;
         int columns = 4;
         SynchronizationContext UIContext;
+
+        ICommand bkcmd;
+        ICommand opbcmd;
         #endregion
 
         #region Properties
@@ -71,9 +76,14 @@ namespace CryPixivClient.ViewModels
         public string LastSearchQuery => lastSearchQuery;
         #endregion
 
+        #region Commands
+        public ICommand BookmandCmd => bkcmd ?? (bkcmd = new RelayCommand(BookmarkWork));
+        public ICommand OpenBrowserCmd => opbcmd ?? (opbcmd = new RelayCommand(OpenInBrowser));
+        #endregion
+
         public MainViewModel()
         {
-            UIContext = SynchronizationContext.Current;         
+            UIContext = SynchronizationContext.Current;
         }
 
         public void UpdateColumns(double w)
@@ -87,6 +97,7 @@ namespace CryPixivClient.ViewModels
             Changed("Columns");
         }
 
+        #region Show Methods
         public async Task Show(List<PixivWork> cache, PixivAccount.WorkMode mode, string titleSuffix, string statusPrefix,
             Func<int, Task<List<PixivWork>>> getWorks, bool waitForUser = true)
         {
@@ -101,7 +112,7 @@ namespace CryPixivClient.ViewModels
 
             // show status
             TitleSuffix = titleSuffix;
-            Status = $"{statusPrefix}...";    
+            Status = $"{statusPrefix}...";
 
             // start searching...
             await Task.Run(async () =>
@@ -249,6 +260,7 @@ namespace CryPixivClient.ViewModels
                 }
             }, csrc.Token);
         }
+        #endregion
 
         public async void ShowDailyRankings() =>
             await Show(dailyRankings, PixivAccount.WorkMode.Ranking, "Daily Ranking", "Getting daily ranking", (page) => MainWindow.Account.GetDailyRanking(page));
@@ -260,7 +272,27 @@ namespace CryPixivClient.ViewModels
             await Show(bookmarks, PixivAccount.WorkMode.Bookmarks, "Bookmarks", "Getting bookmarks", (page) => MainWindow.Account.GetBookmarks(page));
 
         Queue<CancellationTokenSource> queuedTasks = new Queue<CancellationTokenSource>();
-      
+
+        #region Command Methods
+        public void OpenInBrowser(PixivWork work)
+        {
+            Process.Start($"https://www.pixiv.net/member_illust.php?mode=medium&illust_id={work.Id}");
+        }
+        public void BookmarkWork(PixivWork work)
+        {
+            if (work.IsFavorited)
+            {
+                // remove from bookmarks
+
+            }
+            else
+            {
+                // add to bookmarks
+                
+            }
+        }
+        #endregion
+
     }
 
     public static class Extensions
@@ -277,7 +309,7 @@ namespace CryPixivClient.ViewModels
             foreach (var i in target)
             {
                 if (collection.Count(x => x.Id == i.Id) > 0) continue;
-                else collection.Add(i); 
+                else collection.Add(i);
             }
         }
         public static void AddToList(this List<PixivWork> collection, IEnumerable<PixivWork> target)

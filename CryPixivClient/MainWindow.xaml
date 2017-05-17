@@ -4,6 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:vm="clr-namespace:CryPixivClient.ViewModels"
+        xmlns:cmd="clr-namespace:CryPixivClient.Commands"
         xmlns:local="clr-namespace:CryPixivClient"
         xmlns:scm="clr-namespace:System.ComponentModel;assembly=WindowsBase"
         mc:Ignorable="d" MinHeight="350" MinWidth="525" Height="350" Width="525" Icon="Images/pixiv.ico" Closing="Window_Closing" SizeChanged="Window_SizeChanged" StateChanged="Window_StateChanged">
@@ -12,6 +13,25 @@
         <vm:DesignMainViewModel x:Key="designViewModel"/>
         <BitmapImage x:Key="missingImage" UriSource="Images/missingImage.jpg" />
         <CollectionViewSource x:Key="ItemListViewSource" Source="{Binding FoundWorks, Source={StaticResource mainViewModel}}" d:Source="{Binding FoundWorks, Source={StaticResource designViewModel}}"/>
+        <Style x:Key="buttonStyle" TargetType="Button">
+            <Setter Property="Width" Value="45"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderBrush" Value="Transparent"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" BorderBrush="Transparent" BorderThickness="0">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="Transparent"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
     </Window.Resources>
     <Window.Title>
         <Binding Mode="OneWay" Path="Title" Source="{StaticResource mainViewModel}"/>
@@ -72,21 +92,25 @@
                                     </PriorityBinding>
                                 </Image.Source>
                             </Image>
-                            <StackPanel x:Name="toolbar" Orientation="Horizontal" VerticalAlignment="Bottom" HorizontalAlignment="Center" Height="0" Background="White">
-                                <!-- Height goes to 40/45 when mouse over -->
-                                <Image x:Name="internetImage" RenderOptions.BitmapScalingMode="Fant" Width="35" Source="Images/internet.png" Margin="10,5,5,5"/>
-                                <Image x:Name="likeImage" RenderOptions.BitmapScalingMode="Fant" Width="35" Margin="0,5,10,5">
-                                    <Image.Style>
-                                        <Style TargetType="Image">
-                                            <Setter Property="Source" Value="Images\dislike.png" />
-                                            <Style.Triggers>
-                                                <DataTrigger Value="True" Binding="{Binding IsFavorited}">
-                                                    <Setter Property="Source" Value="Images\like.png"/>
-                                                </DataTrigger>
-                                            </Style.Triggers>
-                                        </Style>
-                                    </Image.Style>
-                                </Image>
+                            <StackPanel x:Name="toolbar" Orientation="Horizontal" VerticalAlignment="Bottom" HorizontalAlignment="Center" Height="0" Panel.ZIndex="3" Background="White">
+                                <!-- Height goes to 40 when mouse over -->
+                                <Button CommandParameter="{Binding}" Command="{Binding OpenBrowserCmd, Source={StaticResource mainViewModel}}" Style="{DynamicResource buttonStyle}">
+                                    <Image x:Name="internetImage" RenderOptions.BitmapScalingMode="Fant" Width="35" Source="Images/internet.png" Margin="0,6"/>
+                                </Button>
+                                <Button CommandParameter="{Binding}" Command="{Binding BookmandCmd, Source={StaticResource mainViewModel}}" Style="{DynamicResource buttonStyle}">
+                                    <Image x:Name="likeImage" RenderOptions.BitmapScalingMode="Fant" Width="35" Margin="0,6">
+                                        <Image.Style>
+                                            <Style TargetType="Image">
+                                                <Setter Property="Source" Value="Images\dislike.png" />
+                                                <Style.Triggers>
+                                                    <DataTrigger Value="True" Binding="{Binding IsFavorited}">
+                                                        <Setter Property="Source" Value="Images\like.png"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Image.Style>
+                                    </Image>
+                                </Button>
                             </StackPanel>
                         </Grid>
                     </StackPanel>
