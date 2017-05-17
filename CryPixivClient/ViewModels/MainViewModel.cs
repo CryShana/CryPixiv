@@ -26,6 +26,7 @@ namespace CryPixivClient.ViewModels
         #region Private fields
         ObservableCollection<PixivWork> foundWorks = new ObservableCollection<PixivWork>();
 
+        static readonly object padlock = new object();
         string status = "Idle";
         string title = "CryPixiv";
         bool isWorking = false;
@@ -106,9 +107,12 @@ namespace CryPixivClient.ViewModels
             MainWindow.DynamicWorksLimit = MainWindow.DefaultWorksLimit;
 
             // load cached results if they exist
-            FoundWorks.Clear();
-            int count = cache?.Count ?? 0;
-            if (cache != null) FoundWorks.SwapCollection(cache);
+            lock (padlock)
+            {
+                FoundWorks.Clear();
+                int count = cache?.Count ?? 0;
+                if (cache != null) FoundWorks.SwapCollection(cache);
+            }          
 
             // show status
             TitleSuffix = titleSuffix;
@@ -142,15 +146,27 @@ namespace CryPixivClient.ViewModels
 
                         // download current page
                         var works = await getWorks(currentPage);
-                        if (works == null || MainWindow.CurrentWorkMode != mode) break;
+                        if (works == null || MainWindow.CurrentWorkMode != mode || works.Count == 0) break;
 
                         // if cache has less entries than downloaded - swap cache with newest entries and keep updating...
                         if (cache.Count + works.Count > FoundWorks.Count)
                         {
-                            if (first == false) UIContext.Send((a) => FoundWorks.AddToCollection(cache), null);
+                            if (first == false) UIContext.Send((a) =>
+                            {
+                                lock (padlock)
+                                {
+                                    FoundWorks.AddToCollection(cache);
+                                }
+                            }, null);
 
                             cache.AddRange(works);
-                            UIContext.Send((a) => FoundWorks.AddList(works), null);
+                            UIContext.Send((a) =>
+                            {
+                                lock (padlock)
+                                {
+                                    FoundWorks.AddList(works);
+                                }
+                            }, null);
                             first = true;
                         }
                         else cache.AddRange(works);
@@ -192,10 +208,13 @@ namespace CryPixivClient.ViewModels
             MainWindow.CurrentWorkMode = mode;
 
             // load cached results if they exist
-            FoundWorks.Clear();
-            int count = results?.Count ?? 0;
-            if (results != null && otherWasRunning == false) FoundWorks.SwapCollection(results);
-
+            lock (padlock)
+            {
+                FoundWorks.Clear();
+                int count = results?.Count ?? 0;
+                if (results != null && otherWasRunning == false) FoundWorks.SwapCollection(results);
+            }
+            
             // show status
             TitleSuffix = "";
             Status = "Searching...";
@@ -224,20 +243,29 @@ namespace CryPixivClient.ViewModels
 
                         // download current page
                         var works = await MainWindow.Account.SearchWorks(query, currentPage);
-                        if (works == null || MainWindow.CurrentWorkMode != mode || csrc.IsCancellationRequested) break;
+                        if (works == null || MainWindow.CurrentWorkMode != mode || csrc.IsCancellationRequested || works.Count == 0) break;
                         if (maxResultCount == -1) maxResultCount = works.Pagination.Total ?? 0;
 
                         var wworks = works.ToPixivWork();
                         // if cache has less entries than downloaded - swap cache with newest entries and keep updating...
                         if (results.Count + works.Count > FoundWorks.Count || continuePage > 1)
                         {
-                            if (first == false) UIContext.Send((a) => FoundWorks.AddToCollection(results), null);
+                            if (first == false) UIContext.Send((a) =>
+                            {
+                                lock (padlock)
+                                {
+                                    FoundWorks.AddToCollection(results);
+                                }
+                            }, null);
 
                             results.AddToList(wworks);
 
                             UIContext.Send((a) =>
                             {
-                                FoundWorks.AddToCollection(wworks);
+                                lock (padlock)
+                                {
+                                    FoundWorks.AddToCollection(wworks);
+                                }
                             }, null);
 
                             currentPageResults = currentPage;
@@ -284,23 +312,23 @@ namespace CryPixivClient.ViewModels
 
             if (work.IsFavorited)
             {
+                work.IsBookmarked = false;
+                work.UpdateFavorite();
+
                 // remove from bookmarks
                 var result = await MainWindow.Account.RemoveFromBookmarks(work.Id.Value);
-                if (result)
-                {
-                    work.FavoriteId = null;
-                    work.UpdateFavorite();
-                }
+                if (result == false) work.IsBookmarked = true;
+                work.UpdateFavorite();
             }
             else
             {
+                work.IsBookmarked = true;
+                work.UpdateFavorite();
+
                 // add to bookmarks
                 var result = await MainWindow.Account.AddToBookmarks(work.Id.Value);
-                if (result.Item1)
-                {
-                    work.FavoriteId = result.Item2;
-                    work.UpdateFavorite();
-                }
+                if (result.Item1 == false) work.IsBookmarked = false;                                  
+                work.UpdateFavorite();
             }
         }
         #endregion

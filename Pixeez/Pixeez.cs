@@ -192,16 +192,17 @@ namespace Pixeez
         {
             using (var response = await this.SendRequestAsync(type, url, param, headers))
             {
-                var json = await response.GetResponseStringAsync();               
+                var json = await response.GetResponseStringAsync();
                 T obj = default(T);
 
                 if (json == "{}") return obj;
 
+                json = json.Replace("created_time", "create_date"); // to make it compatible with newer JSON entries
                 try
                 {
                     obj = JToken.Parse(json).SelectToken("response").ToObject<T>();
                 }
-                catch(NullReferenceException nex)
+                catch (NullReferenceException nex)
                 {
                     if (json.Contains("存在しないランキングページを参照しています")) return null; // reached end
                     else throw;
@@ -209,6 +210,32 @@ namespace Pixeez
 
                 if (obj is IPagenated)
                     ((IPagenated)obj).Pagination = JToken.Parse(json).SelectToken("pagination").ToObject<Pagination>();
+
+                return obj;
+            }
+        }
+        private async Task<T> AccessApiAsyncNew<T>(MethodType type, string url, IDictionary<string, string> param, IDictionary<string, string> headers = null) where T : class
+        {
+            using (var response = await this.SendRequestAsync(type, url, param, headers))
+            {
+                var json = await response.GetResponseStringAsync();               
+                T obj = default(T);
+
+                if (json == "{}") return obj;
+
+                try
+                {
+                    obj = JToken.Parse(json).SelectToken("illusts").ToObject<T>();  // response
+                }
+                catch(NullReferenceException nex)
+                {
+                    if (json.Contains("存在しないランキングページを参照しています")) return null; // reached end
+                    else throw;
+                }
+                catch (Exception ex)
+                {
+                    throw;
+                }
 
                 return obj;
             }
@@ -472,21 +499,22 @@ namespace Pixeez
 
         /// <summary>
         /// <para>Available parameters:</para>
-        /// <para>- <c>string</c> mode (optional) [ daily, weekly, monthly, male, female, rookie, daily_r18, weekly_r18, male_r18, female_r18, r18g ]</para>
+        /// <para>- <c>string</c> mode (optional) [ day, week, month, day_male, day_female, week_rookie, week_original, day_r18, week_r18, day_male_r18, day_female_r18, week_r18g ]</para>
         /// <para>- <c>int</c> page (optional)</para>
         /// <para>- <c>int</c> perPage (optional)</para>
         /// <para>- <c>string</c> date (optional) [ 2015-04-01 ]</para>
         /// <para>- <c>bool</c> includeSanityLevel (optional)</para>
         /// </summary>
         /// <returns>RankingAll. (Pagenated)</returns>
-        public async Task<Paginated<Rank>> GetRankingAllAsync(string mode = "daily", int page = 1, int perPage = 30, string date = "", bool includeSanityLevel = true)
+        public async Task<Paginated<Work>> GetRankingAllAsync(string mode = "day", int page = 1, int perPage = 30, string date = "", bool includeSanityLevel = true)
         {
-            var url = "https://public-api.secure.pixiv.net/v1/ranking/all";
+            // var url = "https://public-api.secure.pixiv.net/v1/ranking/all";
+            var url = "https://app-api.pixiv.net/v1/illust/ranking";
 
             var param = new Dictionary<string, string>
             {
                 { "mode", mode } ,
-                { "page", page.ToString() } ,
+                { "offset", (perPage * (page - 1)).ToString() } ,
                 { "per_page", perPage.ToString() } ,
                 { "include_stats", "1" } ,
                 { "include_sanity_level", Convert.ToInt32(includeSanityLevel).ToString() } ,
@@ -497,7 +525,7 @@ namespace Pixeez
             if (!string.IsNullOrWhiteSpace(date))
                 param.Add("date", date);
 
-            return await this.AccessApiAsync<Paginated<Rank>>(MethodType.GET, url, param);
+            return await this.AccessApiAsyncNew<Paginated<Work>>(MethodType.GET, url, param);
         }
 
         /// <summary>

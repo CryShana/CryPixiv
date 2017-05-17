@@ -13,19 +13,21 @@ namespace Pixeez.Objects
     public class ImageUrls
     {
         [JsonProperty("px_128x128")]
-        public string Px128x128 { get; set; }
+        public string px128x128 { get; set; }
 
-        [JsonProperty("small")]
-        public string Small { get; set; }
+        string sqMedium = null;
+        [JsonProperty("square_medium")]
+        public string SquareMedium
+        {
+            get => sqMedium ?? px128x128;
+            set { sqMedium = value; }
+        }
 
         [JsonProperty("medium")]
         public string Medium { get; set; }
 
         [JsonProperty("large")]
         public string Large { get; set; }
-
-        [JsonProperty("px_480mw")]
-        public string Px480mw { get; set; }
     }
 
     public class FavoritedCount
@@ -81,11 +83,12 @@ namespace Pixeez.Objects
         [JsonProperty("caption")]
         public string Caption { get; set; }
 
+        /*
         [JsonProperty("tags")]
-        public IList<string> Tags { get; set; }
+        public List<Dictionary<string,string>> Tags { get; set; }*/   //Was commented out because of compatibility issues between new and old entries!
 
-        [JsonProperty("tools")]
-        public IList<string> Tools { get; set; }
+        [JsonProperty("favorite_id")]
+        public long? FavoriteId { get; set; }
 
         [JsonProperty("image_urls")]
         public ImageUrls ImageUrls { get; set; }
@@ -99,44 +102,26 @@ namespace Pixeez.Objects
         [JsonProperty("stats")]
         public WorkStats Stats { get; set; }
 
-        [JsonProperty("publicity")]
-        public int? Publicity { get; set; }
+        [JsonProperty("total_bookmarks")]
+        public long? TotalBookmarks { get; set; }
 
-        [JsonProperty("age_limit")]
-        public string AgeLimit { get; set; }
+        [JsonProperty("restrict")]
+        public int? Restrict { get; set; }
 
-        [JsonProperty("created_time")]
+        [JsonProperty("create_date")]
         public DateTimeOffset CreatedTime { get; set; }
-
-        [JsonProperty("reuploaded_time")]
-        public string ReuploadedTime { get; set; }
 
         [JsonProperty("user")]
         public User User { get; set; }
 
-        [JsonProperty("is_manga")]
-        public bool? IsManga { get; set; }
-
-        [JsonProperty("is_liked")]
-        public bool? IsLiked { get; set; }
-
-        [JsonProperty("favorite_id")]
-        public long? FavoriteId { get; set; }
+        [JsonProperty("is_bookmarked")]
+        public bool? IsBookmarked { get; set; }
 
         [JsonProperty("page_count")]
         public int? PageCount { get; set; }
 
-        [JsonProperty("book_style")]
-        public string BookStyle { get; set; }
-
         [JsonProperty("type")]
         public string Type { get; set; }
-
-        [JsonProperty("metadata")]
-        public Metadata Metadata { get; set; }
-
-        [JsonProperty("content_type")]
-        public string ContentType { get; set; }
 
         public string GetImageUri(string baseUri, int pageNumber = 0)
         {

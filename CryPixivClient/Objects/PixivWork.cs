@@ -17,7 +17,15 @@ namespace CryPixivClient.Objects
         public event PropertyChangedEventHandler PropertyChanged;
 
         public string PageCountText => (PageCount == null || PageCount.Value == 1) ? "" : PageCount.Value.ToString();
-        public bool IsFavorited => (FavoriteId == null || FavoriteId == 0) ? false : true;
+        public bool IsFavorited
+        {
+            get
+            {
+                if (IsBookmarked == null) IsBookmarked = FavoriteId != null && FavoriteId != 0;
+
+                return IsBookmarked.Value;
+            }
+        }
 
         ImageSource img = null;
 
@@ -36,7 +44,7 @@ namespace CryPixivClient.Objects
                             client.Headers.Add("Referer", "http://spapi.pixiv.net/");
                             client.Headers.Add("User-Agent", "PixivIOSApp/5.8.0");
                             client.UseDefaultCredentials = true;
-                            buffer = client.DownloadData(ImageUrls.Px128x128);
+                            buffer = client.DownloadData(ImageUrls.SquareMedium);
                         }
 
                         using (var stream = new MemoryStream(buffer))
@@ -64,25 +72,19 @@ namespace CryPixivClient.Objects
             Id = work.Id;
             Title = work.Title;
             Caption = work.Caption;
-            Tags = work.Tags;
-            Tools = work.Tools;
+            //Tags = work.Tags;
+            FavoriteId = work.FavoriteId;
             ImageUrls = work.ImageUrls;
             Width = work.Width;
             Height = work.Height;
-            Stats = work.Stats;
-            Publicity = work.Publicity;
-            AgeLimit = work.AgeLimit;
+            TotalBookmarks = work.TotalBookmarks;
+            Restrict = work.Restrict;
             CreatedTime = work.CreatedTime;
-            ReuploadedTime = work.ReuploadedTime;
             User = work.User;
-            IsManga = work.IsManga;
-            IsLiked = work.IsLiked;
-            FavoriteId = work.FavoriteId;
+            IsBookmarked = work.IsBookmarked;
             PageCount = work.PageCount;
-            BookStyle = work.BookStyle;
             Type = work.Type;
-            Metadata = work.Metadata;
-            ContentType = work.ContentType;
+            Stats = work.Stats;
         }
 
         public void UpdateFavorite()

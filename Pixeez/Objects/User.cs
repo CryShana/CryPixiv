@@ -120,27 +120,12 @@ namespace Pixeez.Objects
         public string Account { get; set; }
 
         [JsonProperty("name")]
-        public string Name { get; set; }
-
-        [JsonProperty("is_following")]
-        public bool? IsFollowing { get; set; }
-
-        [JsonProperty("is_follower")]
-        public bool? IsFollower { get; set; }
-
-        [JsonProperty("is_friend")]
-        public bool? IsFriend { get; set; }
-
-        [JsonProperty("is_premium")]
-        public bool? IsPremium { get; set; }
+        public string Name { get; set; }       
 
         [JsonProperty("profile_image_urls")]
         public ProfileImageUrls ProfileImageUrls { get; set; }
 
-        [JsonProperty("stats")]
-        public UserStats Stats { get; set; }
-
-        [JsonProperty("profile")]
-        public Profile Profile { get; set; }
+        [JsonProperty("is_followed")]
+        public bool? IsFollowed { get; set; }
     }
 }

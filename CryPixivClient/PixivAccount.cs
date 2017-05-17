@@ -81,7 +81,7 @@ namespace CryPixivClient
             var result = await GetData(() => tokens.GetRankingAllAsync(page: page));
             if (result == null) return null;
 
-            return result.First().Works.Select(x => x.Work).ToPixivWork();
+            return result.ToPixivWork();
         }
         public async Task<List<PixivWork>> GetFollowing(int page = 1, Publicity publicity = Publicity.Public)
         {

@@ -28,7 +28,7 @@ namespace CryPixivClient.ViewModels
                 PageCount = 4,
                 ImageUrls = new Pixeez.Objects.ImageUrls()
                 {
-                    Px128x128 = "http://i1.pixiv.net/c/128x128/img-master/img/2017/05/15/17/51/51/62914408_p0_square1200.jpg"
+                    SquareMedium = "http://i1.pixiv.net/c/128x128/img-master/img/2017/05/15/17/51/51/62914408_p0_square1200.jpg"
                 }
             }));
         }
