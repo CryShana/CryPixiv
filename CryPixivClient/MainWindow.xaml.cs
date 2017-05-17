@@ -120,38 +120,42 @@ namespace CryPixivClient
         void btnDailyRankings_Click(object sender, RoutedEventArgs e)
         {
             ToggleButtons(PixivAccount.WorkMode.Ranking);
-            MainCollectionView.SortDescriptions.Clear();
+            PrepareFilter(PixivAccount.WorkMode.Ranking);
             MainModel.ShowDailyRankings(); 
         }
 
         void btnFollowing_Click(object sender, RoutedEventArgs e)
         {
             ToggleButtons(PixivAccount.WorkMode.Following);
-            MainCollectionView.SortDescriptions.Clear();
+            PrepareFilter(PixivAccount.WorkMode.Following);
             MainModel.ShowFollowing();
         }
 
         void btnBookmarks_Click(object sender, RoutedEventArgs e)
         {
             ToggleButtons(PixivAccount.WorkMode.Bookmarks);
-            MainCollectionView.SortDescriptions.Clear();
+            PrepareFilter(PixivAccount.WorkMode.Bookmarks);
             MainModel.ShowBookmarks();
         }
 
         void btnSearch_Click(object sender, RoutedEventArgs e)
         {
             ToggleButtons(PixivAccount.WorkMode.Search);
-            CheckAutosort();
-
+            PrepareFilter(PixivAccount.WorkMode.Search, checkPopular.IsChecked == true);
             MainModel.ShowSearch(txtSearchQuery.Text, checkPopular.IsChecked == true);
         }
         private void btnResults_Click(object sender, RoutedEventArgs e)
         {
-            ToggleButtons(PixivAccount.WorkMode.Search);
             txtSearchQuery.Text = MainModel.LastSearchQuery;
-            CheckAutosort();
 
+            ToggleButtons(PixivAccount.WorkMode.Search);
+            PrepareFilter(PixivAccount.WorkMode.Search, checkPopular.IsChecked == true);
             MainModel.ShowSearch(null, checkPopular.IsChecked == true);  // "null" as search query will attempt to use the previous query
+        }
+        void checkPopular_Click(object sender, RoutedEventArgs e)
+        {
+            if (CurrentWorkMode != PixivAccount.WorkMode.Search) return;
+            PrepareFilter(PixivAccount.WorkMode.Search, checkPopular.IsChecked == true);
         }
         #endregion
 
@@ -190,16 +194,22 @@ namespace CryPixivClient
             btnResults.IsEnabled = mode != PixivAccount.WorkMode.Search && MainModel.LastSearchQuery != null;
         }
 
-        void checkPopular_Click(object sender, RoutedEventArgs e)
-        {
-            if (CurrentWorkMode != PixivAccount.WorkMode.Search) return;
-            CheckAutosort();
-        }
-
-        void CheckAutosort()
+        void PrepareFilter(PixivAccount.WorkMode mode, bool sort = false)
         {
             MainCollectionView.SortDescriptions.Clear();
-            if (checkPopular.IsChecked == true) MainCollectionView.SortDescriptions.Add(new System.ComponentModel.SortDescription("Stats.Score", System.ComponentModel.ListSortDirection.Descending));
+            if (sort) MainCollectionView.SortDescriptions.Add(new System.ComponentModel.SortDescription("Stats.Score", System.ComponentModel.ListSortDirection.Descending));
+
+            switch (mode)
+            {
+                case PixivAccount.WorkMode.Search:
+                    break;
+                case PixivAccount.WorkMode.Ranking:
+                    break;
+                case PixivAccount.WorkMode.Bookmarks:
+                    break;
+                case PixivAccount.WorkMode.Following:
+                    break;
+            }
         }
     }
 }

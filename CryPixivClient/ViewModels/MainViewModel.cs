@@ -99,11 +99,12 @@ namespace CryPixivClient.ViewModels
 
             // show status
             TitleSuffix = titleSuffix;
-            Status = $"{statusPrefix}...";
+            Status = $"{statusPrefix}...";    
 
             // start searching...
             await Task.Run(async () =>
             {
+                var backupCache = cache.Copy();
                 cache.Clear();
                 bool first = false;
                 int currentPage = 0;
@@ -141,7 +142,7 @@ namespace CryPixivClient.ViewModels
                         }
                         else cache.AddRange(works);
 
-                        Status = $"{statusPrefix}... " + FoundWorks.Count + " works";
+                        Status = $"{statusPrefix}... " + cache.Count + " works" + ((FoundWorks.Count > cache.Count) ? $" (Displayed: {FoundWorks.Count} works from cache)" : "");
                     }
                     catch (Exception ex)
                     {
@@ -149,6 +150,7 @@ namespace CryPixivClient.ViewModels
                     }
                 }
 
+                if (cache.Count < backupCache.Count) cache.SwapList(backupCache);
                 if (MainWindow.CurrentWorkMode == mode)
                 {
                     IsWorking = false;
@@ -156,17 +158,6 @@ namespace CryPixivClient.ViewModels
                 }
             });
         }
-
-        public async void ShowDailyRankings() =>
-            await Show(dailyRankings, PixivAccount.WorkMode.Ranking, "Daily Ranking", "Getting daily ranking", (page) => MainWindow.Account.GetDailyRanking(page));
-
-        public async void ShowFollowing() =>
-            await Show(following, PixivAccount.WorkMode.Following, "Following", "Getting following", (page) => MainWindow.Account.GetFollowing(page));
-
-        public async void ShowBookmarks() =>
-            await Show(bookmarks, PixivAccount.WorkMode.Bookmarks, "Bookmarks", "Getting bookmarks", (page) => MainWindow.Account.GetBookmarks(page));
-
-        Queue<CancellationTokenSource> queuedTasks = new Queue<CancellationTokenSource>();
         public async void ShowSearch(string query, bool autosort = true)
         {
             bool otherWasRunning = LastSearchQuery != query && query != null;
@@ -202,6 +193,7 @@ namespace CryPixivClient.ViewModels
             // start searching...
             await Task.Run(async () =>
             {
+                var backupCache = results.Copy();
                 results.Clear();
                 bool first = false;
                 int currentPage = 0;
@@ -238,13 +230,15 @@ namespace CryPixivClient.ViewModels
                         }
                         else results.AddRange(wworks);
 
-                        Status = $"Searching... {FoundWorks.Count}/{maxResultCount} works";
+                        Status = $"Searching... {results.Count}/{maxResultCount} works" + ((FoundWorks.Count > results.Count) ? $" (Displayed: {FoundWorks.Count} works from cache)" : ""); ;
                     }
                     catch (Exception ex)
                     {
                         break;
                     }
                 }
+
+                if (results.Count < backupCache.Count) results.SwapList(backupCache);
 
                 if (MainWindow.CurrentWorkMode == mode)
                 {
@@ -253,6 +247,18 @@ namespace CryPixivClient.ViewModels
                 }
             }, csrc.Token);
         }
+
+        public async void ShowDailyRankings() =>
+            await Show(dailyRankings, PixivAccount.WorkMode.Ranking, "Daily Ranking", "Getting daily ranking", (page) => MainWindow.Account.GetDailyRanking(page));
+
+        public async void ShowFollowing() =>
+            await Show(following, PixivAccount.WorkMode.Following, "Following", "Getting following", (page) => MainWindow.Account.GetFollowing(page));
+
+        public async void ShowBookmarks() =>
+            await Show(bookmarks, PixivAccount.WorkMode.Bookmarks, "Bookmarks", "Getting bookmarks", (page) => MainWindow.Account.GetBookmarks(page));
+
+        Queue<CancellationTokenSource> queuedTasks = new Queue<CancellationTokenSource>();
+      
     }
 
     public static class Extensions
@@ -283,6 +289,19 @@ namespace CryPixivClient.ViewModels
             List<PixivWork> works = new List<PixivWork>();
             foreach (var w in collection) works.Add(new PixivWork(w));
             return works;
+        }
+
+        public static List<T> Copy<T>(this List<T> collection)
+        {
+            var lst = new List<T>();
+            foreach (var l in collection) lst.Add(l);
+            return lst;
+        }
+
+        public static void SwapList<T>(this List<T> source, List<T> target)
+        {
+            source.Clear();
+            foreach (var l in target) source.Add(l);
         }
     }
 }
