@@ -24,9 +24,8 @@ namespace CryPixivClient.ViewModels
         public void Changed([CallerMemberName]string name = "") => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
 
         #region Private fields
-        ObservableCollection<PixivWork> foundWorks = new ObservableCollection<PixivWork>();
-
-        static readonly object padlock = new object();
+        MyObservableCollection<PixivWork> foundWorks = new MyObservableCollection<PixivWork>();
+        readonly SemaphoreSlim semaphore;
         string status = "Idle";
         string title = "CryPixiv";
         bool isWorking = false;
@@ -45,7 +44,7 @@ namespace CryPixivClient.ViewModels
         #endregion
 
         #region Properties
-        public ObservableCollection<PixivWork> FoundWorks
+        public MyObservableCollection<PixivWork> FoundWorks
         {
             get => foundWorks;
             set { foundWorks = value; Changed(); }
@@ -85,6 +84,7 @@ namespace CryPixivClient.ViewModels
         public MainViewModel()
         {
             UIContext = SynchronizationContext.Current;
+            semaphore = new SemaphoreSlim(1);
         }
 
         public void UpdateColumns(double w)
@@ -98,6 +98,7 @@ namespace CryPixivClient.ViewModels
             Changed("Columns");
         }
 
+
         #region Show Methods
         public async Task Show(List<PixivWork> cache, PixivAccount.WorkMode mode, string titleSuffix, string statusPrefix,
             Func<int, Task<List<PixivWork>>> getWorks, bool waitForUser = true)
@@ -107,12 +108,11 @@ namespace CryPixivClient.ViewModels
             MainWindow.DynamicWorksLimit = MainWindow.DefaultWorksLimit;
 
             // load cached results if they exist
-            lock (padlock)
-            {
-                FoundWorks.Clear();
-                int count = cache?.Count ?? 0;
-                if (cache != null) FoundWorks.SwapCollection(cache);
-            }          
+            await semaphore.WaitAsync();
+            FoundWorks.Clear();
+            int count = cache?.Count ?? 0;
+            if (cache != null) FoundWorks.SwapCollection(cache);
+            semaphore.Release();
 
             // show status
             TitleSuffix = titleSuffix;
@@ -151,21 +151,19 @@ namespace CryPixivClient.ViewModels
                         // if cache has less entries than downloaded - swap cache with newest entries and keep updating...
                         if (cache.Count + works.Count > FoundWorks.Count)
                         {
-                            if (first == false) UIContext.Send((a) =>
+                            if (first == false) UIContext.Send(async (a) =>
                             {
-                                lock (padlock)
-                                {
-                                    FoundWorks.AddToCollection(cache);
-                                }
+                                await semaphore.WaitAsync();
+                                FoundWorks.AddToCollection(cache);
+                                semaphore.Release();
                             }, null);
 
                             cache.AddRange(works);
-                            UIContext.Send((a) =>
+                            UIContext.Send(async (a) =>
                             {
-                                lock (padlock)
-                                {
-                                    FoundWorks.AddList(works);
-                                }
+                                await semaphore.WaitAsync();
+                                FoundWorks.AddList(works);
+                                semaphore.Release();
                             }, null);
                             first = true;
                         }
@@ -208,13 +206,12 @@ namespace CryPixivClient.ViewModels
             MainWindow.CurrentWorkMode = mode;
 
             // load cached results if they exist
-            lock (padlock)
-            {
-                FoundWorks.Clear();
-                int count = results?.Count ?? 0;
-                if (results != null && otherWasRunning == false) FoundWorks.SwapCollection(results);
-            }
-            
+            await semaphore.WaitAsync();
+            FoundWorks.Clear();
+            int count = results?.Count ?? 0;
+            if (results != null && otherWasRunning == false) FoundWorks.SwapCollection(results);
+            semaphore.Release();
+
             // show status
             TitleSuffix = "";
             Status = "Searching...";
@@ -250,22 +247,20 @@ namespace CryPixivClient.ViewModels
                         // if cache has less entries than downloaded - swap cache with newest entries and keep updating...
                         if (results.Count + works.Count > FoundWorks.Count || continuePage > 1)
                         {
-                            if (first == false) UIContext.Send((a) =>
+                            if (first == false) UIContext.Send(async (a) =>
                             {
-                                lock (padlock)
-                                {
-                                    FoundWorks.AddToCollection(results);
-                                }
+                                await semaphore.WaitAsync();
+                                FoundWorks.AddToCollection(results);
+                                semaphore.Release();
                             }, null);
 
                             results.AddToList(wworks);
 
-                            UIContext.Send((a) =>
+                            UIContext.Send(async (a) =>
                             {
-                                lock (padlock)
-                                {
-                                    FoundWorks.AddToCollection(wworks);
-                                }
+                                await semaphore.WaitAsync();
+                                FoundWorks.AddToCollection(wworks);
+                                semaphore.Release();
                             }, null);
 
                             currentPageResults = currentPage;
@@ -327,7 +322,7 @@ namespace CryPixivClient.ViewModels
 
                 // add to bookmarks
                 var result = await MainWindow.Account.AddToBookmarks(work.Id.Value);
-                if (result.Item1 == false) work.IsBookmarked = false;                                  
+                if (result.Item1 == false) work.IsBookmarked = false;
                 work.UpdateFavorite();
             }
         }
@@ -337,19 +332,32 @@ namespace CryPixivClient.ViewModels
 
     public static class Extensions
     {
-        public static void SwapCollection<T>(this ObservableCollection<T> collection, IEnumerable<T> target)
+        public static void SwapCollection<T>(this MyObservableCollection<T> collection, IEnumerable<T> target)
         {
             collection.Clear();
             collection.AddList(target);
         }
 
-        public static void AddToCollection(this ObservableCollection<PixivWork> collection, IEnumerable<PixivWork> target)
+        public static void AddToCollection(this MyObservableCollection<PixivWork> collection, IEnumerable<PixivWork> target)
         {
             // add to collection, ignore existing ones
-            foreach (var i in target)
+            foreach (var ti in target)
             {
-                if (collection.Count(x => x.Id == i.Id) > 0) continue;
-                else collection.Add(i);
+                bool shouldAdd = true;
+                foreach (var i in collection)
+                {
+                    if (i.Id != ti.Id) continue;
+                    shouldAdd = false;
+
+                    // update info
+                    i.IsBookmarked = ti.IsBookmarked;
+                    i.FavoriteId = ti.FavoriteId;
+                    i.UpdateFavorite();
+
+                    if (i.Stats != null && ti.Stats != null) i.Stats.Score = ti.Stats.Score;
+                }
+
+                if (shouldAdd) collection.Add(ti);
             }
         }
         public static void AddToList(this List<PixivWork> collection, IEnumerable<PixivWork> target)
@@ -362,7 +370,7 @@ namespace CryPixivClient.ViewModels
             }
         }
 
-        public static void AddList<T>(this ObservableCollection<T> collection, IEnumerable<T> target)
+        public static void AddList<T>(this MyObservableCollection<T> collection, IEnumerable<T> target)
         {
             foreach (var i in target) collection.Add(i);
         }

@@ -73,7 +73,6 @@ namespace CryPixivClient
         }
 
         #region Saving/Loading
-
         void LoadWindowData()
         {
             if (Settings.Default.WindowHeight > 10)
@@ -124,7 +123,7 @@ namespace CryPixivClient
         {
             ToggleButtons(PixivAccount.WorkMode.Ranking);
             PrepareFilter(PixivAccount.WorkMode.Ranking);
-            MainModel.ShowDailyRankings(); 
+            MainModel.ShowDailyRankings();
         }
 
         void btnFollowing_Click(object sender, RoutedEventArgs e)
