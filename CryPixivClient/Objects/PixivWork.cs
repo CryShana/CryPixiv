@@ -13,8 +13,6 @@ namespace CryPixivClient.Objects
 {
     public class PixivWork : Work
     {
-        public string AccessToken = "";
-
         ImageSource img = null;
         public ImageSource ImageThumbnail
         {

@@ -4,15 +4,13 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:vm="clr-namespace:CryPixivClient.ViewModels"
-        xmlns:cnv="clr-namespace:CryPixivClient.Converters"
         xmlns:local="clr-namespace:CryPixivClient"
         xmlns:scm="clr-namespace:System.ComponentModel;assembly=WindowsBase"
         mc:Ignorable="d" MinHeight="350" MinWidth="525" Height="350" Width="525" Icon="Images/pixiv.ico" Closing="Window_Closing" SizeChanged="Window_SizeChanged" StateChanged="Window_StateChanged">
     <Window.Resources>
         <vm:MainViewModel x:Key="mainViewModel"/>
-        <cnv:UrlToImageConverter x:Key="imageConverter"/>
+        <BitmapImage x:Key="missingImage" UriSource="Images/missingImage.jpg" />
         <CollectionViewSource x:Key="ItemListViewSource" Source="{Binding FoundWorks, Source={StaticResource mainViewModel}}"/>
-
     </Window.Resources>
     <Window.Title>
         <Binding Mode="OneWay" Path="Title" Source="{StaticResource mainViewModel}"/>
@@ -32,7 +30,13 @@
             <ListView.ItemTemplate>
                 <DataTemplate>
                     <StackPanel>
-                        <Image Source="{Binding ImageThumbnail, IsAsync=True, Mode=OneWay}" Width="128" Height="128" Stretch="Uniform" RenderOptions.BitmapScalingMode="HighQuality"/>
+                        <Image Width="128" Height="128" Stretch="Uniform" RenderOptions.BitmapScalingMode="HighQuality">
+                            <Image.Source>
+                                <PriorityBinding FallbackValue="{StaticResource missingImage}">
+                                    <Binding Path="ImageThumbnail" IsAsync="True"/>
+                                </PriorityBinding>
+                            </Image.Source>
+                        </Image>
                     </StackPanel>
                 </DataTemplate>
             </ListView.ItemTemplate>
