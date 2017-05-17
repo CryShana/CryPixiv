@@ -35,6 +35,9 @@ namespace CryPixivClient
         public const int DefaultWorksLimit = 100;
         public static PixivAccount.WorkMode CurrentWorkMode;
         public static CollectionViewSource MainCollectionView;
+        public static CollectionViewSource MainCollectionViewRanking;
+        public static CollectionViewSource MainCollectionViewFollowing;
+        public static CollectionViewSource MainCollectionViewBookmarks;
 
         public MainWindow()
         {
@@ -43,6 +46,9 @@ namespace CryPixivClient
             // set up all data
             MainModel = (MainViewModel)FindResource("mainViewModel");
             MainCollectionView = (CollectionViewSource)FindResource("ItemListViewSource");
+            MainCollectionViewRanking = (CollectionViewSource)FindResource("ItemListViewSourceRanking");
+            MainCollectionViewFollowing = (CollectionViewSource)FindResource("ItemListViewSourceFollowing");
+            MainCollectionViewBookmarks = (CollectionViewSource)FindResource("ItemListViewSourceBookmarks");
             UIContext = SynchronizationContext.Current;
             LoadWindowData();
             LoadAccount();
@@ -59,6 +65,21 @@ namespace CryPixivClient
         private void AuthenticationFailed(object sender, string e)
         {
             UIContext.Send((a) => ShowLoginPrompt(true), null);
+        }
+
+        void ToggleLists(PixivAccount.WorkMode mode)
+        {
+            mainList.IsEnabled = mode == PixivAccount.WorkMode.Search;
+            mainList.Visibility = (mode == PixivAccount.WorkMode.Search) ? Visibility.Visible : Visibility.Hidden;
+
+            mainListRanking.IsEnabled = mode == PixivAccount.WorkMode.Ranking;
+            mainListRanking.Visibility = (mode == PixivAccount.WorkMode.Ranking) ? Visibility.Visible : Visibility.Hidden;
+
+            mainListFollowing.IsEnabled = mode == PixivAccount.WorkMode.Following;
+            mainListFollowing.Visibility = (mode == PixivAccount.WorkMode.Following) ? Visibility.Visible : Visibility.Hidden;
+
+            mainListBookmarks.IsEnabled = mode == PixivAccount.WorkMode.Bookmarks;
+            mainListBookmarks.Visibility = (mode == PixivAccount.WorkMode.Bookmarks) ? Visibility.Visible : Visibility.Hidden;
         }
 
         void ShowLoginPrompt(bool force = false)
@@ -123,21 +144,21 @@ namespace CryPixivClient
         void btnDailyRankings_Click(object sender, RoutedEventArgs e)
         {
             ToggleButtons(PixivAccount.WorkMode.Ranking);
-            PrepareFilter(PixivAccount.WorkMode.Ranking);
+            ToggleLists(PixivAccount.WorkMode.Ranking);
             MainModel.ShowDailyRankings();
         }
 
         void btnFollowing_Click(object sender, RoutedEventArgs e)
         {
             ToggleButtons(PixivAccount.WorkMode.Following);
-            PrepareFilter(PixivAccount.WorkMode.Following);
+            ToggleLists(PixivAccount.WorkMode.Following);
             MainModel.ShowFollowing();
         }
 
         void btnBookmarks_Click(object sender, RoutedEventArgs e)
         {
             ToggleButtons(PixivAccount.WorkMode.Bookmarks);
-            PrepareFilter(PixivAccount.WorkMode.Bookmarks);
+            ToggleLists(PixivAccount.WorkMode.Bookmarks);
             MainModel.ShowBookmarks();
         }
 
@@ -146,7 +167,8 @@ namespace CryPixivClient
             if (txtSearchQuery.Text.Length < 2) return;
 
             ToggleButtons(PixivAccount.WorkMode.Search);
-            PrepareFilter(PixivAccount.WorkMode.Search, checkPopular.IsChecked == true);
+            ToggleLists(PixivAccount.WorkMode.Search);
+            UpdateSearchFilter(PixivAccount.WorkMode.Search, checkPopular.IsChecked == true);
             if (MainModel?.LastSearchQuery != txtSearchQuery.Text) MainModel.CurrentPageResults = 1;
 
             MainModel.ShowSearch(txtSearchQuery.Text, checkPopular.IsChecked == true, MainModel.CurrentPageResults);
@@ -156,13 +178,14 @@ namespace CryPixivClient
             txtSearchQuery.Text = MainModel.LastSearchQuery;
 
             ToggleButtons(PixivAccount.WorkMode.Search);
-            PrepareFilter(PixivAccount.WorkMode.Search, checkPopular.IsChecked == true);
+            ToggleLists(PixivAccount.WorkMode.Search);
+            UpdateSearchFilter(PixivAccount.WorkMode.Search, checkPopular.IsChecked == true);
             MainModel.ShowSearch(null, checkPopular.IsChecked == true, MainModel.CurrentPageResults);  // "null" as search query will attempt to use the previous query
         }
         void checkPopular_Click(object sender, RoutedEventArgs e)
         {
             if (CurrentWorkMode != PixivAccount.WorkMode.Search) return;
-            PrepareFilter(PixivAccount.WorkMode.Search, checkPopular.IsChecked == true);
+            UpdateSearchFilter(PixivAccount.WorkMode.Search, checkPopular.IsChecked == true);
         }
         #endregion
 
@@ -201,26 +224,10 @@ namespace CryPixivClient
             btnResults.IsEnabled = mode != PixivAccount.WorkMode.Search && MainModel.LastSearchQuery != null;
         }
 
-        void PrepareFilter(PixivAccount.WorkMode mode, bool sort = false)
+        void UpdateSearchFilter(PixivAccount.WorkMode mode, bool sort = false)
         {
             MainCollectionView.SortDescriptions.Clear();
             if (sort) MainCollectionView.SortDescriptions.Add(new System.ComponentModel.SortDescription("Stats.Score", System.ComponentModel.ListSortDirection.Descending));
-
-            // do stuff here...
-            switch (mode)
-            {
-                case PixivAccount.WorkMode.Search:
-                    break;
-                case PixivAccount.WorkMode.Ranking:
-                    MainCollectionView.SortDescriptions.Add(new System.ComponentModel.SortDescription("OrderNumber", System.ComponentModel.ListSortDirection.Ascending));
-                    break;
-                case PixivAccount.WorkMode.Bookmarks:
-                    MainCollectionView.SortDescriptions.Add(new System.ComponentModel.SortDescription("OrderNumber", System.ComponentModel.ListSortDirection.Ascending));
-                    break;
-                case PixivAccount.WorkMode.Following:
-                    MainCollectionView.SortDescriptions.Add(new System.ComponentModel.SortDescription("CreatedTime", System.ComponentModel.ListSortDirection.Descending));
-                    break;
-            }
         }
     }
 }

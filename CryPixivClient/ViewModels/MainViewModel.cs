@@ -119,7 +119,8 @@ namespace CryPixivClient.ViewModels
 
 
         #region Show Methods
-        public async Task Show(List<PixivWork> cache, MyObservableCollection<PixivWork> displayCollection, PixivAccount.WorkMode mode, string titleSuffix, string statusPrefix,
+        public async Task Show(List<PixivWork> cache, MyObservableCollection<PixivWork> displayCollection, CollectionViewSource viewSource,
+            PixivAccount.WorkMode mode, string titleSuffix, string statusPrefix,
             Func<int, Task<List<PixivWork>>> getWorks, bool waitForUser = true)
         {
             // set starting values
@@ -128,8 +129,7 @@ namespace CryPixivClient.ViewModels
 
             // switch collection to display
             await semaphore.WaitAsync();
-            MainWindow.MainCollectionView.Source = displayCollection;
-            // refresh if necessary
+            if (viewSource.Source == null) viewSource.Source = displayCollection;
             semaphore.Release();
 
             // show status
@@ -141,20 +141,30 @@ namespace CryPixivClient.ViewModels
             {
                 cache.Clear();
                 int currentPage = 0;
+                bool lastWasStuck = false;
                 for (;;)
                 {
                     if (MainWindow.CurrentWorkMode != mode) break;  // if user changes mode - break;
 
                     // if limit exceeded, stop downloading until user scrolls
-                    if (MainWindow.DynamicWorksLimit < cache.Count && waitForUser)
+                    if (MainWindow.DynamicWorksLimit < cache.Count && waitForUser && cache.Count >= displayCollection.Count)
                     {
                         MainWindow.LimitReached = true;
+                        lastWasStuck = true;
                         Status = "Waiting for user to scroll to get more works... (" + displayCollection.Count + " works displayed)";
                         IsWorking = false;
                         await Task.Delay(200);
                         continue;
                     }
-                    else MainWindow.LimitReached = false;
+                    else
+                    {
+                        if (lastWasStuck)
+                        {
+                            Status = $"Continuing...";
+                            lastWasStuck = false;
+                        }
+                        MainWindow.LimitReached = false;
+                    }
 
                     try
                     {
@@ -281,13 +291,16 @@ namespace CryPixivClient.ViewModels
         #endregion
 
         public async void ShowDailyRankings() =>
-            await Show(dailyRankings, DisplayedWorks_Ranking, PixivAccount.WorkMode.Ranking, "Daily Ranking", "Getting daily ranking", (page) => MainWindow.Account.GetDailyRanking(page));
+            await Show(dailyRankings, DisplayedWorks_Ranking, MainWindow.MainCollectionViewRanking, PixivAccount.WorkMode.Ranking, "Daily Ranking", 
+                "Getting daily ranking", (page) => MainWindow.Account.GetDailyRanking(page));
 
         public async void ShowFollowing() =>
-            await Show(following, DisplayedWorks_Following, PixivAccount.WorkMode.Following, "Following", "Getting following", (page) => MainWindow.Account.GetFollowing(page));
+            await Show(following, DisplayedWorks_Following, MainWindow.MainCollectionViewFollowing, PixivAccount.WorkMode.Following, "Following", 
+                "Getting following", (page) => MainWindow.Account.GetFollowing(page));
 
         public async void ShowBookmarks() =>
-            await Show(bookmarks, DisplayedWorks_Bookmarks, PixivAccount.WorkMode.Bookmarks, "Bookmarks", "Getting bookmarks", (page) => MainWindow.Account.GetBookmarks(page));
+            await Show(bookmarks, DisplayedWorks_Bookmarks, MainWindow.MainCollectionViewBookmarks, PixivAccount.WorkMode.Bookmarks, "Bookmarks", 
+                "Getting bookmarks", (page) => MainWindow.Account.GetBookmarks(page));
 
         Queue<CancellationTokenSource> queuedTasks = new Queue<CancellationTokenSource>();
 
