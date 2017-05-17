@@ -32,7 +32,7 @@
             <ListView.ItemTemplate>
                 <DataTemplate>
                     <StackPanel>
-                        <Image Source="{Binding ImageUrls.Px128x128}" Stretch="Uniform" RenderOptions.BitmapScalingMode="HighQuality"/>
+                        <Image Source="{Binding ImageThumbnail, IsAsync=True, Mode=OneWay}" Width="128" Height="128" Stretch="Uniform" RenderOptions.BitmapScalingMode="HighQuality"/>
                     </StackPanel>
                 </DataTemplate>
             </ListView.ItemTemplate>

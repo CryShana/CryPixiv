@@ -140,13 +140,17 @@ namespace CryPixivClient
 
         void btnSearch_Click(object sender, RoutedEventArgs e)
         {
-            ToggleButtons(PixivAccount.WorkMode.Search);           
+            ToggleButtons(PixivAccount.WorkMode.Search);
+            CheckAutosort();
+
             MainModel.ShowSearch(txtSearchQuery.Text, checkPopular.IsChecked == true);
         }
         private void btnResults_Click(object sender, RoutedEventArgs e)
         {
             ToggleButtons(PixivAccount.WorkMode.Search);
             txtSearchQuery.Text = MainModel.LastSearchQuery;
+            CheckAutosort();
+
             MainModel.ShowSearch(null, checkPopular.IsChecked == true);  // "null" as search query will attempt to use the previous query
         }
         #endregion
@@ -189,7 +193,11 @@ namespace CryPixivClient
         void checkPopular_Click(object sender, RoutedEventArgs e)
         {
             if (CurrentWorkMode != PixivAccount.WorkMode.Search) return;
+            CheckAutosort();
+        }
 
+        void CheckAutosort()
+        {
             MainCollectionView.SortDescriptions.Clear();
             if (checkPopular.IsChecked == true) MainCollectionView.SortDescriptions.Add(new System.ComponentModel.SortDescription("Stats.Score", System.ComponentModel.ListSortDirection.Descending));
         }

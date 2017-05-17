@@ -1,4 +1,6 @@
-﻿using CryPixivClient.Properties;
+﻿using CryPixivClient.Objects;
+using CryPixivClient.Properties;
+using CryPixivClient.ViewModels;
 using Pixeez;
 using Pixeez.Objects;
 using System;
@@ -72,24 +74,23 @@ namespace CryPixivClient
                 return new Tuple<bool, string>(false, ex.Message);
             }
         }
-        public async Task<Paginated<Work>> SearchWorks(string searchQuery, int page = 1) => await GetData(() => tokens.SearchWorksAsync(searchQuery, page));
-        public async Task<List<Work>> GetDailyRanking(int page = 1)
+        public async Task<Paginated<Work>> SearchWorks(string searchQuery, int page = 1) => await GetData(() => tokens.SearchWorksAsync(searchQuery, page, mode: "tag"));
+        public async Task<List<PixivWork>> GetDailyRanking(int page = 1)
         {
             var result = await GetData(() => tokens.GetRankingAllAsync(page: page));
             if (result == null) return null;
 
-            var works = result.First().Works.Select(x => x.Work).ToList();
-            return works;
+            return result.First().Works.Select(x => x.Work).ToPixivWork();
         }
-        public async Task<List<Work>> GetFollowing(int page = 1, Publicity publicity = Publicity.Public)
+        public async Task<List<PixivWork>> GetFollowing(int page = 1, Publicity publicity = Publicity.Public)
         {
             var result = await GetData(() => tokens.GetMyFollowingWorksAsync(page: page, publicity: publicity.ToString().ToLower()));
-            return result.ToList();
+            return result.ToPixivWork();
         }
-        public async Task<List<Work>> GetBookmarks(int page = 1, Publicity publicity = Publicity.Public)
+        public async Task<List<PixivWork>> GetBookmarks(int page = 1, Publicity publicity = Publicity.Public)
         {
             var result = await GetData(() => tokens.GetMyFavoriteWorksAsync(page: page, publicity: publicity.ToString().ToLower()));
-            return result.Select(x => x.Work).ToList();
+            return result.Select(x => x.Work).ToPixivWork();
         }
 
         async Task<T> GetData<T>(Func<Task<T>> toDo)

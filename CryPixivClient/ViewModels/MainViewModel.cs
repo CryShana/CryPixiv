@@ -1,4 +1,5 @@
-﻿using Pixeez.Objects;
+﻿using CryPixivClient.Objects;
+using Pixeez.Objects;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -21,23 +22,23 @@ namespace CryPixivClient.ViewModels
         public void Changed([CallerMemberName]string name = "") => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
 
         #region Private fields
-        ObservableCollection<Work> foundWorks = new ObservableCollection<Work>();
+        ObservableCollection<PixivWork> foundWorks = new ObservableCollection<PixivWork>();
 
         string status = "Idle";
         string title = "CryPixiv";
         bool isWorking = false;
         string titleSuffix = "";
-        List<Work> dailyRankings = new List<Work>();
-        List<Work> bookmarks = new List<Work>();
-        List<Work> following = new List<Work>();
-        List<Work> results = new List<Work>();
+        List<PixivWork> dailyRankings = new List<PixivWork>();
+        List<PixivWork> bookmarks = new List<PixivWork>();
+        List<PixivWork> following = new List<PixivWork>();
+        List<PixivWork> results = new List<PixivWork>();
         string lastSearchQuery = null;
         int columns = 4;
         SynchronizationContext UIContext;
         #endregion
 
         #region Properties
-        public ObservableCollection<Work> FoundWorks
+        public ObservableCollection<PixivWork> FoundWorks
         {
             get => foundWorks;
             set { foundWorks = value; Changed(); }
@@ -84,8 +85,8 @@ namespace CryPixivClient.ViewModels
             Changed("Columns");
         }
 
-        public async Task Show(List<Work> cache, PixivAccount.WorkMode mode, string titleSuffix, string statusPrefix,
-            Func<int, Task<List<Work>>> getWorks, bool waitForUser = true)
+        public async Task Show(List<PixivWork> cache, PixivAccount.WorkMode mode, string titleSuffix, string statusPrefix,
+            Func<int, Task<List<PixivWork>>> getWorks, bool waitForUser = true)
         {
             // set starting values
             MainWindow.CurrentWorkMode = mode;
@@ -221,20 +222,21 @@ namespace CryPixivClient.ViewModels
                         if (works == null || MainWindow.CurrentWorkMode != mode || csrc.IsCancellationRequested) break;
                         if (maxResultCount == -1) maxResultCount = works.Pagination.Total ?? 0;
 
+                        var wworks = works.ToPixivWork();
                         // if cache has less entries than downloaded - swap cache with newest entries and keep updating...
                         if (results.Count + works.Count > FoundWorks.Count)
                         {
                             if (first == false) UIContext.Send((a) => FoundWorks.SwapCollection(results), null);
 
-                            results.AddRange(works);
+                            results.AddRange(wworks);
 
                             UIContext.Send((a) =>
                             {
-                                FoundWorks.AddList(works);
+                                FoundWorks.AddList(wworks);
                             }, null);
                             first = true;
                         }
-                        else results.AddRange(works);
+                        else results.AddRange(wworks);
 
                         Status = $"Searching... {FoundWorks.Count}/{maxResultCount} works";
                     }
@@ -260,9 +262,17 @@ namespace CryPixivClient.ViewModels
             collection.Clear();
             collection.AddList(target);
         }
+
         public static void AddList<T>(this ObservableCollection<T> collection, IEnumerable<T> target)
         {
             foreach (var i in target) collection.Add(i);
+        }
+
+        public static List<PixivWork> ToPixivWork(this IEnumerable<Work> collection)
+        {
+            List<PixivWork> works = new List<PixivWork>();
+            foreach (var w in collection) works.Add(new PixivWork(w));
+            return works;
         }
     }
 }

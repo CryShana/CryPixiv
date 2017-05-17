@@ -61,6 +61,7 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Converters\UrlToImageConverter.cs" />
+    <Compile Include="Objects\PixivWork.cs" />
     <Compile Include="ViewModels\MainViewModel.cs" />
     <Compile Include="Windows\LoginWindow.xaml.cs">
       <DependentUpon>LoginWindow.xaml</DependentUpon>
@@ -116,9 +117,7 @@
       <Name>Pixeez</Name>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Objects\" />
-  </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
     <Resource Include="Images\pixiv.ico" />
   </ItemGroup>

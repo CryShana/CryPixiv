@@ -6,6 +6,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Media.Imaging;
 
 namespace Pixeez.Objects
 {
@@ -136,10 +137,6 @@ namespace Pixeez.Objects
 
         [JsonProperty("content_type")]
         public string ContentType { get; set; }
-
-        public string AccessToken = "";
-
-
 
         public string GetImageUri(string baseUri, int pageNumber = 0)
         {
