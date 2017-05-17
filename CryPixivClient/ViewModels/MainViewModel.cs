@@ -20,7 +20,7 @@ namespace CryPixivClient.ViewModels
     public class MainViewModel : INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler PropertyChanged;
-
+        public const int DefaultPerPage = 30;
         public void Changed([CallerMemberName]string name = "") => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
 
         #region Private fields
@@ -163,12 +163,14 @@ namespace CryPixivClient.ViewModels
                         // download current page
                         var works = await getWorks(currentPage);
                         if (works == null || MainWindow.CurrentWorkMode != mode || works.Count == 0) break;
-
+                        // start NUMBERIN
+                        works.AssignOrderToBookmarks(currentPage, DefaultPerPage); // default per page should be left at 30
+                        
                         cache.AddRange(works);
                         UIContext.Send(async (a) =>
                         {
                             await semaphore.WaitAsync();
-                            displayCollection.AddToCollection(works);
+                            displayCollection.UpdateWith(works);
                             semaphore.Release();
                         }, null);
 
@@ -253,7 +255,7 @@ namespace CryPixivClient.ViewModels
                         UIContext.Send(async (a) =>
                         {
                             await semaphore.WaitAsync();
-                            DisplayedWorks_Results.AddToCollection(wworks);
+                            DisplayedWorks_Results.UpdateWith(wworks, false);
                             semaphore.Release();
                         }, null);
 
@@ -329,9 +331,10 @@ namespace CryPixivClient.ViewModels
             collection.AddList(target);
         }
 
-        public static void AddToCollection(this MyObservableCollection<PixivWork> collection, IEnumerable<PixivWork> target)
+        public static void UpdateWith(this MyObservableCollection<PixivWork> collection, IEnumerable<PixivWork> target, bool fixInvalid = true)
         {
-            // add to collection, ignore existing ones
+            if (target.Count() == 0) return;
+
             foreach (var ti in target)
             {
                 bool shouldAdd = true;
@@ -341,16 +344,37 @@ namespace CryPixivClient.ViewModels
                     shouldAdd = false;
 
                     // update info
+                    i.OrderNumber = ti.OrderNumber;
                     i.IsBookmarked = ti.IsBookmarked;
                     i.FavoriteId = ti.FavoriteId;
                     i.UpdateFavorite();
 
                     if (i.Stats != null && ti.Stats != null) i.Stats.Score = ti.Stats.Score;
                 }
-
+                
                 if (shouldAdd) collection.Add(ti);
             }
+
+            if (fixInvalid == false) return;
+
+            // fix invalid/removed entries
+            int min = target.First().OrderNumber;
+            int max = target.Last().OrderNumber;
+
+            List<PixivWork> duplicates = new List<PixivWork>();
+            foreach(var item in collection)
+            {
+                if (item.OrderNumber < min || item.OrderNumber > max) continue;
+
+                bool found = false;
+                foreach(var ti in target) if (item.Id == ti.Id) { found = true; break; }
+
+                if (found == false) duplicates.Add(item);
+            }
+
+            foreach (var d in duplicates) collection.Remove(d);
         }
+
         public static void AddToList(this List<PixivWork> collection, IEnumerable<PixivWork> target)
         {
             // add to collection, ignore existing ones
@@ -373,17 +397,15 @@ namespace CryPixivClient.ViewModels
             return works;
         }
 
-        public static List<T> Copy<T>(this List<T> collection)
+        public static void AssignOrderToBookmarks(this List<PixivWork> collection, int page, int perPage)
         {
-            var lst = new List<T>();
-            foreach (var l in collection) lst.Add(l);
-            return lst;
-        }
+            int startNumber = perPage * page - (collection.Count - 1);
 
-        public static void SwapList<T>(this List<T> source, List<T> target)
-        {
-            source.Clear();
-            foreach (var l in target) source.Add(l);
+            for (int i = 0; i < collection.Count; i++)
+            {
+                collection[i].OrderNumber = startNumber;
+                startNumber++;
+            }
         }
     }
 }

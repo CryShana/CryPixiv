@@ -75,22 +75,22 @@ namespace CryPixivClient
         }
 
         #region Getting Data
-        public async Task<Paginated<Work>> SearchWorks(string searchQuery, int page = 1) => await GetData(() => tokens.SearchWorksAsync(searchQuery, page, mode: "tag"));
+        public async Task<Paginated<Work>> SearchWorks(string searchQuery, int page = 1) => await GetData(() => tokens.SearchWorksAsync(searchQuery, page, mode: "tag", perPage: MainViewModel.DefaultPerPage));
         public async Task<List<PixivWork>> GetDailyRanking(int page = 1)
         {
-            var result = await GetData(() => tokens.GetRankingAllAsync(page: page));
+            var result = await GetData(() => tokens.GetRankingAllAsync(page: page, perPage: MainViewModel.DefaultPerPage));
             if (result == null) return null;
 
             return result.ToPixivWork();
         }
         public async Task<List<PixivWork>> GetFollowing(int page = 1, Publicity publicity = Publicity.Public)
         {
-            var result = await GetData(() => tokens.GetMyFollowingWorksAsync(page: page, publicity: publicity.ToString().ToLower()));
+            var result = await GetData(() => tokens.GetMyFollowingWorksAsync(page: page, publicity: publicity.ToString().ToLower(), perPage: MainViewModel.DefaultPerPage));
             return result.ToPixivWork();
         }
         public async Task<List<PixivWork>> GetBookmarks(int page = 1, Publicity publicity = Publicity.Public)
         {
-            var result = await GetData(() => tokens.GetMyFavoriteWorksAsync(page: page, publicity: publicity.ToString().ToLower()));
+            var result = await GetData(() => tokens.GetMyFavoriteWorksAsync(page: page, publicity: publicity.ToString().ToLower(), perPage: MainViewModel.DefaultPerPage));
             return result.Select(x => x.Work).ToPixivWork();
         }
         async Task<T> GetData<T>(Func<Task<T>> toDo)

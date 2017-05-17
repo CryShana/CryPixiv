@@ -27,8 +27,9 @@ namespace CryPixivClient.Objects
             }
         }
 
-        ImageSource img = null;
+        public int OrderNumber { get; set; } = int.MaxValue;
 
+        ImageSource img = null;
         public ImageSource ImageThumbnail
         {
             get
