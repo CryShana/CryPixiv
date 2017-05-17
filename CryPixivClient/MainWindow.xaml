@@ -54,6 +54,79 @@
                 </Trigger>
             </Style.Triggers>
         </Style>
+
+        <!-- IMAGE ANIMATIONS ARE HERE -->
+        <Storyboard x:Key="MouseOverStoryboard">
+            <DoubleAnimation To="40" Duration="0:00:00.4"
+                                                         Storyboard.TargetName="toolbar"
+                                                         Storyboard.TargetProperty="Height">
+                <DoubleAnimation.EasingFunction>
+                    <PowerEase Power="2"/>
+                </DoubleAnimation.EasingFunction>
+            </DoubleAnimation>
+        </Storyboard>
+        <Storyboard x:Key="MouseLeaveStoryboard">
+            <DoubleAnimation To="0" Duration="0:00:00.4"
+                                                         Storyboard.TargetName="toolbar"
+                                                         Storyboard.TargetProperty="Height">
+                <DoubleAnimation.EasingFunction>
+                    <PowerEase Power="2"/>
+                </DoubleAnimation.EasingFunction>
+            </DoubleAnimation>
+        </Storyboard>
+        
+        <!-- ITEM TEMPLATE IS HERE -->
+        <DataTemplate x:Key="mainItemTemplate">
+            <StackPanel>
+                <StackPanel.Triggers>
+                    <EventTrigger RoutedEvent="MouseEnter">
+                        <BeginStoryboard Storyboard="{StaticResource MouseOverStoryboard}" />
+                    </EventTrigger>
+                    <EventTrigger RoutedEvent="MouseLeave">
+                        <BeginStoryboard Storyboard="{StaticResource MouseLeaveStoryboard}" />
+                    </EventTrigger>
+                </StackPanel.Triggers>
+                <Grid>
+                    <TextBlock Panel.ZIndex="2" Margin="5" FontWeight="Bold" Text="{Binding PageCountText, Mode=OneWay}" Foreground="White" FontSize="20">
+                        <TextBlock.Effect>
+                            <DropShadowEffect ShadowDepth="0" BlurRadius="6" />
+                        </TextBlock.Effect>
+                    </TextBlock>
+                    <Image Width="128" Height="128" Stretch="Uniform" RenderOptions.BitmapScalingMode="HighQuality">
+                        <Image.Source>
+                            <PriorityBinding FallbackValue="{StaticResource missingImage}">
+                                <Binding Path="ImageThumbnail" IsAsync="True"/>
+                            </PriorityBinding>
+                        </Image.Source>
+                    </Image>
+                    <StackPanel x:Name="toolbar" Orientation="Horizontal" VerticalAlignment="Bottom" HorizontalAlignment="Center" Height="0" Panel.ZIndex="3" Background="White">
+                        <!-- Height goes to 40 when mouse over -->
+                        <Button CommandParameter="{Binding}" Command="{Binding OpenBrowserCmd, Source={StaticResource mainViewModel}}" Style="{DynamicResource buttonStyle}">
+                            <Image x:Name="internetImage" RenderOptions.BitmapScalingMode="Fant" Width="35" Source="Images/internet.png" Margin="0,6"/>
+                        </Button>
+                        <Button CommandParameter="{Binding}" Command="{Binding BookmandCmd, Source={StaticResource mainViewModel}}" Style="{DynamicResource buttonStyle}">
+                            <Image x:Name="likeImage" RenderOptions.BitmapScalingMode="Fant" Width="35" Margin="0,6">
+                                <Image.Style>
+                                    <Style TargetType="Image">
+                                        <Setter Property="Source" Value="Images\dislike.png" />
+                                        <Style.Triggers>
+                                            <DataTrigger Value="True" Binding="{Binding IsFavorited}">
+                                                <Setter Property="Source" Value="Images\like.png"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Image.Style>
+                            </Image>
+                        </Button>
+                    </StackPanel>
+                </Grid>
+            </StackPanel>
+        </DataTemplate>
+        
+        <!-- ITEMS PANEL TEMPLATE IS HERE -->
+        <ItemsPanelTemplate x:Key="mainItemsPanel">
+            <UniformGrid Columns="{Binding Columns, Mode=OneWay, Source={StaticResource mainViewModel}}" HorizontalAlignment="Center" VerticalAlignment="Top"/>
+        </ItemsPanelTemplate>
     </Window.Resources>
     <Window.Title>
         <Binding Mode="OneWay" Path="Title" Source="{StaticResource mainViewModel}"/>
@@ -66,309 +139,17 @@
 
         <!-- LIST VIEWS START HERE-->
         <ListView x:Name="mainList" Margin="0,76,0,22" ItemsSource="{Binding Mode=OneWay, Source={StaticResource ItemListViewSource}}" DataContext="{StaticResource mainViewModel}" 
-                  Grid.ColumnSpan="2" ScrollViewer.CanContentScroll="False" ScrollViewer.ScrollChanged="mainList_ScrollChanged" d:DataContext="{StaticResource designViewModel}">
-            <ListView.ItemsPanel>
-                <ItemsPanelTemplate>
-                    <UniformGrid Columns="{Binding Columns, Mode=OneWay, Source={StaticResource mainViewModel}}" HorizontalAlignment="Center" VerticalAlignment="Top"/>
-                </ItemsPanelTemplate>
-            </ListView.ItemsPanel>
-            <ListView.ItemTemplate>
-                <DataTemplate>
-                    <StackPanel>
-                        <StackPanel.Triggers>
-                            <EventTrigger RoutedEvent="MouseEnter">
-                                <BeginStoryboard>
-                                    <Storyboard>
-                                        <DoubleAnimation To="40" Duration="0:00:00.4"
-                                                         Storyboard.TargetName="toolbar"
-                                                         Storyboard.TargetProperty="Height">
-                                            <DoubleAnimation.EasingFunction>
-                                                <PowerEase Power="2"/>
-                                            </DoubleAnimation.EasingFunction>
-                                        </DoubleAnimation>
-                                    </Storyboard>
-                                </BeginStoryboard>
-                            </EventTrigger>
-                            <EventTrigger RoutedEvent="MouseLeave">
-                                <BeginStoryboard>
-                                    <Storyboard>
-                                        <DoubleAnimation To="0" Duration="0:00:00.4"
-                                                         Storyboard.TargetName="toolbar"
-                                                         Storyboard.TargetProperty="Height">
-                                            <DoubleAnimation.EasingFunction>
-                                                <PowerEase Power="2"/>
-                                            </DoubleAnimation.EasingFunction>
-                                        </DoubleAnimation>
-                                    </Storyboard>
-                                </BeginStoryboard>
-                            </EventTrigger>
-                        </StackPanel.Triggers>
-                        <Grid>
-                            <TextBlock Panel.ZIndex="2" Margin="5" FontWeight="Bold" Text="{Binding PageCountText, Mode=OneWay}" Foreground="White" FontSize="20">
-                                <TextBlock.Effect>
-                                    <DropShadowEffect ShadowDepth="0" BlurRadius="6" />
-                                </TextBlock.Effect>
-                            </TextBlock>
-                            <Image Width="128" Height="128" Stretch="Uniform" RenderOptions.BitmapScalingMode="HighQuality">
-                                <Image.Source>
-                                    <PriorityBinding FallbackValue="{StaticResource missingImage}">
-                                        <Binding Path="ImageThumbnail" IsAsync="True"/>
-                                    </PriorityBinding>
-                                </Image.Source>
-                            </Image>
-                            <StackPanel x:Name="toolbar" Orientation="Horizontal" VerticalAlignment="Bottom" HorizontalAlignment="Center" Height="0" Panel.ZIndex="3" Background="White">
-                                <!-- Height goes to 40 when mouse over -->
-                                <Button CommandParameter="{Binding}" Command="{Binding OpenBrowserCmd, Source={StaticResource mainViewModel}}" Style="{DynamicResource buttonStyle}">
-                                    <Image x:Name="internetImage" RenderOptions.BitmapScalingMode="Fant" Width="35" Source="Images/internet.png" Margin="0,6"/>
-                                </Button>
-                                <Button CommandParameter="{Binding}" Command="{Binding BookmandCmd, Source={StaticResource mainViewModel}}" Style="{DynamicResource buttonStyle}">
-                                    <Image x:Name="likeImage" RenderOptions.BitmapScalingMode="Fant" Width="35" Margin="0,6">
-                                        <Image.Style>
-                                            <Style TargetType="Image">
-                                                <Setter Property="Source" Value="Images\dislike.png" />
-                                                <Style.Triggers>
-                                                    <DataTrigger Value="True" Binding="{Binding IsFavorited}">
-                                                        <Setter Property="Source" Value="Images\like.png"/>
-                                                    </DataTrigger>
-                                                </Style.Triggers>
-                                            </Style>
-                                        </Image.Style>
-                                    </Image>
-                                </Button>
-                            </StackPanel>
-                        </Grid>
-                    </StackPanel>
-                </DataTemplate>
-            </ListView.ItemTemplate>
-        </ListView>
+                  Grid.ColumnSpan="2" ScrollViewer.CanContentScroll="False" ScrollViewer.ScrollChanged="mainList_ScrollChanged" d:DataContext="{StaticResource designViewModel}"
+                  ItemTemplate="{StaticResource mainItemTemplate}" ItemsPanel="{StaticResource mainItemsPanel}" />
         <ListView x:Name="mainListRanking" Margin="0,76,0,22" ItemsSource="{Binding Mode=OneWay, Source={StaticResource ItemListViewSourceRanking}}" DataContext="{StaticResource mainViewModel}" 
-                  Grid.ColumnSpan="2" ScrollViewer.CanContentScroll="False" ScrollViewer.ScrollChanged="mainList_ScrollChanged" d:DataContext="{StaticResource designViewModel}">
-            <ListView.ItemsPanel>
-                <ItemsPanelTemplate>
-                    <UniformGrid Columns="{Binding Columns, Mode=OneWay, Source={StaticResource mainViewModel}}" HorizontalAlignment="Center" VerticalAlignment="Top"/>
-                </ItemsPanelTemplate>
-            </ListView.ItemsPanel>
-            <ListView.ItemTemplate>
-                <DataTemplate>
-                    <StackPanel>
-                        <StackPanel.Triggers>
-                            <EventTrigger RoutedEvent="MouseEnter">
-                                <BeginStoryboard>
-                                    <Storyboard>
-                                        <DoubleAnimation To="40" Duration="0:00:00.4"
-                                                         Storyboard.TargetName="toolbar"
-                                                         Storyboard.TargetProperty="Height">
-                                            <DoubleAnimation.EasingFunction>
-                                                <PowerEase Power="2"/>
-                                            </DoubleAnimation.EasingFunction>
-                                        </DoubleAnimation>
-                                    </Storyboard>
-                                </BeginStoryboard>
-                            </EventTrigger>
-                            <EventTrigger RoutedEvent="MouseLeave">
-                                <BeginStoryboard>
-                                    <Storyboard>
-                                        <DoubleAnimation To="0" Duration="0:00:00.4"
-                                                         Storyboard.TargetName="toolbar"
-                                                         Storyboard.TargetProperty="Height">
-                                            <DoubleAnimation.EasingFunction>
-                                                <PowerEase Power="2"/>
-                                            </DoubleAnimation.EasingFunction>
-                                        </DoubleAnimation>
-                                    </Storyboard>
-                                </BeginStoryboard>
-                            </EventTrigger>
-                        </StackPanel.Triggers>
-                        <Grid>
-                            <TextBlock Panel.ZIndex="2" Margin="5" FontWeight="Bold" Text="{Binding PageCountText, Mode=OneWay}" Foreground="White" FontSize="20">
-                                <TextBlock.Effect>
-                                    <DropShadowEffect ShadowDepth="0" BlurRadius="6" />
-                                </TextBlock.Effect>
-                            </TextBlock>
-                            <Image Width="128" Height="128" Stretch="Uniform" RenderOptions.BitmapScalingMode="HighQuality">
-                                <Image.Source>
-                                    <PriorityBinding FallbackValue="{StaticResource missingImage}">
-                                        <Binding Path="ImageThumbnail" IsAsync="True"/>
-                                    </PriorityBinding>
-                                </Image.Source>
-                            </Image>
-                            <StackPanel x:Name="toolbar" Orientation="Horizontal" VerticalAlignment="Bottom" HorizontalAlignment="Center" Height="0" Panel.ZIndex="3" Background="White">
-                                <!-- Height goes to 40 when mouse over -->
-                                <Button CommandParameter="{Binding}" Command="{Binding OpenBrowserCmd, Source={StaticResource mainViewModel}}" Style="{DynamicResource buttonStyle}">
-                                    <Image x:Name="internetImage" RenderOptions.BitmapScalingMode="Fant" Width="35" Source="Images/internet.png" Margin="0,6"/>
-                                </Button>
-                                <Button CommandParameter="{Binding}" Command="{Binding BookmandCmd, Source={StaticResource mainViewModel}}" Style="{DynamicResource buttonStyle}">
-                                    <Image x:Name="likeImage" RenderOptions.BitmapScalingMode="Fant" Width="35" Margin="0,6">
-                                        <Image.Style>
-                                            <Style TargetType="Image">
-                                                <Setter Property="Source" Value="Images\dislike.png" />
-                                                <Style.Triggers>
-                                                    <DataTrigger Value="True" Binding="{Binding IsFavorited}">
-                                                        <Setter Property="Source" Value="Images\like.png"/>
-                                                    </DataTrigger>
-                                                </Style.Triggers>
-                                            </Style>
-                                        </Image.Style>
-                                    </Image>
-                                </Button>
-                            </StackPanel>
-                        </Grid>
-                    </StackPanel>
-                </DataTemplate>
-            </ListView.ItemTemplate>
-        </ListView>
+                  Grid.ColumnSpan="2" ScrollViewer.CanContentScroll="False" ScrollViewer.ScrollChanged="mainList_ScrollChanged" d:DataContext="{StaticResource designViewModel}"
+                  ItemTemplate="{StaticResource mainItemTemplate}" ItemsPanel="{StaticResource mainItemsPanel}"/>
         <ListView x:Name="mainListFollowing" Margin="0,76,0,22" ItemsSource="{Binding Mode=OneWay, Source={StaticResource ItemListViewSourceFollowing}}" DataContext="{StaticResource mainViewModel}" 
-                  Grid.ColumnSpan="2" ScrollViewer.CanContentScroll="False" ScrollViewer.ScrollChanged="mainList_ScrollChanged" d:DataContext="{StaticResource designViewModel}">
-            <ListView.ItemsPanel>
-                <ItemsPanelTemplate>
-                    <UniformGrid Columns="{Binding Columns, Mode=OneWay, Source={StaticResource mainViewModel}}" HorizontalAlignment="Center" VerticalAlignment="Top"/>
-                </ItemsPanelTemplate>
-            </ListView.ItemsPanel>
-            <ListView.ItemTemplate>
-                <DataTemplate>
-                    <StackPanel>
-                        <StackPanel.Triggers>
-                            <EventTrigger RoutedEvent="MouseEnter">
-                                <BeginStoryboard>
-                                    <Storyboard>
-                                        <DoubleAnimation To="40" Duration="0:00:00.4"
-                                                         Storyboard.TargetName="toolbar"
-                                                         Storyboard.TargetProperty="Height">
-                                            <DoubleAnimation.EasingFunction>
-                                                <PowerEase Power="2"/>
-                                            </DoubleAnimation.EasingFunction>
-                                        </DoubleAnimation>
-                                    </Storyboard>
-                                </BeginStoryboard>
-                            </EventTrigger>
-                            <EventTrigger RoutedEvent="MouseLeave">
-                                <BeginStoryboard>
-                                    <Storyboard>
-                                        <DoubleAnimation To="0" Duration="0:00:00.4"
-                                                         Storyboard.TargetName="toolbar"
-                                                         Storyboard.TargetProperty="Height">
-                                            <DoubleAnimation.EasingFunction>
-                                                <PowerEase Power="2"/>
-                                            </DoubleAnimation.EasingFunction>
-                                        </DoubleAnimation>
-                                    </Storyboard>
-                                </BeginStoryboard>
-                            </EventTrigger>
-                        </StackPanel.Triggers>
-                        <Grid>
-                            <TextBlock Panel.ZIndex="2" Margin="5" FontWeight="Bold" Text="{Binding PageCountText, Mode=OneWay}" Foreground="White" FontSize="20">
-                                <TextBlock.Effect>
-                                    <DropShadowEffect ShadowDepth="0" BlurRadius="6" />
-                                </TextBlock.Effect>
-                            </TextBlock>
-                            <Image Width="128" Height="128" Stretch="Uniform" RenderOptions.BitmapScalingMode="HighQuality">
-                                <Image.Source>
-                                    <PriorityBinding FallbackValue="{StaticResource missingImage}">
-                                        <Binding Path="ImageThumbnail" IsAsync="True"/>
-                                    </PriorityBinding>
-                                </Image.Source>
-                            </Image>
-                            <StackPanel x:Name="toolbar" Orientation="Horizontal" VerticalAlignment="Bottom" HorizontalAlignment="Center" Height="0" Panel.ZIndex="3" Background="White">
-                                <!-- Height goes to 40 when mouse over -->
-                                <Button CommandParameter="{Binding}" Command="{Binding OpenBrowserCmd, Source={StaticResource mainViewModel}}" Style="{DynamicResource buttonStyle}">
-                                    <Image x:Name="internetImage" RenderOptions.BitmapScalingMode="Fant" Width="35" Source="Images/internet.png" Margin="0,6"/>
-                                </Button>
-                                <Button CommandParameter="{Binding}" Command="{Binding BookmandCmd, Source={StaticResource mainViewModel}}" Style="{DynamicResource buttonStyle}">
-                                    <Image x:Name="likeImage" RenderOptions.BitmapScalingMode="Fant" Width="35" Margin="0,6">
-                                        <Image.Style>
-                                            <Style TargetType="Image">
-                                                <Setter Property="Source" Value="Images\dislike.png" />
-                                                <Style.Triggers>
-                                                    <DataTrigger Value="True" Binding="{Binding IsFavorited}">
-                                                        <Setter Property="Source" Value="Images\like.png"/>
-                                                    </DataTrigger>
-                                                </Style.Triggers>
-                                            </Style>
-                                        </Image.Style>
-                                    </Image>
-                                </Button>
-                            </StackPanel>
-                        </Grid>
-                    </StackPanel>
-                </DataTemplate>
-            </ListView.ItemTemplate>
-        </ListView>
+                  Grid.ColumnSpan="2" ScrollViewer.CanContentScroll="False" ScrollViewer.ScrollChanged="mainList_ScrollChanged" d:DataContext="{StaticResource designViewModel}"
+                  ItemTemplate="{StaticResource mainItemTemplate}"  ItemsPanel="{StaticResource mainItemsPanel}"/>
         <ListView x:Name="mainListBookmarks" Margin="0,76,0,22" ItemsSource="{Binding Mode=OneWay, Source={StaticResource ItemListViewSourceBookmarks}}" DataContext="{StaticResource mainViewModel}" 
-                  Grid.ColumnSpan="2" ScrollViewer.CanContentScroll="False" ScrollViewer.ScrollChanged="mainList_ScrollChanged" d:DataContext="{StaticResource designViewModel}">
-            <ListView.ItemsPanel>
-                <ItemsPanelTemplate>
-                    <UniformGrid Columns="{Binding Columns, Mode=OneWay, Source={StaticResource mainViewModel}}" HorizontalAlignment="Center" VerticalAlignment="Top"/>
-                </ItemsPanelTemplate>
-            </ListView.ItemsPanel>
-            <ListView.ItemTemplate>
-                <DataTemplate>
-                    <StackPanel>
-                        <StackPanel.Triggers>
-                            <EventTrigger RoutedEvent="MouseEnter">
-                                <BeginStoryboard>
-                                    <Storyboard>
-                                        <DoubleAnimation To="40" Duration="0:00:00.4"
-                                                         Storyboard.TargetName="toolbar"
-                                                         Storyboard.TargetProperty="Height">
-                                            <DoubleAnimation.EasingFunction>
-                                                <PowerEase Power="2"/>
-                                            </DoubleAnimation.EasingFunction>
-                                        </DoubleAnimation>
-                                    </Storyboard>
-                                </BeginStoryboard>
-                            </EventTrigger>
-                            <EventTrigger RoutedEvent="MouseLeave">
-                                <BeginStoryboard>
-                                    <Storyboard>
-                                        <DoubleAnimation To="0" Duration="0:00:00.4"
-                                                         Storyboard.TargetName="toolbar"
-                                                         Storyboard.TargetProperty="Height">
-                                            <DoubleAnimation.EasingFunction>
-                                                <PowerEase Power="2"/>
-                                            </DoubleAnimation.EasingFunction>
-                                        </DoubleAnimation>
-                                    </Storyboard>
-                                </BeginStoryboard>
-                            </EventTrigger>
-                        </StackPanel.Triggers>
-                        <Grid>
-                            <TextBlock Panel.ZIndex="2" Margin="5" FontWeight="Bold" Text="{Binding PageCountText, Mode=OneWay}" Foreground="White" FontSize="20">
-                                <TextBlock.Effect>
-                                    <DropShadowEffect ShadowDepth="0" BlurRadius="6" />
-                                </TextBlock.Effect>
-                            </TextBlock>
-                            <Image Width="128" Height="128" Stretch="Uniform" RenderOptions.BitmapScalingMode="HighQuality">
-                                <Image.Source>
-                                    <PriorityBinding FallbackValue="{StaticResource missingImage}">
-                                        <Binding Path="ImageThumbnail" IsAsync="True"/>
-                                    </PriorityBinding>
-                                </Image.Source>
-                            </Image>
-                            <StackPanel x:Name="toolbar" Orientation="Horizontal" VerticalAlignment="Bottom" HorizontalAlignment="Center" Height="0" Panel.ZIndex="3" Background="White">
-                                <!-- Height goes to 40 when mouse over -->
-                                <Button CommandParameter="{Binding}" Command="{Binding OpenBrowserCmd, Source={StaticResource mainViewModel}}" Style="{DynamicResource buttonStyle}">
-                                    <Image x:Name="internetImage" RenderOptions.BitmapScalingMode="Fant" Width="35" Source="Images/internet.png" Margin="0,6"/>
-                                </Button>
-                                <Button CommandParameter="{Binding}" Command="{Binding BookmandCmd, Source={StaticResource mainViewModel}}" Style="{DynamicResource buttonStyle}">
-                                    <Image x:Name="likeImage" RenderOptions.BitmapScalingMode="Fant" Width="35" Margin="0,6">
-                                        <Image.Style>
-                                            <Style TargetType="Image">
-                                                <Setter Property="Source" Value="Images\dislike.png" />
-                                                <Style.Triggers>
-                                                    <DataTrigger Value="True" Binding="{Binding IsFavorited}">
-                                                        <Setter Property="Source" Value="Images\like.png"/>
-                                                    </DataTrigger>
-                                                </Style.Triggers>
-                                            </Style>
-                                        </Image.Style>
-                                    </Image>
-                                </Button>
-                            </StackPanel>
-                        </Grid>
-                    </StackPanel>
-                </DataTemplate>
-            </ListView.ItemTemplate>
-        </ListView>
+                  Grid.ColumnSpan="2" ScrollViewer.CanContentScroll="False" ScrollViewer.ScrollChanged="mainList_ScrollChanged" d:DataContext="{StaticResource designViewModel}"
+                  ItemTemplate="{StaticResource mainItemTemplate}"  ItemsPanel="{StaticResource mainItemsPanel}"/>
         <!-- LIST VIEWS END HERE-->
 
         <TextBox x:Name="txtSearchQuery" Height="24" Margin="10,14,65,0" TextWrapping="Wrap" VerticalAlignment="Top" FontSize="14" MaxLength="300" MaxLines="1" TabIndex="1"/>
