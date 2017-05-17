@@ -41,8 +41,8 @@
             <ColumnDefinition Width="15*"/>
             <ColumnDefinition Width="32*"/>
         </Grid.ColumnDefinitions>
-        <ListView x:Name="mainList" Margin="0,76,0,22" ItemsSource="{Binding Mode=OneWay, Source={StaticResource ItemListViewSource}}" DataContext="{StaticResource mainViewModel}" Grid.ColumnSpan="2" ScrollViewer.CanContentScroll="False"
-                  ScrollViewer.ScrollChanged="mainList_ScrollChanged" d:DataContext="{StaticResource designViewModel}">
+        <ListView x:Name="mainList" Margin="0,76,0,22" ItemsSource="{Binding Mode=OneWay, Source={StaticResource ItemListViewSource}}" DataContext="{StaticResource mainViewModel}" 
+                  Grid.ColumnSpan="2" ScrollViewer.CanContentScroll="False" ScrollViewer.ScrollChanged="mainList_ScrollChanged" d:DataContext="{StaticResource designViewModel}">
             <ListView.ItemsPanel>
                 <ItemsPanelTemplate>
                     <UniformGrid Columns="{Binding Columns, Mode=OneWay, Source={StaticResource mainViewModel}}" HorizontalAlignment="Center" VerticalAlignment="Top"/>
