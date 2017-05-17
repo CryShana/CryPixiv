@@ -126,7 +126,7 @@ namespace CryPixivClient.ViewModels
             MainWindow.CurrentWorkMode = mode;
             MainWindow.DynamicWorksLimit = MainWindow.DefaultWorksLimit;
 
-            // load cached results if they exist
+            // switch collection to display
             await semaphore.WaitAsync();
             MainWindow.MainCollectionView.Source = displayCollection;
             // refresh if necessary
@@ -148,11 +148,13 @@ namespace CryPixivClient.ViewModels
                     // if limit exceeded, stop downloading until user scrolls
                     if (MainWindow.DynamicWorksLimit < cache.Count && waitForUser)
                     {
+                        MainWindow.LimitReached = true;
                         Status = "Waiting for user to scroll to get more works... (" + displayCollection.Count + " works displayed)";
                         IsWorking = false;
                         await Task.Delay(200);
                         continue;
                     }
+                    else MainWindow.LimitReached = false;
 
                     try
                     {

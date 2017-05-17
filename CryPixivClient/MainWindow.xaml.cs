@@ -30,6 +30,7 @@ namespace CryPixivClient
         public static PixivAccount Account = null;
         public static SynchronizationContext UIContext;
 
+        public static bool LimitReached = false;
         public static int DynamicWorksLimit = 100;
         public const int DefaultWorksLimit = 100;
         public static PixivAccount.WorkMode CurrentWorkMode;
@@ -187,7 +188,7 @@ namespace CryPixivClient
             if (scrollViewer.VerticalOffset > pointForUpade)
             {
                 // update it
-                DynamicWorksLimit += 30;
+                if (LimitReached) DynamicWorksLimit += 30;
             }
         }
         #endregion
