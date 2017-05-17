@@ -61,6 +61,7 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Objects\PixivWork.cs" />
+    <Compile Include="ViewModels\DesignMainViewModel.cs" />
     <Compile Include="ViewModels\MainViewModel.cs" />
     <Compile Include="Windows\LoginWindow.xaml.cs">
       <DependentUpon>LoginWindow.xaml</DependentUpon>
@@ -125,6 +126,11 @@
   <ItemGroup>
     <Resource Include="Images\password.png" />
     <Resource Include="Images\username.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\dislike.png" />
+    <Resource Include="Images\internet.png" />
+    <Resource Include="Images\like.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

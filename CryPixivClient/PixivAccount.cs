@@ -20,12 +20,11 @@ namespace CryPixivClient
         public Authorize AuthDetails => tokens?.AuthDetails;
         public static event EventHandler<string> AuthFailed;
 
-
         Tokens tokens;
 
         public PixivAccount(string username)
         {
-            Username = username;
+            Username = username;           
         }
 
         public Tuple<bool, string> LoginWithAccessToken(string accesstoken, string refreshtoken, int expiresin, DateTime issued)

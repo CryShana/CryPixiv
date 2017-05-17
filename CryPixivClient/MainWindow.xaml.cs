@@ -38,13 +38,12 @@ namespace CryPixivClient
             // set up all data
             MainModel = (MainViewModel)FindResource("mainViewModel");
             MainCollectionView = (CollectionViewSource)FindResource("ItemListViewSource");
-            PixivAccount.AuthFailed += AuthenticationFailed;
             UIContext = SynchronizationContext.Current;
             LoadWindowData();
             LoadAccount();
 
-            // set datacontext
-            DataContext = MainModel;
+            // events
+            PixivAccount.AuthFailed += AuthenticationFailed;
 
             // start
             ShowLoginPrompt();
@@ -199,6 +198,7 @@ namespace CryPixivClient
             MainCollectionView.SortDescriptions.Clear();
             if (sort) MainCollectionView.SortDescriptions.Add(new System.ComponentModel.SortDescription("Stats.Score", System.ComponentModel.ListSortDirection.Descending));
 
+            // do stuff here...
             switch (mode)
             {
                 case PixivAccount.WorkMode.Search:

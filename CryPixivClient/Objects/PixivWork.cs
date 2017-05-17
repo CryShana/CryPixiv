@@ -13,6 +13,9 @@ namespace CryPixivClient.Objects
 {
     public class PixivWork : Work
     {
+        public string PageCountText => (PageCount == null || PageCount.Value == 1) ? "" : PageCount.Value.ToString();
+        public bool IsFavorited => (FavoriteId == null) ? false : true;
+
         ImageSource img = null;
         public ImageSource ImageThumbnail
         {
