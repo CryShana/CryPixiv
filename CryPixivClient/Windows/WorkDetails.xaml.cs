@@ -2,7 +2,9 @@
 using CryPixivClient.Properties;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -19,13 +21,13 @@ namespace CryPixivClient.Windows
 {
     public partial class WorkDetails : Window
     {
-        static bool wasMaximized = false;
+        event EventHandler<ImageSource> ImageDownloaded;
 
+        static bool wasMaximized = false;
         static SemaphoreSlim semaphore = new SemaphoreSlim(1);
 
         public PixivWork LoadedWork { get; private set; }
         Dictionary<int, ImageSource> DownloadedImages = new Dictionary<int, ImageSource>();
-        event EventHandler<ImageSource> ImageDownloaded;
 
         const int WorkCacheLimit = 6;
         static List<Tuple<long, Dictionary<int, ImageSource>>> PreviousDownloads = new List<Tuple<long, Dictionary<int, ImageSource>>>();
@@ -81,6 +83,7 @@ namespace CryPixivClient.Windows
             DownloadImages();
 
             if (DownloadedImages.Count >= 1) SetImage(1);
+            if (LoadedWork.ImageThumbnail != null) mainImage.Source = LoadedWork.ImageThumbnail;
 
             // once first image is downloaded, show it
             ImageDownloaded += (a, b) =>
