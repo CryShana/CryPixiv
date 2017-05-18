@@ -367,25 +367,25 @@ namespace CryPixivClient.ViewModels
         }
         #endregion
 
-        public bool OpenNextWork(PixivWork currentItem)
+        public PixivWork OpenNextWork(PixivWork currentItem, bool openWindow = false)
         {
             var col = MainWindow.GetCurrentCollection();
             var index = col.IndexOf(currentItem);
 
-            if (index == col.Count - 1) return false;
+            if (index == col.Count - 1) return null;
 
-            OpenWork(col[index + 1]);
-            return true;
+            if (openWindow) OpenWork(col[index + 1]);
+            return col[index + 1];
         }
-        public bool OpenPrevWork(PixivWork currentItem)
+        public PixivWork OpenPrevWork(PixivWork currentItem, bool openWindow = false)
         {
             var col = MainWindow.GetCurrentCollection();
             var index = col.IndexOf(currentItem);
 
-            if (index == 0) return false;
+            if (index == 0) return null;
 
-            OpenWork(col[index - 1]);
-            return true;
+            if (openWindow) OpenWork(col[index - 1]);
+            return col[index - 1];
         }
     }
 

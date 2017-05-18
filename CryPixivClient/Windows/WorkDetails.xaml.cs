@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -20,9 +21,14 @@ namespace CryPixivClient.Windows
     {
         static bool wasMaximized = false;
 
-        public PixivWork LoadedWork { get; }
+        static SemaphoreSlim semaphore = new SemaphoreSlim(1);
+
+        public PixivWork LoadedWork { get; private set; }
         Dictionary<int, ImageSource> DownloadedImages = new Dictionary<int, ImageSource>();
         event EventHandler<ImageSource> ImageDownloaded;
+
+        const int WorkCacheLimit = 6;
+        static List<Tuple<long, Dictionary<int, ImageSource>>> PreviousDownloads = new List<Tuple<long, Dictionary<int, ImageSource>>>();
         int currentPage = 1;
 
         public WorkDetails(PixivWork work)
@@ -37,13 +43,40 @@ namespace CryPixivClient.Windows
             this.Closing += WorkDetails_Closing;
             this.StateChanged += (a, b) => wasMaximized = WindowState == WindowState.Maximized;
 
+            LoadWork(work);
+        }
+
+        bool openedCache = false;
+        void LoadWork(PixivWork newWork)
+        {
+            LoadedWork = newWork;
+            mainImage.Source = null;
+
+            currentPage = 1;
+            DownloadedImages.Clear();
+
+            // load cached results if available
+            var prevd = PreviousDownloads.Find(x => x.Item1 == newWork.Id.Value);
+            if (prevd != null)
+            {
+                DownloadedImages = new Dictionary<int, ImageSource>(prevd.Item2);                    
+                openedCache = true;
+
+                // add at the beginning
+                PreviousDownloads.Remove(prevd);
+                PreviousDownloads.Add(prevd);
+            }
+            else openedCache = false;
+            
+
             txtTitle.Text = LoadedWork.Title;
             Title = $"Work Details - ({LoadedWork.Id}) {LoadedWork.Title}";
             SetPageStatus();
-            txtPage.Text = $"{currentPage}/{LoadedWork.PageCount} ({DownloadedImages.Count})";
 
             // start downloading images
             DownloadImages();
+
+            if (DownloadedImages.Count >= 1) SetImage(1);
 
             // once first image is downloaded, show it
             ImageDownloaded += (a, b) =>
@@ -56,16 +89,32 @@ namespace CryPixivClient.Windows
 
         async Task DownloadImages()
         {
+            if (DownloadedImages.Count >= LoadedWork.PageCount) return;
+
             SetProgressBar(true);
-            for(int i = 0; i < LoadedWork.PageCount; i++)
+
+            await semaphore.WaitAsync();
+            try
             {
-                if (isClosing) break;
-                var img = await Task.Run(() => LoadedWork.GetImage(LoadedWork.GetImageUri(LoadedWork.ImageUrls.Large, i)));
-                DownloadedImages.Add(i + 1, img);
-                SetPageStatus();
-                ImageDownloaded?.Invoke(this, img);
+                var lworkid = LoadedWork.Id;
+                for (int i = DownloadedImages.Count; i < LoadedWork.PageCount; i++)
+                {
+                    if (isClosing || lworkid != LoadedWork.Id) break;
+                    var img = await Task.Run(() => LoadedWork.GetImage(LoadedWork.GetImageUri(LoadedWork.ImageUrls.Large, i)));
+                    if (isClosing || lworkid != LoadedWork.Id) break;
+
+                    DownloadedImages.Add(i + 1, img);
+                    CacheDownloads();
+                    SetPageStatus();
+                    ImageDownloaded?.Invoke(this, img);
+                }
+                SetProgressBar(false);
             }
-            SetProgressBar(false);
+            finally
+            {
+                isClosing = false;
+                semaphore.Release();
+            }
         }
 
         public void SetImage(int page)
@@ -119,22 +168,23 @@ namespace CryPixivClient.Windows
         void NextPost()
         {
             // open next one
-            SavePos(); isOpening = true;
             var result = MainWindow.MainModel.OpenNextWork(LoadedWork);
-            if (result) Close();
+            if (result == null) return;
+            LoadWork(result);
+
+            //if (result) Close();
         }
         void PrevPost()
         {
             // open prev one
-            SavePos(); isOpening = true;
             var result = MainWindow.MainModel.OpenPrevWork(LoadedWork);
-            if (result) Close();
+            if (result == null) return;
+            LoadWork(result);
         }
 
         void SetProgressBar(bool show) => progressBar.Visibility = show ? Visibility.Visible : Visibility.Hidden;      
         void Window_PreviewMouseDoubleClick(object sender, MouseButtonEventArgs e) => this.WindowState = (this.WindowState == WindowState.Maximized) ? WindowState.Normal : WindowState.Maximized;
         
-
         void SetWindow()
         {
             if (Settings.Default.DetailWindowHeight == 0) return;
@@ -150,6 +200,8 @@ namespace CryPixivClient.Windows
         void WorkDetails_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
             if (isOpening == false) SavePos();
+            PreviousDownloads.Clear();
+
             isClosing = true;
         }
 
@@ -160,6 +212,15 @@ namespace CryPixivClient.Windows
             Settings.Default.DetailWindowLeft = Left;
             Settings.Default.DetailWindowTop = Top;
             Settings.Default.Save();
+        }
+
+        void CacheDownloads()
+        {
+            if (PreviousDownloads.Count > WorkCacheLimit) PreviousDownloads.RemoveAt(0);
+
+            if (openedCache) return;
+
+            PreviousDownloads.Add(new Tuple<long, Dictionary<int, ImageSource>>(LoadedWork.Id.Value, new Dictionary<int, ImageSource>(DownloadedImages)));
         }
 
         private void btnInternet_Click(object sender, RoutedEventArgs e)
