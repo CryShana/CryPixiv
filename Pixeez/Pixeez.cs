@@ -587,5 +587,18 @@ namespace Pixeez
 
             return await this.AccessApiAsync<Paginated<Work>>(MethodType.GET, url, param);
         }
+
+        public async Task<List<Work>> GetRecommendedWorks(int page = 1, int perPage = 30)
+        {
+            var url = "https://app-api.pixiv.net/v1/illust/recommended";
+
+            var param = new Dictionary<string, string>
+            {
+                { "offset", (perPage * (page - 1)).ToString() } ,
+                { "per_page", perPage.ToString() }
+            };
+
+            return await this.AccessApiAsyncNew<Paginated<Work>>(MethodType.GET, url, param);
+        }
     }
 }

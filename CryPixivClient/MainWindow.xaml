@@ -7,7 +7,7 @@
         xmlns:cmd="clr-namespace:CryPixivClient.Commands"
         xmlns:local="clr-namespace:CryPixivClient"
         xmlns:scm="clr-namespace:System.ComponentModel;assembly=WindowsBase"
-        mc:Ignorable="d" MinHeight="350" MinWidth="655" Height="350" Width="655" Icon="Images/pixiv.ico" Closing="Window_Closing" SizeChanged="Window_SizeChanged" StateChanged="Window_StateChanged">
+        mc:Ignorable="d" MinHeight="350" MinWidth="687" Height="430" Width="687" Icon="Images/pixiv.ico" Closing="Window_Closing" SizeChanged="Window_SizeChanged" StateChanged="Window_StateChanged">
     <Window.Resources>
         <vm:MainViewModel x:Key="mainViewModel"/>
         <vm:DesignMainViewModel x:Key="designViewModel"/>
@@ -23,6 +23,9 @@
                 <scm:SortDescription PropertyName="Stats.Score" Direction="Descending"/>
             </CollectionViewSource.SortDescriptions>
         </CollectionViewSource>
+
+        <CollectionViewSource x:Key="ItemListViewSourceRecommended" Source="{Binding DisplayedWorks_Recommended, Source={StaticResource mainViewModel}}" 
+                              d:Source="{Binding FoundWorks, Source={StaticResource designViewModel}}"/>
 
         <CollectionViewSource x:Key="ItemListViewSourceRanking" Source="{Binding DisplayedWorks_Ranking, Source={StaticResource mainViewModel}}" 
                               d:Source="{Binding FoundWorks, Source={StaticResource designViewModel}}">
@@ -104,7 +107,7 @@
                 </DoubleAnimation.EasingFunction>
             </DoubleAnimation>
         </Storyboard>
-        
+
         <!-- ANIMATIONS FOR LISTVIEW ITEM -->
         <Style x:Key="itemContainerStyle" TargetType="ListViewItem">
             <Setter Property="RenderTransformOrigin" Value="0.5,0.5"/>
@@ -264,14 +267,22 @@
                   Grid.ColumnSpan="2" ScrollViewer.CanContentScroll="False" ScrollViewer.ScrollChanged="mainList_ScrollChanged" d:DataContext="{StaticResource designViewModel}"
                   ItemTemplate="{StaticResource mainItemTemplate}" ItemsPanel="{StaticResource mainItemsPanel}" MouseDoubleClick="mainListBookmarks_MouseDoubleClick"
                   ItemContainerStyle="{StaticResource itemContainerStyle}"/>
+
+        <ListView x:Name="mainListRecommended" Margin="0,76,0,22" ItemsSource="{Binding Mode=OneWay, Source={StaticResource ItemListViewSourceRecommended}}" DataContext="{StaticResource mainViewModel}" 
+                  Grid.ColumnSpan="2" ScrollViewer.CanContentScroll="False" ScrollViewer.ScrollChanged="mainList_ScrollChanged" d:DataContext="{StaticResource designViewModel}"
+                  ItemTemplate="{StaticResource mainItemTemplate}" ItemsPanel="{StaticResource mainItemsPanel}" MouseDoubleClick="mainListBookmarks_MouseDoubleClick"
+                  ItemContainerStyle="{StaticResource itemContainerStyle}"/>
+
         <ListView x:Name="mainListRanking" Margin="0,76,0,22" ItemsSource="{Binding Mode=OneWay, Source={StaticResource ItemListViewSourceRanking}}" DataContext="{StaticResource mainViewModel}" 
                   Grid.ColumnSpan="2" ScrollViewer.CanContentScroll="False" ScrollViewer.ScrollChanged="mainList_ScrollChanged" d:DataContext="{StaticResource designViewModel}"
                   ItemTemplate="{StaticResource mainItemTemplate}" ItemsPanel="{StaticResource mainItemsPanel}" MouseDoubleClick="mainListBookmarks_MouseDoubleClick"
                   ItemContainerStyle="{StaticResource itemContainerStyle}"/>
+
         <ListView x:Name="mainListFollowing" Margin="0,76,0,22" ItemsSource="{Binding Mode=OneWay, Source={StaticResource ItemListViewSourceFollowing}}" DataContext="{StaticResource mainViewModel}" 
                   Grid.ColumnSpan="2" ScrollViewer.CanContentScroll="False" ScrollViewer.ScrollChanged="mainList_ScrollChanged" d:DataContext="{StaticResource designViewModel}"
                   ItemTemplate="{StaticResource mainItemTemplate}" ItemsPanel="{StaticResource mainItemsPanel}" MouseDoubleClick="mainListBookmarks_MouseDoubleClick"
                   ItemContainerStyle="{StaticResource itemContainerStyle}"/>
+
         <ListView x:Name="mainListBookmarks" Margin="0,76,0,22" ItemsSource="{Binding Mode=OneWay, Source={StaticResource ItemListViewSourceBookmarks}}" DataContext="{StaticResource mainViewModel}" 
                   Grid.ColumnSpan="2" ScrollViewer.CanContentScroll="False" ScrollViewer.ScrollChanged="mainList_ScrollChanged" d:DataContext="{StaticResource designViewModel}"
                   ItemTemplate="{StaticResource mainItemTemplate}"  ItemsPanel="{StaticResource mainItemsPanel}" MouseDoubleClick="mainListBookmarks_MouseDoubleClick"
@@ -282,7 +293,7 @@
         <Button x:Name="btnSearch" Content="Search" Margin="0,14,10,0" VerticalAlignment="Top" Height="24" BorderBrush="#FFABADB3" HorizontalAlignment="Right" Width="56" IsDefault="True" TabIndex="2" Click="btnSearch_Click"/>
         <ProgressBar x:Name="mainProgessBar" Height="10" Margin="0,67,0,0" VerticalAlignment="Top" Foreground="#FF009CFF" Grid.ColumnSpan="2" IsTabStop="False" 
                      IsIndeterminate="{Binding IsWorking, Source={StaticResource mainViewModel}}"/>
-        <Button x:Name="btnBookmarks" Content="Bookmarks" Grid.Column="1" HorizontalAlignment="Left" Margin="274,14,0,0" VerticalAlignment="Top" Width="80" Height="44" TabIndex="5" Click="btnBookmarks_Click" Background="#FFFFEAEA"/>
+        <Button x:Name="btnBookmarks" Content="Bookmarks" Grid.Column="1" HorizontalAlignment="Left" Margin="368,14,0,0" VerticalAlignment="Top" Width="80" Height="44" TabIndex="6" Click="btnBookmarks_Click" Background="#FFFFEAEA"/>
         <Button x:Name="btnDailyRankings" Content="Daily Ranking" Grid.Column="1" HorizontalAlignment="Left" Margin="108,14,0,0" VerticalAlignment="Top" Width="94" Height="44" Click="btnDailyRankings_Click" TabIndex="3" Background="#FFFFFEEE" HorizontalContentAlignment="Center"/>
         <StatusBar Height="22" VerticalAlignment="Bottom" Grid.ColumnSpan="2">
             <StatusBarItem Margin="0,-2,0,0">
@@ -292,7 +303,8 @@
         <Button x:Name="btnFollowing" Content="Following" Grid.Column="1" HorizontalAlignment="Left" Margin="201,14,0,0" VerticalAlignment="Top" Width="74" Height="44" Background="White" Click="btnFollowing_Click" TabIndex="4"/>
         <CheckBox x:Name="checkPopular" Content="Autosort by Popularity" HorizontalAlignment="Left" Margin="10,43,0,0" VerticalAlignment="Top" IsChecked="True" Click="checkPopular_Click"/>
         <Button x:Name="btnResults" Content="Results" Grid.Column="1" HorizontalAlignment="Left" Margin="13,14,0,0" VerticalAlignment="Top" Width="80" Height="44" TabIndex="5" Click="btnResults_Click" Background="#FFB9B9B9"/>
-        <Image Grid.Column="1" HorizontalAlignment="Left" Height="21" Margin="340,10,0,0" VerticalAlignment="Top" Width="21" Source="Images/like.png"/>
+        <Image Grid.Column="1" HorizontalAlignment="Left" Height="21" Margin="434,10,0,0" VerticalAlignment="Top" Width="21" Source="Images/like.png"/>
         <Image Grid.Column="1" HorizontalAlignment="Left" Height="28" Margin="98,7,0,0" VerticalAlignment="Top" Width="28" Source="Images/rank.png"/>
+        <Button x:Name="btnRecommended" Content="Recommended" Grid.Column="1" HorizontalAlignment="Left" Margin="274,14,0,0" VerticalAlignment="Top" Width="95" Height="44" Background="White" Click="btnRecommended_Click" TabIndex="5"/>
     </Grid>
 </Window>

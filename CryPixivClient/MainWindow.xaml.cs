@@ -34,6 +34,7 @@ namespace CryPixivClient
         public static PixivAccount.WorkMode CurrentWorkMode;
         public static CollectionViewSource MainCollectionView;
         public static CollectionViewSource MainCollectionViewSorted;
+        public static CollectionViewSource MainCollectionViewRecommended;
         public static CollectionViewSource MainCollectionViewRanking;
         public static CollectionViewSource MainCollectionViewFollowing;
         public static CollectionViewSource MainCollectionViewBookmarks;
@@ -47,6 +48,7 @@ namespace CryPixivClient
             MainModel = (MainViewModel)FindResource("mainViewModel");
             MainCollectionView = (CollectionViewSource)FindResource("ItemListViewSource");
             MainCollectionViewSorted = (CollectionViewSource)FindResource("ItemListViewSourceSorted");
+            MainCollectionViewRecommended = (CollectionViewSource)FindResource("ItemListViewSourceRecommended");
             MainCollectionViewRanking = (CollectionViewSource)FindResource("ItemListViewSourceRanking");
             MainCollectionViewFollowing = (CollectionViewSource)FindResource("ItemListViewSourceFollowing");
             MainCollectionViewBookmarks = (CollectionViewSource)FindResource("ItemListViewSourceBookmarks");
@@ -71,7 +73,9 @@ namespace CryPixivClient
         void ToggleLists(PixivAccount.WorkMode mode)
         {
             Panel.SetZIndex(mainList, (mode == PixivAccount.WorkMode.Search && checkPopular.IsChecked == false) ? 10 : 0);
-            Panel.SetZIndex(mainListSorted, (mode == PixivAccount.WorkMode.Search && checkPopular.IsChecked == true) ? 10 : 0);        
+            Panel.SetZIndex(mainListSorted, (mode == PixivAccount.WorkMode.Search && checkPopular.IsChecked == true) ? 10 : 0);
+
+            Panel.SetZIndex(mainListRecommended, (mode == PixivAccount.WorkMode.Recommended) ? 10 : 0);
 
             Panel.SetZIndex(mainListRanking, (mode == PixivAccount.WorkMode.Ranking) ? 10 : 0);
 
@@ -160,6 +164,12 @@ namespace CryPixivClient
             ToggleLists(PixivAccount.WorkMode.Bookmarks);
             MainModel.ShowBookmarks();
         }
+        void btnRecommended_Click(object sender, RoutedEventArgs e)
+        {
+            ToggleButtons(PixivAccount.WorkMode.Recommended);
+            ToggleLists(PixivAccount.WorkMode.Recommended);
+            MainModel.ShowRecommended();
+        }
 
         bool searching = false;
         void SetSearchButtonState(bool isSearching)
@@ -212,7 +222,7 @@ namespace CryPixivClient
         void checkPopular_Click(object sender, RoutedEventArgs e)
         {
             if (CurrentWorkMode != PixivAccount.WorkMode.Search) return;
-            ToggleLists(PixivAccount.WorkMode.Search);
+            ToggleLists(CurrentWorkMode);
         }
         #endregion
 
@@ -249,6 +259,9 @@ namespace CryPixivClient
             btnBookmarks.IsEnabled = mode != PixivAccount.WorkMode.Bookmarks;
             btnFollowing.IsEnabled = mode != PixivAccount.WorkMode.Following;
             btnResults.IsEnabled = mode != PixivAccount.WorkMode.Search && MainModel.LastSearchQuery != null;
+            btnRecommended.IsEnabled = mode != PixivAccount.WorkMode.Recommended;
+
+            checkPopular.IsEnabled = mode == PixivAccount.WorkMode.Search;
         }
 
         public static List<PixivWork> GetSelectedWorks()
@@ -256,6 +269,7 @@ namespace CryPixivClient
             switch (CurrentWorkMode)
             {
                 case PixivAccount.WorkMode.Search:
+                    if (currentWindow.checkPopular.IsChecked == true) return currentWindow.mainListSorted.SelectedItems.Cast<PixivWork>().ToList();
                     return currentWindow.mainList.SelectedItems.Cast<PixivWork>().ToList();
                 case PixivAccount.WorkMode.Ranking:
                     return currentWindow.mainListRanking.SelectedItems.Cast<PixivWork>().ToList();
@@ -263,6 +277,8 @@ namespace CryPixivClient
                     return currentWindow.mainListFollowing.SelectedItems.Cast<PixivWork>().ToList();
                 case PixivAccount.WorkMode.Bookmarks:
                     return currentWindow.mainListBookmarks.SelectedItems.Cast<PixivWork>().ToList();
+                case PixivAccount.WorkMode.Recommended:
+                    return currentWindow.mainListRecommended.SelectedItems.Cast<PixivWork>().ToList();
                 default:
                     return null;
             }
@@ -280,6 +296,8 @@ namespace CryPixivClient
                     return MainModel.DisplayedWorks_Following;
                 case PixivAccount.WorkMode.Bookmarks:
                     return MainModel.DisplayedWorks_Bookmarks;
+                case PixivAccount.WorkMode.Recommended:
+                    return MainModel.DisplayedWorks_Recommended;
                 default:
                     return null;
             }
@@ -297,6 +315,8 @@ namespace CryPixivClient
                     return MainCollectionViewFollowing;
                 case PixivAccount.WorkMode.Bookmarks:
                     return MainCollectionViewBookmarks;
+                case PixivAccount.WorkMode.Recommended:
+                    return MainCollectionViewRecommended;
                 default:
                     return null;
             }

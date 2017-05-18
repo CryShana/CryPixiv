@@ -93,6 +93,13 @@ namespace CryPixivClient
             var result = await GetData(() => tokens.GetMyFavoriteWorksAsync(page: page, publicity: publicity.ToString().ToLower(), perPage: MainViewModel.DefaultPerPage));
             return result.Select(x => x.Work).ToPixivWork();
         }
+        public async Task<List<PixivWork>> GetRecommended(int page = 1)
+        {
+            
+            var result = await GetData(() => tokens.GetRecommendedWorks(page: page, perPage: MainViewModel.DefaultPerPage));
+            return result.ToPixivWork();
+        }
+
         async Task<T> GetData<T>(Func<Task<T>> toDo)
         {
             try
@@ -208,7 +215,8 @@ namespace CryPixivClient
             Ranking,
             Following,
             Search,
-            Bookmarks
+            Bookmarks,
+            Recommended
         }
     }
 }

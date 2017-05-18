@@ -32,6 +32,7 @@ namespace CryPixivClient.ViewModels
         MyObservableCollection<PixivWork> displayedWorks_Ranking = new MyObservableCollection<PixivWork>();
         MyObservableCollection<PixivWork> displayedWorks_Following = new MyObservableCollection<PixivWork>();
         MyObservableCollection<PixivWork> displayedWorks_Bookmarks = new MyObservableCollection<PixivWork>();
+        MyObservableCollection<PixivWork> displayedWorks_Recommended = new MyObservableCollection<PixivWork>();        
 
         readonly SemaphoreSlim semaphore;
         string status = "Idle";
@@ -42,6 +43,7 @@ namespace CryPixivClient.ViewModels
         List<PixivWork> bookmarks = new List<PixivWork>();
         List<PixivWork> following = new List<PixivWork>();
         List<PixivWork> results = new List<PixivWork>();
+        List<PixivWork> recommended = new List<PixivWork>();
         int currentPageResults = 1;
         string lastSearchQuery = null;
         int columns = 4;
@@ -74,7 +76,12 @@ namespace CryPixivClient.ViewModels
             get => displayedWorks_Bookmarks;
             set { displayedWorks_Bookmarks = value; Changed(); }
         }
-
+        public MyObservableCollection<PixivWork> DisplayedWorks_Recommended
+        {
+            get => displayedWorks_Recommended;
+            set { displayedWorks_Recommended = value; Changed(); }
+        }
+        
         public int CurrentPageResults { get => currentPageResults; set { currentPageResults = value; } }
         public string Status
         {
@@ -115,7 +122,7 @@ namespace CryPixivClient.ViewModels
         }
 
         #region Show Methods
-        public async Task Show(List<PixivWork> cache, MyObservableCollection<PixivWork> displayCollection, CollectionViewSource viewSource,
+        public async Task Show(List<PixivWork> cache, MyObservableCollection<PixivWork> displayCollection,
             PixivAccount.WorkMode mode, string titleSuffix, string statusPrefix,
             Func<int, Task<List<PixivWork>>> getWorks, bool waitForUser = true)
         {
@@ -274,16 +281,19 @@ namespace CryPixivClient.ViewModels
         #endregion
 
         public async void ShowDailyRankings() =>
-            await Show(dailyRankings, DisplayedWorks_Ranking, MainWindow.MainCollectionViewRanking, PixivAccount.WorkMode.Ranking, "Daily Ranking", 
+            await Show(dailyRankings, DisplayedWorks_Ranking, PixivAccount.WorkMode.Ranking, "Daily Ranking", 
                 "Getting daily ranking", (page) => MainWindow.Account.GetDailyRanking(page));
 
         public async void ShowFollowing() =>
-            await Show(following, DisplayedWorks_Following, MainWindow.MainCollectionViewFollowing, PixivAccount.WorkMode.Following, "Following", 
+            await Show(following, DisplayedWorks_Following, PixivAccount.WorkMode.Following, "Following", 
                 "Getting following", (page) => MainWindow.Account.GetFollowing(page));
 
         public async void ShowBookmarks() =>
-            await Show(bookmarks, DisplayedWorks_Bookmarks, MainWindow.MainCollectionViewBookmarks, PixivAccount.WorkMode.Bookmarks, "Bookmarks", 
+            await Show(bookmarks, DisplayedWorks_Bookmarks, PixivAccount.WorkMode.Bookmarks, "Bookmarks", 
                 "Getting bookmarks", (page) => MainWindow.Account.GetBookmarks(page));
+        public async void ShowRecommended() =>
+            await Show(recommended, DisplayedWorks_Recommended, PixivAccount.WorkMode.Recommended, "Recommended",
+                "Getting recommended feed", (page) => MainWindow.Account.GetRecommended(page));
 
         Queue<CancellationTokenSource> queuedSearches = new Queue<CancellationTokenSource>();
         public void CancelRunningSearches()

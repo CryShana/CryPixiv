@@ -55,6 +55,7 @@ namespace CryPixivClient.Windows
 
             currentPage = 1;
             DownloadedImages.Clear();
+            DataContext = null; DataContext = this;
 
             // load cached results if available
             var prevd = PreviousDownloads.Find(x => x.Item1 == newWork.Id.Value);
