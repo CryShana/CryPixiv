@@ -94,8 +94,7 @@ namespace CryPixivClient
             return result.Select(x => x.Work).ToPixivWork();
         }
         public async Task<List<PixivWork>> GetRecommended(int page = 1)
-        {
-            
+        {           
             var result = await GetData(() => tokens.GetRecommendedWorks(page: page, perPage: MainViewModel.DefaultPerPage));
             return result.ToPixivWork();
         }

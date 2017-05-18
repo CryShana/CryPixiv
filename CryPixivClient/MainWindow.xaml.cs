@@ -282,12 +282,19 @@ namespace CryPixivClient
                 case PixivAccount.WorkMode.Search:
                     if (currentWindow.checkPopular.IsChecked == true) return currentWindow.mainListSorted.SelectedItems.Cast<PixivWork>().ToList();
                     return currentWindow.mainList.SelectedItems.Cast<PixivWork>().ToList();
+
                 case PixivAccount.WorkMode.Ranking:
                     return currentWindow.mainListRanking.SelectedItems.Cast<PixivWork>().ToList();
+
                 case PixivAccount.WorkMode.Following:
                     return currentWindow.mainListFollowing.SelectedItems.Cast<PixivWork>().ToList();
+
                 case PixivAccount.WorkMode.BookmarksPublic:
                     return currentWindow.mainListBookmarks.SelectedItems.Cast<PixivWork>().ToList();
+
+                case PixivAccount.WorkMode.BookmarksPrivate:
+                    return currentWindow.mainListBookmarksPrivate.SelectedItems.Cast<PixivWork>().ToList();
+
                 case PixivAccount.WorkMode.Recommended:
                     return currentWindow.mainListRecommended.SelectedItems.Cast<PixivWork>().ToList();
                 default:
@@ -295,24 +302,7 @@ namespace CryPixivClient
             }
         }
 
-        public static MyObservableCollection<PixivWork> GetCurrentCollection()
-        {
-            switch (CurrentWorkMode)
-            {
-                case PixivAccount.WorkMode.Search:
-                    return MainModel.DisplayedWorks_Results;
-                case PixivAccount.WorkMode.Ranking:
-                    return MainModel.DisplayedWorks_Ranking;
-                case PixivAccount.WorkMode.Following:
-                    return MainModel.DisplayedWorks_Following;
-                case PixivAccount.WorkMode.BookmarksPublic:
-                    return MainModel.DisplayedWorks_Bookmarks;
-                case PixivAccount.WorkMode.Recommended:
-                    return MainModel.DisplayedWorks_Recommended;
-                default:
-                    return null;
-            }
-        }
+
         public static CollectionViewSource GetCurrentCollectionViewSource()
         {
             switch (CurrentWorkMode)
@@ -320,12 +310,19 @@ namespace CryPixivClient
                 case PixivAccount.WorkMode.Search:
                     if (currentWindow.checkPopular.IsChecked == true) return MainCollectionViewSorted;
                     else return MainCollectionView;
+
                 case PixivAccount.WorkMode.Ranking:
                     return MainCollectionViewRanking;
+
                 case PixivAccount.WorkMode.Following:
                     return MainCollectionViewFollowing;
+
                 case PixivAccount.WorkMode.BookmarksPublic:
                     return MainCollectionViewBookmarks;
+
+                case PixivAccount.WorkMode.BookmarksPrivate:
+                    return MainCollectionViewBookmarksPrivate;
+
                 case PixivAccount.WorkMode.Recommended:
                     return MainCollectionViewRecommended;
                 default:
