@@ -205,6 +205,7 @@ namespace Pixeez
                 catch (NullReferenceException nex)
                 {
                     if (json.Contains("存在しないランキングページを参照しています")) return null; // reached end
+                    if (json.Contains("has_error")) return null;
                     else throw;
                 }
 

@@ -38,6 +38,7 @@ namespace CryPixivClient
         public static CollectionViewSource MainCollectionViewRanking;
         public static CollectionViewSource MainCollectionViewFollowing;
         public static CollectionViewSource MainCollectionViewBookmarks;
+        public static CollectionViewSource MainCollectionViewBookmarksPrivate;
 
         public MainWindow()
         {
@@ -52,6 +53,7 @@ namespace CryPixivClient
             MainCollectionViewRanking = (CollectionViewSource)FindResource("ItemListViewSourceRanking");
             MainCollectionViewFollowing = (CollectionViewSource)FindResource("ItemListViewSourceFollowing");
             MainCollectionViewBookmarks = (CollectionViewSource)FindResource("ItemListViewSourceBookmarks");
+            MainCollectionViewBookmarksPrivate = (CollectionViewSource)FindResource("ItemListViewSourceBookmarksPrivate");
             UIContext = SynchronizationContext.Current;
             LoadWindowData();
             LoadAccount();
@@ -81,7 +83,9 @@ namespace CryPixivClient
 
             Panel.SetZIndex(mainListFollowing, (mode == PixivAccount.WorkMode.Following) ? 10 : 0);
 
-            Panel.SetZIndex(mainListBookmarks, (mode == PixivAccount.WorkMode.Bookmarks) ? 10 : 0);
+            Panel.SetZIndex(mainListBookmarks, (mode == PixivAccount.WorkMode.BookmarksPublic) ? 10 : 0);
+
+            Panel.SetZIndex(mainListBookmarksPrivate, (mode == PixivAccount.WorkMode.BookmarksPrivate) ? 10 : 0);
         }
 
         void ShowLoginPrompt(bool force = false)
@@ -160,9 +164,15 @@ namespace CryPixivClient
 
         void btnBookmarks_Click(object sender, RoutedEventArgs e)
         {
-            ToggleButtons(PixivAccount.WorkMode.Bookmarks);
-            ToggleLists(PixivAccount.WorkMode.Bookmarks);
-            MainModel.ShowBookmarks(PixivAccount.Publicity.Public); //set publicity
+            ToggleButtons(PixivAccount.WorkMode.BookmarksPublic);
+            ToggleLists(PixivAccount.WorkMode.BookmarksPublic);
+            MainModel.ShowBookmarksPublic(); 
+        }
+        void btnBookmarksPrivate_Click(object sender, RoutedEventArgs e)
+        {
+            ToggleButtons(PixivAccount.WorkMode.BookmarksPrivate);
+            ToggleLists(PixivAccount.WorkMode.BookmarksPrivate);
+            MainModel.ShowBookmarksPrivate();
         }
         void btnRecommended_Click(object sender, RoutedEventArgs e)
         {
@@ -256,7 +266,8 @@ namespace CryPixivClient
         void ToggleButtons(PixivAccount.WorkMode mode)
         {
             btnDailyRankings.IsEnabled = mode != PixivAccount.WorkMode.Ranking;
-            btnBookmarks.IsEnabled = mode != PixivAccount.WorkMode.Bookmarks;
+            btnBookmarks.IsEnabled = mode != PixivAccount.WorkMode.BookmarksPublic;
+            btnBookmarksPrivate.IsEnabled = mode != PixivAccount.WorkMode.BookmarksPrivate;
             btnFollowing.IsEnabled = mode != PixivAccount.WorkMode.Following;
             btnResults.IsEnabled = mode != PixivAccount.WorkMode.Search && MainModel.LastSearchQuery != null;
             btnRecommended.IsEnabled = mode != PixivAccount.WorkMode.Recommended;
@@ -275,7 +286,7 @@ namespace CryPixivClient
                     return currentWindow.mainListRanking.SelectedItems.Cast<PixivWork>().ToList();
                 case PixivAccount.WorkMode.Following:
                     return currentWindow.mainListFollowing.SelectedItems.Cast<PixivWork>().ToList();
-                case PixivAccount.WorkMode.Bookmarks:
+                case PixivAccount.WorkMode.BookmarksPublic:
                     return currentWindow.mainListBookmarks.SelectedItems.Cast<PixivWork>().ToList();
                 case PixivAccount.WorkMode.Recommended:
                     return currentWindow.mainListRecommended.SelectedItems.Cast<PixivWork>().ToList();
@@ -294,7 +305,7 @@ namespace CryPixivClient
                     return MainModel.DisplayedWorks_Ranking;
                 case PixivAccount.WorkMode.Following:
                     return MainModel.DisplayedWorks_Following;
-                case PixivAccount.WorkMode.Bookmarks:
+                case PixivAccount.WorkMode.BookmarksPublic:
                     return MainModel.DisplayedWorks_Bookmarks;
                 case PixivAccount.WorkMode.Recommended:
                     return MainModel.DisplayedWorks_Recommended;
@@ -313,7 +324,7 @@ namespace CryPixivClient
                     return MainCollectionViewRanking;
                 case PixivAccount.WorkMode.Following:
                     return MainCollectionViewFollowing;
-                case PixivAccount.WorkMode.Bookmarks:
+                case PixivAccount.WorkMode.BookmarksPublic:
                     return MainCollectionViewBookmarks;
                 case PixivAccount.WorkMode.Recommended:
                     return MainCollectionViewRecommended;

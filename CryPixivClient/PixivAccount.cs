@@ -215,7 +215,8 @@ namespace CryPixivClient
             Ranking,
             Following,
             Search,
-            Bookmarks,
+            BookmarksPublic,
+            BookmarksPrivate,
             Recommended
         }
     }
