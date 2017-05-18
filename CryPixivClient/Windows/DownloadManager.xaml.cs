@@ -149,7 +149,7 @@ namespace CryPixivClient.Windows
 
         private void DownloadManager_SizeChanged(object sender, SizeChangedEventArgs e)
         {
-            designModel.GridWidth = this.Width - 27;
+            designModel.GridWidth = this.Width - 30;
         }
     }
     public class DesignModel : INotifyPropertyChanged
