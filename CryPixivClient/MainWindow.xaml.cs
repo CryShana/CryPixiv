@@ -4,6 +4,7 @@ using CryPixivClient.ViewModels;
 using CryPixivClient.Windows;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -23,7 +24,7 @@ namespace CryPixivClient
 {
     public partial class MainWindow : Window
     {
-        static MainWindow currentWindow;
+        public static MainWindow currentWindow;
         public static MainViewModel MainModel;
         public static PixivAccount Account = null;
         public static SynchronizationContext UIContext;
@@ -342,6 +343,20 @@ namespace CryPixivClient
                 == MessageBoxResult.Yes)
             {
                 await MainModel.ResetRecommended();
+            }
+        }
+
+        void btnLogout_Click(object sender, RoutedEventArgs e)
+        {
+            if (MessageBox.Show("This will log you out. Are you sure?", "Log out", MessageBoxButton.YesNo, MessageBoxImage.Warning)
+                == MessageBoxResult.Yes)
+            {
+                Settings.Default.Username = "";
+                Settings.Default.AuthPassword = "";
+                Settings.Default.Save();
+
+                Process.Start(Application.ResourceAssembly.Location);
+                Application.Current.Shutdown();
             }
         }
     }

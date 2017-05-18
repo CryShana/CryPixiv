@@ -47,7 +47,7 @@
                 <scm:SortDescription PropertyName="OrderNumber" Direction="Ascending"/>
             </CollectionViewSource.SortDescriptions>
         </CollectionViewSource>
-        
+
         <CollectionViewSource x:Key="ItemListViewSourceBookmarksPrivate" Source="{Binding DisplayedWorks_BookmarksPrivate, Source={StaticResource mainViewModel}}" 
                               d:Source="{Binding FoundWorks, Source={StaticResource designViewModel}}">
             <CollectionViewSource.SortDescriptions>
@@ -320,6 +320,7 @@
         <Grid Grid.Column="1">
             <Button x:Name="btnRecommended" Content="Recommended"  HorizontalAlignment="Left" Margin="274,28,0,0" VerticalAlignment="Top"
                 Width="95" Height="45" Background="White" Click="btnRecommended_Click" TabIndex="5"/>
+            <Button x:Name="btnLogout" Content="Log Out" HorizontalAlignment="Right" VerticalAlignment="Bottom" Width="78" Height="23" Background="#FFFFA3A3" Margin="0,0,43,0" Click="btnLogout_Click" IsTabStop="False"/>
             <Grid.ContextMenu>
                 <ContextMenu>
                     <MenuItem Header="Reset Results" Click="ResetResults_Click"/>

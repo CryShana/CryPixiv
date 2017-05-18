@@ -70,6 +70,7 @@ namespace CryPixivClient.Windows
             }
             else openedCache = false;
 
+            txtScore.Text = $"Score: {LoadedWork.Stats?.Score ?? LoadedWork.TotalBookmarks}";
             txtArtist.Text = LoadedWork.User.Name;
             txtResolution.Text = $"{LoadedWork.Width}x{LoadedWork.Height}";
             txtTitle.Text = LoadedWork.Title;
