@@ -26,10 +26,12 @@ namespace CryPixivClient.Windows
         public List<PixivWork> ToDownload { get; }
 
         Downloader downloader;
+        DesignModel designModel;
         Progress<Downloader.DownloaderProgress> progress;
         MyObservableCollection<DownloadObject> downloadObjects;
 
         public event PropertyChangedEventHandler PropertyChanged;
+
 
         public MyObservableCollection<DownloadObject> DownloadObjects
         {
@@ -45,10 +47,12 @@ namespace CryPixivClient.Windows
         {
             InitializeComponent();
             if (toDownload == null || toDownload.Count == 0) { Close(); return; }
+            designModel = (DesignModel)FindResource("designMld");
             DataContext = this;
             SetWindow();
 
             this.Closing += DownloadManager_Closing;
+            this.SizeChanged += DownloadManager_SizeChanged;
 
             // setup
             ToDownload = toDownload;
@@ -142,9 +146,25 @@ namespace CryPixivClient.Windows
         {
             Process.Start(this.downloader.Destination);
         }
+
+        private void DownloadManager_SizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            designModel.GridWidth = this.Width - 27;
+        }
     }
-    public class DesignModel
+    public class DesignModel : INotifyPropertyChanged
     {
+        double gridw = 0;
+        public double GridWidth
+        {
+            get => (gridw < 100) ? 100 : gridw;
+            set
+            {
+                gridw = value;
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("GridWidth"));
+            }
+        }
+
         MyObservableCollection<DownloadObject> downloadObjects;
         public event PropertyChangedEventHandler PropertyChanged;
         public MyObservableCollection<DownloadObject> DownloadObjects

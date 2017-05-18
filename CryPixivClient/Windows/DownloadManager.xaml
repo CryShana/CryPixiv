@@ -11,10 +11,13 @@
         <local:DesignModel x:Key="designMld"/>
     </Window.Resources>
     <Grid>
-        <ListView x:Name="mainlist" Margin="0,0,0,42" ItemsSource="{Binding DownloadObjects}" d:DataContext="{DynamicResource designMld}">
+        <ListView x:Name="mainlist" Margin="0,0,0,42" ItemsSource="{Binding DownloadObjects}" d:DataContext="{DynamicResource designMld}" >
             <ListView.ItemTemplate>
                 <DataTemplate>
-                    <Grid Height="34">
+                    <Grid Height="34" HorizontalAlignment="Left">
+                        <Grid.Width>
+                            <Binding Path="GridWidth" Source="{StaticResource designMld}" />
+                        </Grid.Width>
                         <Border Padding="5">
                             <Grid>
                                 <Grid.ColumnDefinitions>
@@ -58,11 +61,6 @@
                     </Grid>
                 </DataTemplate>
             </ListView.ItemTemplate>
-            <ListView.ItemContainerStyle>
-                <Style TargetType="ListViewItem">
-                    <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
-                </Style>
-            </ListView.ItemContainerStyle>
         </ListView>
         <Button x:Name="btnPause" Content="Pause" HorizontalAlignment="Left" Margin="8,0,0,7" Width="98" Height="26" VerticalAlignment="Bottom" Background="#FFFBFFD7" Click="btnPause_Click" IsTabStop="False"/>
         <Button x:Name="btnOpenFolder" Content="Open Containing Folder" HorizontalAlignment="Right" Margin="0,0,10,7" Width="147" Height="26" VerticalAlignment="Bottom" IsTabStop="False" Click="btnOpenFolder_Click"/>
