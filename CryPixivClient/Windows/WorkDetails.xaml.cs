@@ -248,7 +248,7 @@ namespace CryPixivClient.Windows
 
         private void MenuItem_Click(object sender, RoutedEventArgs e)
         {
-            MainWindow.MainModel.DownloadSelectedWorks(LoadedWork);
+            MainWindow.MainModel.DownloadSelectedWorks(LoadedWork, true);
         }
     }
 }

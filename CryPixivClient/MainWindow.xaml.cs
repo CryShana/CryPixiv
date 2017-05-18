@@ -162,7 +162,7 @@ namespace CryPixivClient
         {
             ToggleButtons(PixivAccount.WorkMode.Bookmarks);
             ToggleLists(PixivAccount.WorkMode.Bookmarks);
-            MainModel.ShowBookmarks();
+            MainModel.ShowBookmarks(PixivAccount.Publicity.Public); //set publicity
         }
         void btnRecommended_Click(object sender, RoutedEventArgs e)
         {

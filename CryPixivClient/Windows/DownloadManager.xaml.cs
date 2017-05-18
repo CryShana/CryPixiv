@@ -24,6 +24,7 @@ namespace CryPixivClient.Windows
     {
         public string UniqueIdentifier { get; }
         public List<PixivWork> ToDownload { get; }
+        public bool IsFinished { get; private set; }
 
         Downloader downloader;
         DesignModel designModel;
@@ -74,6 +75,7 @@ namespace CryPixivClient.Windows
         {
             if (downloader.Percentage == 100.0)
             {
+                IsFinished = true;
                 btnPause.IsEnabled = false;
             }
         }

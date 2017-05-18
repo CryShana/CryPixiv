@@ -112,7 +112,7 @@ namespace CryPixivClient.ViewModels
         public ICommand BookmarkCmd => bookmarkcmd ?? (bookmarkcmd = new RelayCommand<PixivWork>(BookmarkWork));
         public ICommand OpenBrowserCmd => openbrowsercmd ?? (openbrowsercmd = new RelayCommand<PixivWork>(OpenInBrowser));
         public ICommand OpenCmd => opencmd ?? (opencmd = new RelayCommand<PixivWork>(OpenWork));
-        public ICommand DownloadSelectedCmd => downloadselectedcmd ?? (downloadselectedcmd = new RelayCommand<PixivWork>(DownloadSelectedWorks));
+        public ICommand DownloadSelectedCmd => downloadselectedcmd ?? (downloadselectedcmd = new RelayCommand<PixivWork>((w) => DownloadSelectedWorks(w)));
         #endregion
 
         public MainViewModel()
@@ -288,9 +288,9 @@ namespace CryPixivClient.ViewModels
             await Show(following, DisplayedWorks_Following, PixivAccount.WorkMode.Following, "Following", 
                 "Getting following", (page) => MainWindow.Account.GetFollowing(page));
 
-        public async void ShowBookmarks() =>
+        public async void ShowBookmarks(PixivAccount.Publicity publicity) =>
             await Show(bookmarks, DisplayedWorks_Bookmarks, PixivAccount.WorkMode.Bookmarks, "Bookmarks", 
-                "Getting bookmarks", (page) => MainWindow.Account.GetBookmarks(page));
+                "Getting bookmarks", (page) => MainWindow.Account.GetBookmarks(page, publicity));
         public async void ShowRecommended() =>
             await Show(recommended, DisplayedWorks_Recommended, PixivAccount.WorkMode.Recommended, "Recommended",
                 "Getting recommended feed", (page) => MainWindow.Account.GetRecommended(page));
@@ -391,9 +391,12 @@ namespace CryPixivClient.ViewModels
         }
 
         public List<DownloadManager> RunningDownloadManagers = new List<DownloadManager>();
-        public void DownloadSelectedWorks(PixivWork work)
+        public void DownloadSelectedWorks(PixivWork work, bool force = false)
         {
-            var selected = MainWindow.GetSelectedWorks();
+            List<PixivWork> selected = null;
+
+            if (force == false) selected = MainWindow.GetSelectedWorks();
+            else selected = new List<PixivWork>() { work };
 
             var uid = DownloadManager.GenerateUniqueIdentifier(selected);
             var matches = RunningDownloadManagers.FindAll(x => x.UniqueIdentifier == uid);
@@ -401,8 +404,12 @@ namespace CryPixivClient.ViewModels
 
             if (existing != null)
             {
-                existing.Focus();
-                return;
+                if (existing.IsFinished == false)
+                {
+                    existing.Focus();
+                    return;
+                }
+                else existing.Close();
             }
 
             FolderBrowserDialog dialog = new FolderBrowserDialog();
@@ -411,7 +418,9 @@ namespace CryPixivClient.ViewModels
                 dialog.SelectedPath = Settings.Default.LastDestination;
             }
             dialog.ShowNewFolderButton = true;
-            dialog.ShowDialog();
+            var result = dialog.ShowDialog();
+            if (result == DialogResult.Cancel) return;
+
             string destination = dialog.SelectedPath;
             if (Directory.Exists(destination) == false) return;
 
