@@ -26,6 +26,7 @@ namespace CryPixivClient.ViewModels
         public event PropertyChangedEventHandler PropertyChanged;
         public const int DefaultPerPage = 30;
         public void Changed([CallerMemberName]string name = "") => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+     
 
         #region Private fields
         MyObservableCollection<PixivWork> displayedWorks_Results = new MyObservableCollection<PixivWork>();
@@ -33,9 +34,10 @@ namespace CryPixivClient.ViewModels
         MyObservableCollection<PixivWork> displayedWorks_Following = new MyObservableCollection<PixivWork>();
         MyObservableCollection<PixivWork> displayedWorks_Bookmarks = new MyObservableCollection<PixivWork>();
         MyObservableCollection<PixivWork> displayedWorks_BookmarksPrivate = new MyObservableCollection<PixivWork>();
-        MyObservableCollection<PixivWork> displayedWorks_Recommended = new MyObservableCollection<PixivWork>();        
+        MyObservableCollection<PixivWork> displayedWorks_Recommended = new MyObservableCollection<PixivWork>();
 
         readonly SemaphoreSlim semaphore;
+
         string status = "Idle";
         string title = "CryPixiv";
         bool isWorking = false;
@@ -316,6 +318,25 @@ namespace CryPixivClient.ViewModels
                 var dq = queuedSearches.Dequeue();
                 if (dq.IsCancellationRequested) continue;
                 else dq.Cancel();
+            }
+        }
+        public async Task ResetRecommended()
+        {
+            bool wasRecommended = MainWindow.CurrentWorkMode == PixivAccount.WorkMode.Recommended;
+            if (wasRecommended)
+            {
+                MainWindow.CurrentWorkMode = PixivAccount.WorkMode.Following;
+                await Task.Delay(300);
+            }
+
+            await semaphore.WaitAsync();
+            recommended = new List<PixivWork>();
+            DisplayedWorks_Recommended = new MyObservableCollection<PixivWork>();
+            semaphore.Release();
+
+            if (wasRecommended)
+            {
+                ShowRecommended();
             }
         }
         public void UpdateColumns(double w)

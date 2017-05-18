@@ -317,7 +317,15 @@
         <Button x:Name="btnResults" Content="Results" Grid.Column="1" HorizontalAlignment="Left" Margin="13,28,0,0" VerticalAlignment="Top" Width="80" Height="44" TabIndex="5" Click="btnResults_Click" Background="#FFB9B9B9"/>
         <Image Grid.Column="1" HorizontalAlignment="Right" Height="21" Margin="0,21,20,0" VerticalAlignment="Top" Width="21" Source="Images/like.png"/>
         <Image Grid.Column="1" HorizontalAlignment="Left" Height="28" Margin="98,21,0,0" VerticalAlignment="Top" Width="28" Source="Images/rank.png"/>
-        <Button x:Name="btnRecommended" Content="Recommended" Grid.Column="1" HorizontalAlignment="Left" Margin="274,28,0,0" VerticalAlignment="Top" Width="95" Height="45" Background="White" Click="btnRecommended_Click" TabIndex="5"/>
+        <Grid Grid.Column="1">
+            <Button x:Name="btnRecommended" Content="Recommended"  HorizontalAlignment="Left" Margin="274,28,0,0" VerticalAlignment="Top"
+                Width="95" Height="45" Background="White" Click="btnRecommended_Click" TabIndex="5"/>
+            <Grid.ContextMenu>
+                <ContextMenu>
+                    <MenuItem Header="Reset Results" Click="ResetResults_Click"/>
+                </ContextMenu>
+            </Grid.ContextMenu>
+        </Grid>
         <Button x:Name="btnBookmarksPrivate" Content="Private" Grid.Column="1" HorizontalAlignment="Right" Margin="0,50,28,0" VerticalAlignment="Top" Width="91" Height="23" TabIndex="6" Click="btnBookmarksPrivate_Click" Background="#FFFFEAEA"/>
         <TextBlock Grid.Column="1" HorizontalAlignment="Right" Margin="0,8,60,0" TextWrapping="Wrap" Text="Bookmarks" VerticalAlignment="Top"/>
         <TextBlock HorizontalAlignment="Left" Margin="10,7,0,0" TextWrapping="Wrap" Text="Search by tag:" VerticalAlignment="Top"/>

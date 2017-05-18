@@ -335,5 +335,14 @@ namespace CryPixivClient
             if (((ListView)sender).SelectedItems.Count == 0) return;
             MainModel.OpenCmd.Execute(((ListView)sender).SelectedItem);
         }
+
+        private async void ResetResults_Click(object sender, RoutedEventArgs e)
+        {
+            if (MessageBox.Show("This will reset the current Recommended results? You sure?", "Reset results", MessageBoxButton.YesNo, MessageBoxImage.Question)
+                == MessageBoxResult.Yes)
+            {
+                await MainModel.ResetRecommended();
+            }
+        }
     }
 }
