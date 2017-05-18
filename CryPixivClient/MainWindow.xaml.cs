@@ -1,4 +1,5 @@
-﻿using CryPixivClient.Properties;
+﻿using CryPixivClient.Objects;
+using CryPixivClient.Properties;
 using CryPixivClient.ViewModels;
 using CryPixivClient.Windows;
 using System;
@@ -26,6 +27,7 @@ namespace CryPixivClient
     }
     public partial class MainWindow : Window
     {
+        static MainWindow currentWindow;
         public static MainViewModel MainModel;
         public static PixivAccount Account = null;
         public static SynchronizationContext UIContext;
@@ -42,6 +44,7 @@ namespace CryPixivClient
         public MainWindow()
         {
             InitializeComponent();
+            currentWindow = this;
 
             // set up all data
             MainModel = (MainViewModel)FindResource("mainViewModel");
@@ -258,6 +261,29 @@ namespace CryPixivClient
         {
             MainCollectionView.SortDescriptions.Clear();
             if (sort) MainCollectionView.SortDescriptions.Add(new System.ComponentModel.SortDescription("Stats.Score", System.ComponentModel.ListSortDirection.Descending));
+        }
+
+        public static List<PixivWork> GetSelectedWorks()
+        {
+            switch (CurrentWorkMode)
+            {
+                case PixivAccount.WorkMode.Search:
+                    return currentWindow.mainList.SelectedItems.Cast<PixivWork>().ToList();
+                case PixivAccount.WorkMode.Ranking:
+                    return currentWindow.mainListRanking.SelectedItems.Cast<PixivWork>().ToList();
+                case PixivAccount.WorkMode.Following:
+                    return currentWindow.mainListFollowing.SelectedItems.Cast<PixivWork>().ToList();
+                case PixivAccount.WorkMode.Bookmarks:
+                    return currentWindow.mainListBookmarks.SelectedItems.Cast<PixivWork>().ToList();
+                default:
+                    return null;
+            }
+        }
+
+        private void mainListBookmarks_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            if (((ListView)sender).SelectedItems.Count == 0) return;
+            MainModel.OpenCmd.Execute(((ListView)sender).SelectedItem);
         }
     }
 }

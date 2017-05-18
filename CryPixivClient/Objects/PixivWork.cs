@@ -26,6 +26,7 @@ namespace CryPixivClient.Objects
                 return IsBookmarked.Value;
             }
         }
+        public string BookmarkText => (IsFavorited) ? "Remove bookmark" : "Bookmark";
 
         public int OrderNumber { get; set; } = int.MaxValue;
 

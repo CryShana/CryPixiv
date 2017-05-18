@@ -1,5 +1,6 @@
 ﻿using CryPixivClient.Commands;
 using CryPixivClient.Objects;
+using CryPixivClient.Windows;
 using Pixeez.Objects;
 using System;
 using System.Collections.Generic;
@@ -43,8 +44,10 @@ namespace CryPixivClient.ViewModels
         int columns = 4;
         SynchronizationContext UIContext;
 
-        ICommand bkcmd;
-        ICommand opbcmd;
+        ICommand bookmarkcmd;
+        ICommand openbrowsercmd;
+        ICommand opencmd;
+        ICommand downloadselectedcmd;
         #endregion
 
         #region Properties
@@ -96,8 +99,10 @@ namespace CryPixivClient.ViewModels
         #endregion
 
         #region Commands
-        public ICommand BookmandCmd => bkcmd ?? (bkcmd = new RelayCommand(BookmarkWork));
-        public ICommand OpenBrowserCmd => opbcmd ?? (opbcmd = new RelayCommand(OpenInBrowser));
+        public ICommand BookmarkCmd => bookmarkcmd ?? (bookmarkcmd = new RelayCommand<PixivWork>(BookmarkWork));
+        public ICommand OpenBrowserCmd => openbrowsercmd ?? (openbrowsercmd = new RelayCommand<PixivWork>(OpenInBrowser));
+        public ICommand OpenCmd => opencmd ?? (opencmd = new RelayCommand<PixivWork>(OpenWork));
+        public ICommand DownloadSelectedCmd => downloadselectedcmd ?? (downloadselectedcmd = new RelayCommand<PixivWork>(DownloadSelectedWorks));
         #endregion
 
         public MainViewModel()
@@ -309,7 +314,7 @@ namespace CryPixivClient.ViewModels
         }
 
         #region Command Methods
-        public async void OpenInBrowser(PixivWork work)
+        public void OpenInBrowser(PixivWork work)
         {
             Process.Start($"https://www.pixiv.net/member_illust.php?mode=medium&illust_id={work.Id}");
         }
@@ -337,6 +342,28 @@ namespace CryPixivClient.ViewModels
                 if (result.Item1 == false) work.IsBookmarked = false;
                 work.UpdateFavorite();
             }
+        }
+
+        public List<WorkDetails> OpenWorkWindows = new List<WorkDetails>();
+        public async void OpenWork(PixivWork work)
+        {
+            var window = OpenWorkWindows.Find(x => x.LoadedWork.Id == work.Id);
+            if (window != null)
+            {
+                window.Focus();
+                return;
+            }
+
+            WorkDetails form = new WorkDetails(work);
+            OpenWorkWindows.Add(form);
+            form.Closing += (a, b) => OpenWorkWindows.Remove((WorkDetails)a);
+            form.Show();
+        }
+        public async void DownloadSelectedWorks(PixivWork work)
+        {
+            var selected = MainWindow.GetSelectedWorks();
+
+            // start download queue -- use download manager for this
         }
         #endregion
 

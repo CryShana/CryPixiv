@@ -8,15 +8,15 @@ using System.Windows.Input;
 
 namespace CryPixivClient.Commands
 {
-    public class RelayCommand : ICommand
+    public class RelayCommand<T> : ICommand
     {
         public event EventHandler CanExecuteChanged;
 
         public bool CanExecute(object parameter) => true;
 
-        public void Execute(object parameter) => Callback(parameter as PixivWork);
+        public void Execute(object parameter) => Callback((T)parameter);
 
-        public Action<PixivWork> Callback { get; set; }
-        public RelayCommand(Action<PixivWork> toDo) => Callback = toDo;
+        public Action<T> Callback { get; set; }
+        public RelayCommand(Action<T> toDo) => Callback = toDo;
     }
 }
