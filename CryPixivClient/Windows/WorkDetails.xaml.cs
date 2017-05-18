@@ -73,7 +73,7 @@ namespace CryPixivClient.Windows
             else openedCache = false;
 
             comboTags.ItemsSource = LoadedWork.Tags;
-            txtClipboard.Text = "Click on tag to copy to clibboard";
+            txtClipboard.Text = "Click on tag to copy to clipboard";
             txtScore.Text = $"Score: {LoadedWork.Stats?.Score ?? LoadedWork.TotalBookmarks}";
             txtArtist.Text = LoadedWork.User.Name;
             txtResolution.Text = $"{LoadedWork.Width}x{LoadedWork.Height}";

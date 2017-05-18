@@ -81,6 +81,6 @@
             </ComboBox.Background>
         </ComboBox>
         <TextBlock HorizontalAlignment="Left" Margin="10,5,0,0" TextWrapping="Wrap" Text="Tags: " VerticalAlignment="Top"/>
-        <TextBlock x:Name="txtClipboard" HorizontalAlignment="Left" Margin="6,8,0,0" TextWrapping="Wrap" Text="Click on tag to copy to clibboard" VerticalAlignment="Top" Grid.Column="1" Foreground="#FF8F8F8F"/>
+        <TextBlock x:Name="txtClipboard" HorizontalAlignment="Left" Margin="6,8,0,0" TextWrapping="Wrap" Text="Click on tag to copy to clipboard" VerticalAlignment="Top" Grid.Column="1" Foreground="#FF8F8F8F"/>
     </Grid>
 </Window>

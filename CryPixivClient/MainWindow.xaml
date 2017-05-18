@@ -13,7 +13,7 @@
         <vm:DesignMainViewModel x:Key="designViewModel"/>
         <BitmapImage x:Key="missingImage" UriSource="Images/missingImage.jpg" />
 
-        <!-- COLLECTION VIEW SOURCES START HERE -->
+        <!-- COLLECTION VIEW SOURCES START HERE -->      
         <CollectionViewSource x:Key="ItemListViewSource" Source="{Binding DisplayedWorks_Results, Source={StaticResource mainViewModel}}" 
                               d:Source="{Binding FoundWorks, Source={StaticResource designViewModel}}"/>
 
