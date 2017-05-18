@@ -68,17 +68,14 @@ namespace CryPixivClient
 
         void ToggleLists(PixivAccount.WorkMode mode)
         {
-            mainList.IsEnabled = mode == PixivAccount.WorkMode.Search;
-            mainList.Visibility = (mode == PixivAccount.WorkMode.Search) ? Visibility.Visible : Visibility.Hidden;
+            Panel.SetZIndex(mainList, (mode == PixivAccount.WorkMode.Search && checkPopular.IsChecked == false) ? 10 : 0);
+            Panel.SetZIndex(mainListSorted, (mode == PixivAccount.WorkMode.Search && checkPopular.IsChecked == true) ? 10 : 0);        
 
-            mainListRanking.IsEnabled = mode == PixivAccount.WorkMode.Ranking;
-            mainListRanking.Visibility = (mode == PixivAccount.WorkMode.Ranking) ? Visibility.Visible : Visibility.Hidden;
+            Panel.SetZIndex(mainListRanking, (mode == PixivAccount.WorkMode.Ranking) ? 10 : 0);
 
-            mainListFollowing.IsEnabled = mode == PixivAccount.WorkMode.Following;
-            mainListFollowing.Visibility = (mode == PixivAccount.WorkMode.Following) ? Visibility.Visible : Visibility.Hidden;
+            Panel.SetZIndex(mainListFollowing, (mode == PixivAccount.WorkMode.Following) ? 10 : 0);
 
-            mainListBookmarks.IsEnabled = mode == PixivAccount.WorkMode.Bookmarks;
-            mainListBookmarks.Visibility = (mode == PixivAccount.WorkMode.Bookmarks) ? Visibility.Visible : Visibility.Hidden;
+            Panel.SetZIndex(mainListBookmarks, (mode == PixivAccount.WorkMode.Bookmarks) ? 10 : 0);
         }
 
         void ShowLoginPrompt(bool force = false)
@@ -191,7 +188,6 @@ namespace CryPixivClient
 
             ToggleButtons(PixivAccount.WorkMode.Search);
             ToggleLists(PixivAccount.WorkMode.Search);
-            UpdateSearchFilter(PixivAccount.WorkMode.Search, checkPopular.IsChecked == true);
             if (MainModel?.LastSearchQuery != txtSearchQuery.Text) MainModel.CurrentPageResults = 1;
 
             searching = true;
@@ -205,7 +201,6 @@ namespace CryPixivClient
 
             ToggleButtons(PixivAccount.WorkMode.Search);
             ToggleLists(PixivAccount.WorkMode.Search);
-            UpdateSearchFilter(PixivAccount.WorkMode.Search, checkPopular.IsChecked == true);
 
             searching = true;
             SetSearchButtonState(true);
@@ -215,7 +210,7 @@ namespace CryPixivClient
         void checkPopular_Click(object sender, RoutedEventArgs e)
         {
             if (CurrentWorkMode != PixivAccount.WorkMode.Search) return;
-            UpdateSearchFilter(PixivAccount.WorkMode.Search, checkPopular.IsChecked == true);
+            ToggleLists(PixivAccount.WorkMode.Search);
         }
         #endregion
 
@@ -252,12 +247,6 @@ namespace CryPixivClient
             btnBookmarks.IsEnabled = mode != PixivAccount.WorkMode.Bookmarks;
             btnFollowing.IsEnabled = mode != PixivAccount.WorkMode.Following;
             btnResults.IsEnabled = mode != PixivAccount.WorkMode.Search && MainModel.LastSearchQuery != null;
-        }
-
-        void UpdateSearchFilter(PixivAccount.WorkMode mode, bool sort = false)
-        {
-            MainCollectionView.SortDescriptions.Clear();
-            if (sort) MainCollectionView.SortDescriptions.Add(new System.ComponentModel.SortDescription("Stats.Score", System.ComponentModel.ListSortDirection.Descending));
         }
 
         public static List<PixivWork> GetSelectedWorks()

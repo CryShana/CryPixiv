@@ -123,11 +123,6 @@ namespace CryPixivClient.ViewModels
             MainWindow.CurrentWorkMode = mode;
             MainWindow.DynamicWorksLimit = MainWindow.DefaultWorksLimit;
 
-            // switch collection to display
-            await semaphore.WaitAsync();
-            if (viewSource.Source == null) viewSource.Source = displayCollection;
-            semaphore.Release();
-
             // show status
             TitleSuffix = titleSuffix;
             Status = $"{statusPrefix}...";
@@ -217,8 +212,6 @@ namespace CryPixivClient.ViewModels
             {
                 DisplayedWorks_Results = new MyObservableCollection<PixivWork>();
             }
-
-            MainWindow.MainCollectionView.Source = DisplayedWorks_Results;
             // refresh if necessary
             semaphore.Release();
 
