@@ -155,14 +155,12 @@ namespace CryPixivClient
             ToggleLists(PixivAccount.WorkMode.Ranking);
             MainModel.ShowDailyRankings();
         }
-
         void btnFollowing_Click(object sender, RoutedEventArgs e)
         {
             ToggleButtons(PixivAccount.WorkMode.Following);
             ToggleLists(PixivAccount.WorkMode.Following);
             MainModel.ShowFollowing();
         }
-
         void btnBookmarks_Click(object sender, RoutedEventArgs e)
         {
             ToggleButtons(PixivAccount.WorkMode.BookmarksPublic);
@@ -183,18 +181,21 @@ namespace CryPixivClient
         }
 
         bool searching = false;
-        void SetSearchButtonState(bool isSearching)
+        public static void SetSearchButtonState(bool isSearching)
         {
-            if (isSearching)
+            UIContext.Send((a) =>
             {
-                btnSearch.Content = "Stop";
-                btnSearch.Background = (SolidColorBrush)new BrushConverter().ConvertFromString("#FFFFA5A5");
-            }
-            else
-            {
-                btnSearch.Content = "Search";
-                btnSearch.Background = (SolidColorBrush)new BrushConverter().ConvertFromString("#FFDDDDDD");
-            }
+                if (isSearching)
+                {
+                    currentWindow.btnSearch.Content = "Stop";
+                    currentWindow.btnSearch.Background = (SolidColorBrush)new BrushConverter().ConvertFromString("#FFFFA5A5");
+                }
+                else
+                {
+                    currentWindow.btnSearch.Content = "Search";
+                    currentWindow.btnSearch.Background = (SolidColorBrush)new BrushConverter().ConvertFromString("#FFDDDDDD");
+                }
+            }, null);
         }
 
         void btnSearch_Click(object sender, RoutedEventArgs e)

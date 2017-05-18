@@ -285,6 +285,7 @@ namespace CryPixivClient.ViewModels
                 if (MainWindow.CurrentWorkMode == mode)
                 {
                     IsWorking = false;
+                    MainWindow.SetSearchButtonState(false);
                     Status = ((csrc.IsCancellationRequested) ? "Stopped. " : "Done. ") + "(Found " + DisplayedWorks_Results.Count + " works)";
                 }
             }, csrc.Token);
