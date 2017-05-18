@@ -280,6 +280,23 @@ namespace CryPixivClient
             }
         }
 
+        public static MyObservableCollection<PixivWork> GetCurrentCollection()
+        {
+            switch (CurrentWorkMode)
+            {
+                case PixivAccount.WorkMode.Search:
+                    return MainModel.DisplayedWorks_Results;
+                case PixivAccount.WorkMode.Ranking:
+                    return MainModel.DisplayedWorks_Ranking;
+                case PixivAccount.WorkMode.Following:
+                    return MainModel.DisplayedWorks_Following;
+                case PixivAccount.WorkMode.Bookmarks:
+                    return MainModel.DisplayedWorks_Bookmarks;
+                default:
+                    return null;
+            }
+        }
+
         private void mainListBookmarks_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
             if (((ListView)sender).SelectedItems.Count == 0) return;

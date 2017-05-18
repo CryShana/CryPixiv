@@ -367,6 +367,26 @@ namespace CryPixivClient.ViewModels
         }
         #endregion
 
+        public bool OpenNextWork(PixivWork currentItem)
+        {
+            var col = MainWindow.GetCurrentCollection();
+            var index = col.IndexOf(currentItem);
+
+            if (index == col.Count - 1) return false;
+
+            OpenWork(col[index + 1]);
+            return true;
+        }
+        public bool OpenPrevWork(PixivWork currentItem)
+        {
+            var col = MainWindow.GetCurrentCollection();
+            var index = col.IndexOf(currentItem);
+
+            if (index == 0) return false;
+
+            OpenWork(col[index - 1]);
+            return true;
+        }
     }
 
     public static class Extensions

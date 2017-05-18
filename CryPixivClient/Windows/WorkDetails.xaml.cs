@@ -18,6 +18,8 @@ namespace CryPixivClient.Windows
 {
     public partial class WorkDetails : Window
     {
+        static bool wasMaximized = false;
+
         public PixivWork LoadedWork { get; }
         Dictionary<int, ImageSource> DownloadedImages = new Dictionary<int, ImageSource>();
         event EventHandler<ImageSource> ImageDownloaded;
@@ -27,15 +29,18 @@ namespace CryPixivClient.Windows
         {
             InitializeComponent();
             SetWindow();
+            if (wasMaximized) WindowState = WindowState.Maximized;
+
             LoadedWork = work;
             DataContext = this;
 
             this.Closing += WorkDetails_Closing;
+            this.StateChanged += (a, b) => wasMaximized = WindowState == WindowState.Maximized;
 
             txtTitle.Text = LoadedWork.Title;
+            Title = $"Work Details - ({LoadedWork.Id}) {LoadedWork.Title}";
             SetPageStatus();
             txtPage.Text = $"{currentPage}/{LoadedWork.PageCount} ({DownloadedImages.Count})";
-
 
             // start downloading images
             DownloadImages();
@@ -47,10 +52,7 @@ namespace CryPixivClient.Windows
             };
         }
 
-        void SetPageStatus()
-        {
-            txtPage.Text = $"{currentPage}/{LoadedWork.PageCount}" + ((DownloadedImages.Count < LoadedWork.PageCount) ? $" ({DownloadedImages.Count})" : "");
-        }
+        void SetPageStatus() => txtPage.Text = $"{currentPage}/{LoadedWork.PageCount}" + ((DownloadedImages.Count < LoadedWork.PageCount) ? $" ({DownloadedImages.Count})" : "");       
 
         async Task DownloadImages()
         {
@@ -76,14 +78,12 @@ namespace CryPixivClient.Windows
         private void btnNext_Click(object sender, RoutedEventArgs e)
         {
             if (currentPage + 1 > DownloadedImages.Count) return;
-
             SetImage(currentPage + 1);
         }
 
         private void btnPrev_Click(object sender, RoutedEventArgs e)
         {
             if (currentPage - 1 <= 0) return;
-
             SetImage(currentPage - 1);
         }
 
@@ -99,6 +99,14 @@ namespace CryPixivClient.Windows
                 case Key.D:
                     btnNext_Click(this, null);
                     break;
+                case Key.Q:
+                case Key.Down:
+                    PrevPost();
+                    break;
+                case Key.E:
+                case Key.Up:
+                    NextPost();
+                    break;
                 case Key.Enter:
                     Window_PreviewMouseDoubleClick(this, null);
                     break;
@@ -108,14 +116,24 @@ namespace CryPixivClient.Windows
             }
         }
 
-        void SetProgressBar(bool show)
+        void NextPost()
         {
-            progressBar.Visibility = show ? Visibility.Visible : Visibility.Hidden;
+            // open next one
+            SavePos(); isOpening = true;
+            var result = MainWindow.MainModel.OpenNextWork(LoadedWork);
+            if (result) Close();
         }
-        void Window_PreviewMouseDoubleClick(object sender, MouseButtonEventArgs e)
+        void PrevPost()
         {
-            this.WindowState = (this.WindowState == WindowState.Maximized) ? WindowState.Normal : WindowState.Maximized;
+            // open prev one
+            SavePos(); isOpening = true;
+            var result = MainWindow.MainModel.OpenPrevWork(LoadedWork);
+            if (result) Close();
         }
+
+        void SetProgressBar(bool show) => progressBar.Visibility = show ? Visibility.Visible : Visibility.Hidden;      
+        void Window_PreviewMouseDoubleClick(object sender, MouseButtonEventArgs e) => this.WindowState = (this.WindowState == WindowState.Maximized) ? WindowState.Normal : WindowState.Maximized;
+        
 
         void SetWindow()
         {
@@ -127,16 +145,21 @@ namespace CryPixivClient.Windows
             Top = Settings.Default.DetailWindowTop;
         }
 
+        bool isOpening = false;
         bool isClosing = false;
         void WorkDetails_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            if (isOpening == false) SavePos();
+            isClosing = true;
+        }
+
+        void SavePos()
         {
             Settings.Default.DetailWindowHeight = Height;
             Settings.Default.DetailWindowWidth = Width;
             Settings.Default.DetailWindowLeft = Left;
             Settings.Default.DetailWindowTop = Top;
             Settings.Default.Save();
-
-            isClosing = true;
         }
 
         private void btnInternet_Click(object sender, RoutedEventArgs e)
