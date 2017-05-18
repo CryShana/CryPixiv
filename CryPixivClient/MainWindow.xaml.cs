@@ -33,6 +33,7 @@ namespace CryPixivClient
         public const int DefaultWorksLimit = 100;
         public static PixivAccount.WorkMode CurrentWorkMode;
         public static CollectionViewSource MainCollectionView;
+        public static CollectionViewSource MainCollectionViewSorted;
         public static CollectionViewSource MainCollectionViewRanking;
         public static CollectionViewSource MainCollectionViewFollowing;
         public static CollectionViewSource MainCollectionViewBookmarks;
@@ -45,6 +46,7 @@ namespace CryPixivClient
             // set up all data
             MainModel = (MainViewModel)FindResource("mainViewModel");
             MainCollectionView = (CollectionViewSource)FindResource("ItemListViewSource");
+            MainCollectionViewSorted = (CollectionViewSource)FindResource("ItemListViewSourceSorted");
             MainCollectionViewRanking = (CollectionViewSource)FindResource("ItemListViewSourceRanking");
             MainCollectionViewFollowing = (CollectionViewSource)FindResource("ItemListViewSourceFollowing");
             MainCollectionViewBookmarks = (CollectionViewSource)FindResource("ItemListViewSourceBookmarks");
@@ -278,6 +280,23 @@ namespace CryPixivClient
                     return MainModel.DisplayedWorks_Following;
                 case PixivAccount.WorkMode.Bookmarks:
                     return MainModel.DisplayedWorks_Bookmarks;
+                default:
+                    return null;
+            }
+        }
+        public static CollectionViewSource GetCurrentCollectionViewSource()
+        {
+            switch (CurrentWorkMode)
+            {
+                case PixivAccount.WorkMode.Search:
+                    if (currentWindow.checkPopular.IsChecked == true) return MainCollectionViewSorted;
+                    else return MainCollectionView;
+                case PixivAccount.WorkMode.Ranking:
+                    return MainCollectionViewRanking;
+                case PixivAccount.WorkMode.Following:
+                    return MainCollectionViewFollowing;
+                case PixivAccount.WorkMode.Bookmarks:
+                    return MainCollectionViewBookmarks;
                 default:
                     return null;
             }

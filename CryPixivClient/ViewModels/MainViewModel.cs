@@ -418,23 +418,36 @@ namespace CryPixivClient.ViewModels
 
         public PixivWork OpenNextWork(PixivWork currentItem, bool openWindow = false)
         {
-            var col = MainWindow.GetCurrentCollection();
-            var index = col.IndexOf(currentItem);
+            var colview = MainWindow.GetCurrentCollectionViewSource().View;
 
-            if (index == col.Count - 1) return null;
+            bool next = false;
+            PixivWork nextwork = null;
+            foreach(PixivWork i in colview)
+            {
+                if (next) { nextwork = i; break; }
+                if (i.Id.Value == currentItem.Id.Value) next = true;
+            }
 
-            if (openWindow) OpenWork(col[index + 1]);
-            return col[index + 1];
+            if (nextwork == null) return null;
+
+            if (openWindow) OpenWork(nextwork);
+            return nextwork;
         }
         public PixivWork OpenPrevWork(PixivWork currentItem, bool openWindow = false)
         {
-            var col = MainWindow.GetCurrentCollection();
-            var index = col.IndexOf(currentItem);
+            var colview = MainWindow.GetCurrentCollectionViewSource().View;
 
-            if (index == 0) return null;
+            PixivWork prevwork = null;
+            foreach (PixivWork i in colview)
+            {
+                if (i.Id.Value == currentItem.Id.Value) break;
+                prevwork = i;
+            }
 
-            if (openWindow) OpenWork(col[index - 1]);
-            return col[index - 1];
+            if (prevwork == null) return null;
+
+            if (openWindow) OpenWork(prevwork);
+            return prevwork;
         }
     }
 

@@ -49,6 +49,7 @@ namespace CryPixivClient.Windows
         bool openedCache = false;
         void LoadWork(PixivWork newWork)
         {
+            timestamp = DateTime.Now;
             LoadedWork = newWork;
             mainImage.Source = null;
 
@@ -91,9 +92,8 @@ namespace CryPixivClient.Windows
         {
             if (DownloadedImages.Count >= LoadedWork.PageCount) return;
 
-            SetProgressBar(true);
-
             await semaphore.WaitAsync();
+            SetProgressBar(true);
             try
             {
                 var lworkid = LoadedWork.Id;
@@ -108,11 +108,11 @@ namespace CryPixivClient.Windows
                     SetPageStatus();
                     ImageDownloaded?.Invoke(this, img);
                 }
-                SetProgressBar(false);
             }
             finally
             {
                 isClosing = false;
+                SetProgressBar(false);
                 semaphore.Release();
             }
         }
@@ -157,7 +157,7 @@ namespace CryPixivClient.Windows
                     NextPost();
                     break;
                 case Key.Enter:
-                    Window_PreviewMouseDoubleClick(this, null);
+                    ToggleState();
                     break;
                 case Key.Escape:
                     Close();
@@ -182,8 +182,20 @@ namespace CryPixivClient.Windows
             LoadWork(result);
         }
 
-        void SetProgressBar(bool show) => progressBar.Visibility = show ? Visibility.Visible : Visibility.Hidden;      
-        void Window_PreviewMouseDoubleClick(object sender, MouseButtonEventArgs e) => this.WindowState = (this.WindowState == WindowState.Maximized) ? WindowState.Normal : WindowState.Maximized;
+        void SetProgressBar(bool show) => progressBar.Visibility = show ? Visibility.Visible : Visibility.Hidden;
+
+        DateTime timestamp;
+        void ToggleState() => this.WindowState = (this.WindowState == WindowState.Maximized) ? WindowState.Normal : WindowState.Maximized;
+        void PreviewImageClick(object sender, MouseButtonEventArgs e)
+        {
+            var stampNow = DateTime.Now;
+            if (stampNow.Subtract(timestamp).TotalSeconds < 0.3)
+            {
+                ToggleState();
+                timestamp = stampNow.AddSeconds(-30);
+            }
+            else timestamp = stampNow;
+        }
         
         void SetWindow()
         {
