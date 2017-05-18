@@ -74,6 +74,12 @@ namespace Pixeez.Objects
         public string Original { get; set; }
     }
 
+    public class Tag
+    {
+        [JsonProperty("name")]
+        public string Name { get; set; }
+    }
+
     public class Work
     {
 
@@ -85,11 +91,14 @@ namespace Pixeez.Objects
 
         [JsonProperty("caption")]
         public string Caption { get; set; }
+      
+        [JsonProperty("tags_old")]
+        public List<string> TagsOld { get; set; }
 
-
-        /*
         [JsonProperty("tags")]
-        public List<Dictionary<string,string>> Tags { get; set; }*/   //Was commented out because of compatibility issues between new and old entries!
+        public List<Tag> TagsNew { get; set; }
+
+        public List<string> Tags => (TagsNew == null) ? TagsOld : TagsNew.Select(x => x.Name).ToList();
 
         [JsonProperty("meta_single_page")]
         public SingleImageUrl MetaSinglePage { get; set; }

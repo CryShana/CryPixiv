@@ -198,6 +198,7 @@ namespace Pixeez
                 if (json == "{}") return obj;
 
                 json = json.Replace("created_time", "create_date"); // to make it compatible with newer JSON entries
+                json = json.Replace("tags", "tags_old");
                 try
                 {
                     obj = JToken.Parse(json).SelectToken("response").ToObject<T>();

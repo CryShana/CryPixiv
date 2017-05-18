@@ -57,7 +57,8 @@ namespace CryPixivClient.Objects
             Id = work.Id;
             Title = work.Title;
             Caption = work.Caption;
-            //Tags = work.Tags;
+            TagsOld = work.TagsOld;
+            TagsNew = work.TagsNew;
             FavoriteId = work.FavoriteId;
             ImageUrls = work.ImageUrls;
             Width = work.Width;
