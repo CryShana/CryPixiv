@@ -70,6 +70,8 @@ namespace CryPixivClient.Objects
             PageCount = work.PageCount;
             Type = work.Type;
             Stats = work.Stats;
+            MetaPages = work.MetaPages;
+            MetaSinglePage = work.MetaSinglePage;
         }
 
         public void UpdateFavorite() => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("IsFavorited"));

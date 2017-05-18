@@ -519,7 +519,7 @@ namespace Pixeez
                 { "per_page", perPage.ToString() } ,
                 { "include_stats", "1" } ,
                 { "include_sanity_level", Convert.ToInt32(includeSanityLevel).ToString() } ,
-                { "image_sizes", "px_128x128,small,medium,large,px_480mw" } ,
+                { "image_sizes", "px_128x128,small,medium,large,px_480mw,original" } ,
                 { "profile_image_sizes", "px_170x170,px_50x50" } ,
             };
 

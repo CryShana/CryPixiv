@@ -110,7 +110,7 @@ namespace CryPixivClient
                             if (IsStopped) break;
                         }
 
-                        var uri = work.GetImageUri(work.ImageUrls.Large, i);
+                        var uri = work.GetImageUri(work.OriginalImageUrl, i);
 
                         var extension = uri.Substring(uri.LastIndexOf('.') + 1).ToLower();
                         if (extension != "png" && extension != "gif") extension = "jpg";

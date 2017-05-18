@@ -5,6 +5,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Net.Http;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Media.Imaging;
 
@@ -28,6 +29,9 @@ namespace Pixeez.Objects
 
         [JsonProperty("large")]
         public string Large { get; set; }
+
+        [JsonProperty("original")]
+        public string Original { get; set; }
     }
 
     public class FavoritedCount
@@ -64,11 +68,10 @@ namespace Pixeez.Objects
         public ImageUrls ImageUrls { get; set; }
     }
 
-    public class Metadata
+    public class SingleImageUrl
     {
-
-        [JsonProperty("pages")]
-        public IList<Page> Pages { get; set; }
+        [JsonProperty("original_image_url")]
+        public string Original { get; set; }
     }
 
     public class Work
@@ -83,11 +86,23 @@ namespace Pixeez.Objects
         [JsonProperty("caption")]
         public string Caption { get; set; }
 
+
         /*
         [JsonProperty("tags")]
         public List<Dictionary<string,string>> Tags { get; set; }*/   //Was commented out because of compatibility issues between new and old entries!
 
-        [JsonProperty("favorite_id")]
+        [JsonProperty("meta_single_page")]
+        public SingleImageUrl MetaSinglePage { get; set; }
+
+        [JsonProperty("meta_pages")]
+        public IList<Page> MetaPages { get; set; }
+        
+        public string OriginalImageUrl => (MetaSinglePage == null) ? 
+            ((MetaPages == null || MetaPages.Count == 0) ? 
+                ImageUrls.Large : MetaPages.First().ImageUrls.Original) : MetaSinglePage.Original;
+
+
+       [JsonProperty("favorite_id")]
         public long? FavoriteId { get; set; }
 
         [JsonProperty("image_urls")]
@@ -124,9 +139,18 @@ namespace Pixeez.Objects
         public string Type { get; set; }
 
         public string GetImageUri(string baseUri, int pageNumber = 0)
-        {
-            if (pageNumber > PageCount) return null;
-            return baseUri.Replace("p0", "p" + pageNumber);
+        {            
+            if (pageNumber == 0 && MetaSinglePage?.Original != null) return MetaSinglePage.Original;
+
+            if (MetaPages == null || MetaPages.Count < pageNumber + 1)
+            {
+                if (pageNumber > PageCount) return null;
+                return baseUri.Replace("p0", "p" + pageNumber);
+            }
+            else
+            {
+                return MetaPages[pageNumber].ImageUrls.Original;
+            }
         }
     }
 }

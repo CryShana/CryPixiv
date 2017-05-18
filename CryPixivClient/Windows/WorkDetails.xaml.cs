@@ -101,7 +101,7 @@ namespace CryPixivClient.Windows
                 for (int i = DownloadedImages.Count; i < LoadedWork.PageCount; i++)
                 {
                     if (isClosing || lworkid != LoadedWork.Id) break;
-                    var img = await Task.Run(() => LoadedWork.GetImage(LoadedWork.GetImageUri(LoadedWork.ImageUrls.Large, i)));
+                    var img = await Task.Run(() => LoadedWork.GetImage(LoadedWork.GetImageUri(LoadedWork.OriginalImageUrl, i)));
                     if (isClosing || lworkid != LoadedWork.Id) break;
 
                     DownloadedImages.Add(i + 1, img);
