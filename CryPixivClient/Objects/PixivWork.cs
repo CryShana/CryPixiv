@@ -45,6 +45,7 @@ namespace CryPixivClient.Objects
                     catch
                     {
                         // failed to load
+                        img = null;
                     }
                 }
                 return img;
@@ -71,10 +72,8 @@ namespace CryPixivClient.Objects
             Stats = work.Stats;
         }
 
-        public void UpdateFavorite()
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("IsFavorited"));
-        }
+        public void UpdateFavorite() => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("IsFavorited"));
+        public void UpdateThumbnail() => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("ImageThumbnail"));
 
         public ImageSource GetImage(string url)
         {
