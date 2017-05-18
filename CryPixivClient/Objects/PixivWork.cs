@@ -39,26 +39,7 @@ namespace CryPixivClient.Objects
                 {
                     try
                     {
-                        var image = new BitmapImage();
-                        var buffer = new byte[0];
-                        using(var client = new WebClient())
-                        {
-                            client.Headers.Add("Referer", "http://spapi.pixiv.net/");
-                            client.Headers.Add("User-Agent", "PixivIOSApp/5.8.0");
-                            client.UseDefaultCredentials = true;
-                            buffer = client.DownloadData(ImageUrls.SquareMedium);
-                        }
-
-                        using (var stream = new MemoryStream(buffer))
-                        {
-                            image.BeginInit();
-                            image.CacheOption = BitmapCacheOption.OnLoad;
-                            image.StreamSource = stream;
-                            image.EndInit();
-                        }
-
-                        image.Freeze();
-                        img = image;
+                        img = GetImage(ImageUrls.SquareMedium);
                     }
                     catch
                     {
@@ -92,6 +73,30 @@ namespace CryPixivClient.Objects
         public void UpdateFavorite()
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("IsFavorited"));
+        }
+
+        public ImageSource GetImage(string url)
+        {
+            var image = new BitmapImage();
+            var buffer = new byte[0];
+            using (var client = new WebClient())
+            {
+                client.Headers.Add("Referer", "http://spapi.pixiv.net/");
+                client.Headers.Add("User-Agent", "PixivIOSApp/5.8.0");
+                client.UseDefaultCredentials = true;
+                buffer = client.DownloadData(url);
+            }
+
+            using (var stream = new MemoryStream(buffer))
+            {
+                image.BeginInit();
+                image.CacheOption = BitmapCacheOption.OnLoad;
+                image.StreamSource = stream;
+                image.EndInit();
+            }
+
+            image.Freeze();
+            return image;
         }
     }
 }

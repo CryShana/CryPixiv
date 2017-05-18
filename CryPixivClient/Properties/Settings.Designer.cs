@@ -160,5 +160,53 @@ namespace CryPixivClient.Properties {
                 this["AuthRefreshToken"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0")]
+        public double DetailWindowWidth {
+            get {
+                return ((double)(this["DetailWindowWidth"]));
+            }
+            set {
+                this["DetailWindowWidth"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0")]
+        public double DetailWindowHeight {
+            get {
+                return ((double)(this["DetailWindowHeight"]));
+            }
+            set {
+                this["DetailWindowHeight"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0")]
+        public double DetailWindowLeft {
+            get {
+                return ((double)(this["DetailWindowLeft"]));
+            }
+            set {
+                this["DetailWindowLeft"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0")]
+        public double DetailWindowTop {
+            get {
+                return ((double)(this["DetailWindowTop"]));
+            }
+            set {
+                this["DetailWindowTop"] = value;
+            }
+        }
     }
 }

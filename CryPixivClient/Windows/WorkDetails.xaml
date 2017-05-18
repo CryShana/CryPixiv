@@ -5,8 +5,69 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:CryPixivClient.Windows"
         mc:Ignorable="d"
-        Title="Work Details" MinHeight="560" MinWidth="570" Height="560" Width="570" WindowStartupLocation="CenterScreen">
+        Title="Work Details" MinHeight="560" MinWidth="570" Height="560" Width="570" WindowStartupLocation="Manual"
+        PreviewKeyDown="Window_PreviewKeyDown" PreviewMouseDoubleClick="Window_PreviewMouseDoubleClick" Icon="/CryPixivClient;component/Images/pixiv.ico">
+    <Window.Resources>
+        <Style x:Key="buttonStyle" TargetType="Button">
+            <Setter Property="Width" Value="45"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderBrush" Value="Transparent"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" BorderBrush="Transparent" BorderThickness="0">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#FFE6E6E6"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+    </Window.Resources>
     <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+        <Image x:Name="mainImage" Margin="0,0,0,65" Grid.ColumnSpan="2" RenderOptions.BitmapScalingMode="HighQuality">
+            <Image.ContextMenu>
+                <ContextMenu>
+                    <MenuItem Header="Download Image" Click="MenuItem_Click">
+                        <MenuItem.Icon>
+                            <Image Source="../Images/download.png" RenderOptions.BitmapScalingMode="Fant"/>
+                        </MenuItem.Icon>
+                    </MenuItem>
+                </ContextMenu>
+            </Image.ContextMenu>
+        </Image>
+        <Button x:Name="btnNext" Content="&gt;" HorizontalAlignment="Right" Margin="0,0,13,10" VerticalAlignment="Bottom" Width="52" Height="29" Grid.Column="1" Click="btnNext_Click" IsTabStop="False"/>
+        <Button x:Name="btnPrev" Content="&lt;" HorizontalAlignment="Right" Margin="0,0,64,10" VerticalAlignment="Bottom" Width="52" Height="29" Grid.Column="1" Click="btnPrev_Click" IsTabStop="False"/>
+        <TextBlock x:Name="txtTitle" Margin="10,0,52,36" TextWrapping="Wrap" Text="Work Title" VerticalAlignment="Bottom" FontWeight="Bold" Height="16"/>
+        <TextBlock x:Name="txtScore" Margin="10,0,52,15" TextWrapping="Wrap" Text="Score: 4123" VerticalAlignment="Bottom" Height="16"/>
 
+        <Button x:Name="btnInternet" HorizontalAlignment="Right" Margin="0,0,0,10" VerticalAlignment="Bottom" Width="52" Height="35" IsTabStop="False" Style="{StaticResource buttonStyle}" Click="btnInternet_Click">
+            <Image x:Name="internetImage" Source="..\Images\internet.png" RenderOptions.BitmapScalingMode="Fant" Width="35" Margin="0,6"/>
+        </Button>
+        <Button x:Name="btnBookmark" HorizontalAlignment="Left" Margin="0,0,0,10" VerticalAlignment="Bottom" Width="52" Height="35" Style="{StaticResource buttonStyle}" IsTabStop="False" Grid.Column="1" Click="btnBookmark_Click">
+            <Image x:Name="likeImage" RenderOptions.BitmapScalingMode="Fant" Width="35" Margin="0,6">
+                <Image.Style>
+                    <Style TargetType="Image">
+                        <Setter Property="Source" Value="..\Images\dislike.png" />
+                        <Style.Triggers>
+                            <DataTrigger Value="True" Binding="{Binding LoadedWork.IsFavorited}">
+                                <Setter Property="Source" Value="..\Images\like.png"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Image.Style>
+            </Image>
+        </Button>
+
+        <TextBlock x:Name="txtPage" Grid.Column="1" HorizontalAlignment="Right" Margin="0,0,13,41" TextWrapping="Wrap" Text="1/1" VerticalAlignment="Bottom" Width="103" TextAlignment="Center" FontSize="16"/>
+        <ProgressBar x:Name="progressBar" Height="12" Margin="0,0,0,65" VerticalAlignment="Bottom" Grid.ColumnSpan="2" Foreground="#FF009CFF" IsIndeterminate="True"/>
     </Grid>
 </Window>
