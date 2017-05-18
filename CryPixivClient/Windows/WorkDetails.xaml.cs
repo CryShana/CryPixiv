@@ -69,8 +69,9 @@ namespace CryPixivClient.Windows
                 PreviousDownloads.Add(prevd);
             }
             else openedCache = false;
-            
 
+            txtArtist.Text = LoadedWork.User.Name;
+            txtResolution.Text = $"{LoadedWork.Width}x{LoadedWork.Height}";
             txtTitle.Text = LoadedWork.Title;
             Title = $"Work Details - ({LoadedWork.Id}) {LoadedWork.Title}";
             SetPageStatus();
@@ -87,7 +88,16 @@ namespace CryPixivClient.Windows
             };
         }
 
-        void SetPageStatus() => txtPage.Text = $"{currentPage}/{LoadedWork.PageCount}" + ((DownloadedImages.Count < LoadedWork.PageCount) ? $" ({DownloadedImages.Count})" : "");       
+        void SetPageStatus()
+        {
+            txtPage.Text = $"{currentPage}/{LoadedWork.PageCount}" + ((DownloadedImages.Count < LoadedWork.PageCount) ? $" ({DownloadedImages.Count})" : "");
+            if (DownloadedImages.ContainsKey(currentPage))
+            {
+                var img = (BitmapImage)DownloadedImages[currentPage];
+                
+                txtResolution.Text = $"{img.PixelWidth}x{img.PixelHeight}";
+            }
+        }      
 
         async Task DownloadImages()
         {
@@ -249,6 +259,11 @@ namespace CryPixivClient.Windows
         private void MenuItem_Click(object sender, RoutedEventArgs e)
         {
             MainWindow.MainModel.DownloadSelectedWorks(LoadedWork, true);
+        }
+
+        private void txtArtist_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            // search artist
         }
     }
 }
