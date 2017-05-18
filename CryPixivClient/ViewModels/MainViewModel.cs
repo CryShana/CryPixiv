@@ -114,18 +114,6 @@ namespace CryPixivClient.ViewModels
             semaphore = new SemaphoreSlim(1);
         }
 
-        public void UpdateColumns(double w)
-        {
-            if (w < 590) columns = 3;
-            else if (w < 727) columns = 4;
-            else if (w < 846) columns = 5;
-            else if (w < 986) columns = 6;
-            else columns = (int)Math.Floor(w / 140.0);
-
-            Changed("Columns");
-        }
-
-
         #region Show Methods
         public async Task Show(List<PixivWork> cache, MyObservableCollection<PixivWork> displayCollection, CollectionViewSource viewSource,
             PixivAccount.WorkMode mode, string titleSuffix, string statusPrefix,
@@ -315,6 +303,42 @@ namespace CryPixivClient.ViewModels
                 else dq.Cancel();
             }
         }
+        public void UpdateColumns(double w)
+        {
+            if (w < 590) columns = 3;
+            else if (w < 727) columns = 4;
+            else if (w < 846) columns = 5;
+            else if (w < 986) columns = 6;
+            else columns = (int)Math.Floor(w / 140.0);
+
+            Changed("Columns");
+        }
+
+        public void ForceRefreshImages()
+        {
+            // refresh all images depending on current mode
+            switch (MainWindow.CurrentWorkMode)
+            {
+                case PixivAccount.WorkMode.Ranking:
+                    UpdateImages(DisplayedWorks_Ranking);
+                    break;
+                case PixivAccount.WorkMode.Search:
+                    UpdateImages(displayedWorks_Results);
+                    break;
+                case PixivAccount.WorkMode.Following:
+                    UpdateImages(DisplayedWorks_Following);
+                    break;
+                case PixivAccount.WorkMode.Bookmarks:
+                    UpdateImages(DisplayedWorks_Bookmarks);
+                    break;
+            }
+        }
+
+        void UpdateImages(MyObservableCollection<PixivWork> collection)
+        {
+            foreach(var i in collection) i.UpdateThumbnail();            
+        }
+
 
         #region Command Methods
         public void OpenInBrowser(PixivWork work)
@@ -348,7 +372,7 @@ namespace CryPixivClient.ViewModels
         }
 
         public List<WorkDetails> OpenWorkWindows = new List<WorkDetails>();
-        public async void OpenWork(PixivWork work)
+        public void OpenWork(PixivWork work)
         {
             var window = OpenWorkWindows.Find(x => x.LoadedWork.Id == work.Id);
             if (window != null)
@@ -364,7 +388,7 @@ namespace CryPixivClient.ViewModels
         }
 
         public List<DownloadManager> RunningDownloadManagers = new List<DownloadManager>();
-        public async void DownloadSelectedWorks(PixivWork work)
+        public void DownloadSelectedWorks(PixivWork work)
         {
             var selected = MainWindow.GetSelectedWorks();
 

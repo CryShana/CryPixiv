@@ -21,10 +21,6 @@ using System.Windows.Shapes;
 
 namespace CryPixivClient
 {
-    class MeMe
-    {
-        public int Value { get; set; }
-    }
     public partial class MainWindow : Window
     {
         static MainWindow currentWindow;
@@ -95,6 +91,7 @@ namespace CryPixivClient
             if (Account == null || Account.IsLoggedIn == false) { Environment.Exit(1); return; }
 
             SaveAccount();
+            if(MainModel.DisplayedWorks_Ranking.Count > 0) MainModel.ForceRefreshImages();
         }
 
         #region Saving/Loading
