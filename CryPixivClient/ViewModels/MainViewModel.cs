@@ -1,5 +1,6 @@
 ﻿using CryPixivClient.Commands;
 using CryPixivClient.Objects;
+using CryPixivClient.Properties;
 using CryPixivClient.Windows;
 using Pixeez.Objects;
 using System;
@@ -8,12 +9,14 @@ using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Data;
+using System.Windows.Forms;
 using System.Windows.Input;
 
 namespace CryPixivClient.ViewModels
@@ -359,11 +362,40 @@ namespace CryPixivClient.ViewModels
             form.Closing += (a, b) => OpenWorkWindows.Remove((WorkDetails)a);
             form.Show();
         }
+
+        public List<DownloadManager> RunningDownloadManagers = new List<DownloadManager>();
         public async void DownloadSelectedWorks(PixivWork work)
         {
             var selected = MainWindow.GetSelectedWorks();
 
-            // start download queue -- use download manager for this
+            var uid = DownloadManager.GenerateUniqueIdentifier(selected);
+            var matches = RunningDownloadManagers.FindAll(x => x.UniqueIdentifier == uid);
+            var existing = (matches == null) ? null : ((matches.Count == 1) ? matches.First() : matches.Find(x => x.ToDownload.Count == selected.Count));
+
+            if (existing != null)
+            {
+                existing.Focus();
+                return;
+            }
+
+            FolderBrowserDialog dialog = new FolderBrowserDialog();
+            if (string.IsNullOrEmpty(Settings.Default.LastDestination) == false)
+            {
+                dialog.SelectedPath = Settings.Default.LastDestination;
+            }
+            dialog.ShowNewFolderButton = true;
+            dialog.ShowDialog();
+            string destination = dialog.SelectedPath;
+            if (Directory.Exists(destination) == false) return;
+
+            Settings.Default.LastDestination = destination;
+            Settings.Default.Save();
+
+            // start download queue
+            DownloadManager manager = new DownloadManager(selected, destination);
+            RunningDownloadManagers.Add(manager);
+            manager.Closing += (a, b) => RunningDownloadManagers.Remove((DownloadManager)a);
+            manager.Show();
         }
         #endregion
 

@@ -29,6 +29,7 @@ namespace CryPixivClient.Objects
         public string BookmarkText => (IsFavorited) ? "Remove bookmark" : "Bookmark";
 
         public int OrderNumber { get; set; } = int.MaxValue;
+        public string IdText => Id?.ToString() ?? "";
 
         ImageSource img = null;
         public ImageSource ImageThumbnail

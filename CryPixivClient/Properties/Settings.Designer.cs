@@ -208,5 +208,65 @@ namespace CryPixivClient.Properties {
                 this["DetailWindowTop"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0")]
+        public double DownloaderWindowWidth {
+            get {
+                return ((double)(this["DownloaderWindowWidth"]));
+            }
+            set {
+                this["DownloaderWindowWidth"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0")]
+        public double DownloaderWindowHeight {
+            get {
+                return ((double)(this["DownloaderWindowHeight"]));
+            }
+            set {
+                this["DownloaderWindowHeight"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0")]
+        public double DownloaderWindowLeft {
+            get {
+                return ((double)(this["DownloaderWindowLeft"]));
+            }
+            set {
+                this["DownloaderWindowLeft"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0")]
+        public double DownloaderWindowTop {
+            get {
+                return ((double)(this["DownloaderWindowTop"]));
+            }
+            set {
+                this["DownloaderWindowTop"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string LastDestination {
+            get {
+                return ((string)(this["LastDestination"]));
+            }
+            set {
+                this["LastDestination"] = value;
+            }
+        }
     }
 }

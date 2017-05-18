@@ -10,6 +10,9 @@ namespace CryPixivClient.Objects
 {
     public class MyObservableCollection<T> : ObservableCollection<T>
     {
+        public MyObservableCollection() : base() { }
+        public MyObservableCollection(IEnumerable<T> collection) : base(collection) { }
+            
         public void InsertRange(IEnumerable<T> items)
         {
             if (items.Count() == 0) return;
