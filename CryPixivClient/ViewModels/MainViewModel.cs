@@ -432,6 +432,12 @@ namespace CryPixivClient.ViewModels
             if (force == false) selected = MainWindow.GetSelectedWorks();
             else selected = new List<PixivWork>() { work };
 
+            if(MainWindow.IsNSFWAllowed() == false)
+            {
+                // remove all NSFW works
+                selected.RemoveAll(x => x.IsNSFW);
+            }
+
             var uid = DownloadManager.GenerateUniqueIdentifier(selected);
             var matches = RunningDownloadManagers.FindAll(x => x.UniqueIdentifier == uid);
             var existing = (matches == null) ? null : ((matches.Count == 1) ? matches.First() : matches.Find(x => x.ToDownload.Count == selected.Count));
@@ -477,7 +483,11 @@ namespace CryPixivClient.ViewModels
             PixivWork nextwork = null;
             foreach(PixivWork i in colview)
             {
-                if (next) { nextwork = i; break; }
+                if (next)
+                {
+                    if (MainWindow.IsNSFWAllowed() == false && i.IsNSFW) continue;
+                    nextwork = i; break;
+                }
                 if (i.Id.Value == currentItem.Id.Value) next = true;
             }
 
@@ -494,6 +504,7 @@ namespace CryPixivClient.ViewModels
             foreach (PixivWork i in colview)
             {
                 if (i.Id.Value == currentItem.Id.Value) break;
+                if (MainWindow.IsNSFWAllowed() == false && i.IsNSFW) continue;
                 prevwork = i;
             }
 

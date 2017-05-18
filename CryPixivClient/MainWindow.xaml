@@ -168,6 +168,29 @@
         <!-- ITEM TEMPLATE IS HERE -->
         <DataTemplate x:Key="mainItemTemplate">
             <StackPanel>
+                <StackPanel.Style>
+                    <Style TargetType="StackPanel">
+                        <Setter Property="Opacity" Value="1"/>
+                        <Setter Property="IsEnabled" Value="True"/>
+                        <Setter Property="BitmapEffect">
+                            <Setter.Value>
+                                <BlurBitmapEffect Radius="0" />
+                            </Setter.Value>
+                        </Setter>
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding ShouldBlur}" Value="True">
+                                <Setter Property="Opacity" Value="0.4"/>
+                                <Setter Property="IsEnabled" Value="False"/>
+                                <Setter Property="BitmapEffect">
+                                    <Setter.Value>
+                                        <BlurBitmapEffect Radius="30" />
+                                    </Setter.Value>
+                                </Setter>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </StackPanel.Style>
+                
                 <!-- Animation triggers -->
                 <StackPanel.Triggers>
                     <EventTrigger RoutedEvent="MouseEnter">
@@ -330,5 +353,6 @@
         <Button x:Name="btnBookmarksPrivate" Content="Private" Grid.Column="1" HorizontalAlignment="Right" Margin="0,50,28,0" VerticalAlignment="Top" Width="91" Height="23" TabIndex="6" Click="btnBookmarksPrivate_Click" Background="#FFFFEAEA"/>
         <TextBlock Grid.Column="1" HorizontalAlignment="Right" Margin="0,8,60,0" TextWrapping="Wrap" Text="Bookmarks" VerticalAlignment="Top"/>
         <TextBlock HorizontalAlignment="Left" Margin="10,7,0,0" TextWrapping="Wrap" Text="Search by tag:" VerticalAlignment="Top"/>
+        <CheckBox x:Name="checkNSFW" Content="NSFW" HorizontalAlignment="Right" Margin="0,57,10,0" VerticalAlignment="Top" IsChecked="True" Click="checkNSFW_Click"/>
     </Grid>
 </Window>

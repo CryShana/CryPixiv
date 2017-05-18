@@ -112,6 +112,8 @@ namespace CryPixivClient
                 Left = Settings.Default.WindowLeft;
                 Top = Settings.Default.WindowTop;
             }
+
+            checkNSFW.IsChecked = Settings.Default.NSFW;
         }
 
         void LoadAccount()
@@ -140,6 +142,7 @@ namespace CryPixivClient
         void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
             // save window data
+            Settings.Default.NSFW = checkNSFW.IsChecked == true;
             Settings.Default.WindowHeight = Height;
             Settings.Default.WindowWidth = Width;
             Settings.Default.WindowLeft = Left;
@@ -217,7 +220,7 @@ namespace CryPixivClient
             searching = true;
             SetSearchButtonState(true);
 
-            MainModel.ShowSearch(txtSearchQuery.Text, checkPopular.IsChecked == true, MainModel.CurrentPageResults);
+            MainModel.ShowSearch(txtSearchQuery.Text, checkPopular.IsChecked == true, MainModel.CurrentPageResults);           
         }
         private void btnResults_Click(object sender, RoutedEventArgs e)
         {
@@ -304,7 +307,6 @@ namespace CryPixivClient
             }
         }
 
-
         public static CollectionViewSource GetCurrentCollectionViewSource()
         {
             switch (CurrentWorkMode)
@@ -332,10 +334,15 @@ namespace CryPixivClient
             }
         }
 
+        public static bool IsNSFWAllowed() => currentWindow.checkNSFW.IsChecked == true;
+
         private void mainListBookmarks_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
             if (((ListView)sender).SelectedItems.Count == 0) return;
-            MainModel.OpenCmd.Execute(((ListView)sender).SelectedItem);
+            var selected = ((ListView)sender).SelectedItem as PixivWork;
+            if (IsNSFWAllowed() == false && selected.IsNSFW) return;
+
+            MainModel.OpenCmd.Execute(selected);
         }
 
         private async void ResetResults_Click(object sender, RoutedEventArgs e)
@@ -359,6 +366,12 @@ namespace CryPixivClient
                 Process.Start(Application.ResourceAssembly.Location);
                 Application.Current.Shutdown();
             }
+        }
+
+        private void checkNSFW_Click(object sender, RoutedEventArgs e)
+        {
+            var collection = GetCurrentCollectionViewSource().Source as MyObservableCollection<PixivWork>;
+            foreach (var i in collection) i.UpdateNSFW();
         }
     }
 }

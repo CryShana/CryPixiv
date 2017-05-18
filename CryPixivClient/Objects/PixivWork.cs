@@ -16,6 +16,20 @@ namespace CryPixivClient.Objects
     {
         public event PropertyChangedEventHandler PropertyChanged;
 
+        public bool IsNSFW
+        {
+            get
+            {
+                foreach (var t in Tags)
+                    foreach (var tt in NsfwTags)
+                        if (t.ToLower() == tt.ToLower()) return true;
+
+                return false;
+            }
+        }
+
+        public bool ShouldBlur => IsNSFW && MainWindow.IsNSFWAllowed() == false;
+
         public string PageCountText => (PageCount == null || PageCount.Value == 1) ? "" : PageCount.Value.ToString();
         public bool IsFavorited
         {
@@ -52,6 +66,7 @@ namespace CryPixivClient.Objects
             }
         }
 
+        public static readonly string[] NsfwTags = { "R-18" };
         public PixivWork(Work work)
         {
             Id = work.Id;
@@ -77,6 +92,7 @@ namespace CryPixivClient.Objects
 
         public void UpdateFavorite() => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("IsFavorited"));
         public void UpdateThumbnail() => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("ImageThumbnail"));
+        public void UpdateNSFW() => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("ShouldBlur"));
 
         public ImageSource GetImage(string url)
         {

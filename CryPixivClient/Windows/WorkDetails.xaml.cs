@@ -72,6 +72,8 @@ namespace CryPixivClient.Windows
             }
             else openedCache = false;
 
+            comboTags.ItemsSource = LoadedWork.Tags;
+            txtClipboard.Text = "Click on tag to copy to clibboard";
             txtScore.Text = $"Score: {LoadedWork.Stats?.Score ?? LoadedWork.TotalBookmarks}";
             txtArtist.Text = LoadedWork.User.Name;
             txtResolution.Text = $"{LoadedWork.Width}x{LoadedWork.Height}";
@@ -268,6 +270,15 @@ namespace CryPixivClient.Windows
         private void txtArtist_MouseDown(object sender, MouseButtonEventArgs e)
         {
             // search artist
+        }
+
+        private void comboTags_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (comboTags.SelectedIndex == -1) return;
+
+            var text = comboTags.SelectedItem as string;
+            Clipboard.SetText(text);
+            txtClipboard.Text = "Tag copied to clipboard!";
         }
     }
 }

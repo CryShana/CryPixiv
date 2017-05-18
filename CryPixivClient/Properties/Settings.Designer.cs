@@ -268,5 +268,17 @@ namespace CryPixivClient.Properties {
                 this["LastDestination"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool NSFW {
+            get {
+                return ((bool)(this["NSFW"]));
+            }
+            set {
+                this["NSFW"] = value;
+            }
+        }
     }
 }
