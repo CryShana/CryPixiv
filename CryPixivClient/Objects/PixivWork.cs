@@ -15,6 +15,7 @@ namespace CryPixivClient.Objects
     public class PixivWork : Work, INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler PropertyChanged;
+        public static readonly string[] NsfwTags = { "R-18" };
 
         public bool IsNSFW
         {
@@ -45,7 +46,7 @@ namespace CryPixivClient.Objects
         public int OrderNumber { get; set; } = int.MaxValue;
         public string IdText => Id?.ToString() ?? "";
 
-        ImageSource img = null;
+        public ImageSource img = null;
         public ImageSource ImageThumbnail
         {
             get
@@ -66,7 +67,6 @@ namespace CryPixivClient.Objects
             }
         }
 
-        public static readonly string[] NsfwTags = { "R-18" };
         public PixivWork(Work work)
         {
             Id = work.Id;
@@ -93,18 +93,11 @@ namespace CryPixivClient.Objects
         public void UpdateFavorite() => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("IsFavorited"));
         public void UpdateThumbnail() => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("ImageThumbnail"));
         public void UpdateNSFW() => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("ShouldBlur"));
-
+        public void ResetThumbnail() => img = null;
         public ImageSource GetImage(string url)
         {
             var image = new BitmapImage();
-            var buffer = new byte[0];
-            using (var client = new WebClient())
-            {
-                client.Headers.Add("Referer", "http://spapi.pixiv.net/");
-                client.Headers.Add("User-Agent", "PixivIOSApp/5.8.0");
-                client.UseDefaultCredentials = true;
-                buffer = client.DownloadData(url);
-            }
+            var buffer = DownloadImage(url);
 
             using (var stream = new MemoryStream(buffer))
             {
@@ -116,6 +109,19 @@ namespace CryPixivClient.Objects
 
             image.Freeze();
             return image;
+        }
+
+        byte[] DownloadImage(string url)
+        {
+            var buffer = new byte[0];
+            using (var client = new WebClient())
+            {
+                client.Headers.Add("Referer", "http://spapi.pixiv.net/");
+                client.Headers.Add("User-Agent", "PixivIOSApp/5.8.0");
+                client.UseDefaultCredentials = true;
+                buffer = client.DownloadData(url);
+            }
+            return buffer;
         }
     }
 }
