@@ -25,6 +25,8 @@ namespace CryPixivClient.Windows
         public string UniqueIdentifier { get; }
         public List<PixivWork> ToDownload { get; }
         public bool IsFinished { get; private set; }
+        public string TotalProgressText => Math.Round(downloader.Percentage, 2).ToString("0.00") + "%";
+
 
         Downloader downloader;
         DesignModel designModel;
@@ -32,7 +34,6 @@ namespace CryPixivClient.Windows
         MyObservableCollection<DownloadObject> downloadObjects;
 
         public event PropertyChangedEventHandler PropertyChanged;
-
 
         public MyObservableCollection<DownloadObject> DownloadObjects
         {
@@ -71,12 +72,14 @@ namespace CryPixivClient.Windows
             downloader.Start();
         }
 
+
         void Downloader_Finished(object sender, EventArgs e)
         {
             if (downloader.Percentage == 100.0)
             {
                 IsFinished = true;
                 btnPause.IsEnabled = false;
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("TotalProgressText"));
             }
         }
         void Downloader_ErrorEncountered(object sender, Tuple<long, int, string> e)
@@ -95,9 +98,12 @@ namespace CryPixivClient.Windows
             foreach (var d in downloadObjects)
                 if (d.Work.Id.Value == progress.AssociatedWork.Id.Value)
                 {
-                    d.CompletedPages = progress.PageNumber;
+                    d.CompletedPages = progress.PageNumber + 1;
                     double valuePerPage = (100.0 / d.Work.PageCount.Value);
-                    d.Percentage = valuePerPage * d.CompletedPages + valuePerPage * (progress.Progress / 100.0);
+                    d.Percentage = valuePerPage * (d.CompletedPages - 1) + valuePerPage * (progress.Progress / 100.0);
+
+                    if (d.Percentage > 98.0) d.Percentage = 100.0;
+                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("TotalProgressText"));
                     break;
                 }
         }

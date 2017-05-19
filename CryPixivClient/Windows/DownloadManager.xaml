@@ -64,6 +64,7 @@
         </ListView>
         <Button x:Name="btnPause" Content="Pause" HorizontalAlignment="Left" Margin="8,0,0,7" Width="98" Height="26" VerticalAlignment="Bottom" Background="#FFFBFFD7" Click="btnPause_Click" IsTabStop="False"/>
         <Button x:Name="btnOpenFolder" Content="Open Containing Folder" HorizontalAlignment="Right" Margin="0,0,10,7" Width="147" Height="26" VerticalAlignment="Bottom" IsTabStop="False" Click="btnOpenFolder_Click"/>
+        <TextBlock x:Name="txtTotalProgress" HorizontalAlignment="Left" Margin="114,0,0,12" TextWrapping="Wrap" Text="{Binding TotalProgressText}" VerticalAlignment="Bottom"/>
 
     </Grid>
 </Window>

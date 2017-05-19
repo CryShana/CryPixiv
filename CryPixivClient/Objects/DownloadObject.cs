@@ -33,7 +33,7 @@ namespace CryPixivClient.Objects
         }
         public string PercentageText => Math.Round(Percentage, 2).ToString("0.00") + "%";
         public int CompletedPages { get => completedPages; set { completedPages = value; Changed(); Changed("CompletedPagesText"); } }
-        public string CompletedPagesText => $"{CompletedPages + 1}/{Work.PageCount.Value}";
+        public string CompletedPagesText => $"{CompletedPages}/{Work.PageCount.Value}";
         public string ErrorMessage { get => errormsg; set { errormsg = value; Changed(); } }
 
         public DownloadObject(PixivWork work)
