@@ -373,7 +373,7 @@ namespace CryPixivClient.ViewModels
 
         void UpdateImages(MyObservableCollection<PixivWork> collection)
         {
-            foreach(var i in collection) i.UpdateThumbnail();            
+            foreach(var i in collection) if(i.img == null) i.UpdateThumbnail();            
         }
 
 

@@ -371,7 +371,7 @@ namespace CryPixivClient
         private void checkNSFW_Click(object sender, RoutedEventArgs e)
         {
             var collection = GetCurrentCollectionViewSource().Source as MyObservableCollection<PixivWork>;
-            foreach (var i in collection) i.UpdateNSFW();
+            foreach (var i in collection) if(i.IsNSFW) i.UpdateNSFW();
         }
     }
 }
