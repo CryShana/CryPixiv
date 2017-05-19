@@ -252,33 +252,40 @@ namespace CryPixivClient.Windows
             PreviousDownloads.Add(new Tuple<long, Dictionary<int, ImageSource>>(LoadedWork.Id.Value, new Dictionary<int, ImageSource>(DownloadedImages)));
         }
 
-        private void btnInternet_Click(object sender, RoutedEventArgs e)
+        void btnInternet_Click(object sender, RoutedEventArgs e)
         {
             MainWindow.MainModel.OpenInBrowser(LoadedWork);
         }
 
-        private void btnBookmark_Click(object sender, RoutedEventArgs e)
+        void btnBookmark_Click(object sender, RoutedEventArgs e)
         {
             MainWindow.MainModel.BookmarkWork(LoadedWork);
         }
 
-        private void MenuItem_Click(object sender, RoutedEventArgs e)
+        void DownloadSelected(object sender, RoutedEventArgs e)
         {
             MainWindow.MainModel.DownloadSelectedWorks(LoadedWork, true);
         }
 
-        private void txtArtist_MouseDown(object sender, MouseButtonEventArgs e)
+        void txtArtist_MouseDown(object sender, MouseButtonEventArgs e)
         {
             // search artist
         }
 
-        private void comboTags_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        void comboTags_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (comboTags.SelectedIndex == -1) return;
 
             var text = comboTags.SelectedItem as string;
             Clipboard.SetText(text);
             txtClipboard.Text = "Tag copied to clipboard!";
+        }
+
+        void CopyImage(object sender, RoutedEventArgs e)
+        {
+            if (DownloadedImages.ContainsKey(currentPage) == false) return;
+
+            Clipboard.SetImage(DownloadedImages[currentPage] as BitmapSource);
         }
     }
 }

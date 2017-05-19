@@ -37,7 +37,8 @@
                RenderOptions.BitmapScalingMode="HighQuality" PreviewMouseDown="PreviewImageClick" >
             <Image.ContextMenu>
                 <ContextMenu>
-                    <MenuItem Header="Download Image" Click="MenuItem_Click">
+                    <MenuItem Header="Copy Image" Click="CopyImage"/>
+                    <MenuItem Header="Download Image" Click="DownloadSelected">
                         <MenuItem.Icon>
                             <Image Source="../Images/download.png" RenderOptions.BitmapScalingMode="Fant"/>
                         </MenuItem.Icon>
