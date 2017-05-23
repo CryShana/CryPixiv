@@ -40,6 +40,7 @@ namespace CryPixivClient
         public static CollectionViewSource MainCollectionViewFollowing;
         public static CollectionViewSource MainCollectionViewBookmarks;
         public static CollectionViewSource MainCollectionViewBookmarksPrivate;
+        public static CollectionViewSource MainCollectionViewUser;
 
         public MainWindow()
         {
@@ -55,6 +56,7 @@ namespace CryPixivClient
             MainCollectionViewFollowing = (CollectionViewSource)FindResource("ItemListViewSourceFollowing");
             MainCollectionViewBookmarks = (CollectionViewSource)FindResource("ItemListViewSourceBookmarks");
             MainCollectionViewBookmarksPrivate = (CollectionViewSource)FindResource("ItemListViewSourceBookmarksPrivate");
+            MainCollectionViewUser = (CollectionViewSource)FindResource("ItemListViewSourceUser");
             UIContext = SynchronizationContext.Current;
             LoadWindowData();
             LoadAccount();
@@ -87,6 +89,8 @@ namespace CryPixivClient
             Panel.SetZIndex(mainListBookmarks, (mode == PixivAccount.WorkMode.BookmarksPublic) ? 10 : 0);
 
             Panel.SetZIndex(mainListBookmarksPrivate, (mode == PixivAccount.WorkMode.BookmarksPrivate) ? 10 : 0);
+
+            Panel.SetZIndex(mainListUser, (mode == PixivAccount.WorkMode.User) ? 10 : 0);
         }
 
         void ShowLoginPrompt(bool force = false)
@@ -181,6 +185,18 @@ namespace CryPixivClient
             ToggleButtons(PixivAccount.WorkMode.Recommended);
             ToggleLists(PixivAccount.WorkMode.Recommended);
             MainModel.ShowRecommended();
+        }
+        public static void ShowUserWork(long userId, string username)
+        {
+            if (userId <= 0 || CurrentWorkMode == PixivAccount.WorkMode.User)
+                return;
+
+            currentWindow.Dispatcher.Invoke(() =>
+            {
+                currentWindow.ToggleButtons(PixivAccount.WorkMode.User);
+                currentWindow.ToggleLists(PixivAccount.WorkMode.User);
+                MainModel.ShowUserWork(userId, username);
+            });
         }
 
         bool searching = false;
@@ -302,6 +318,9 @@ namespace CryPixivClient
 
                 case PixivAccount.WorkMode.Recommended:
                     return currentWindow.mainListRecommended.SelectedItems.Cast<PixivWork>().ToList();
+
+                case PixivAccount.WorkMode.User:
+                    return currentWindow.mainListUser.SelectedItems.Cast<PixivWork>().ToList();
                 default:
                     return null;
             }
@@ -329,6 +348,9 @@ namespace CryPixivClient
 
                 case PixivAccount.WorkMode.Recommended:
                     return MainCollectionViewRecommended;
+
+                case PixivAccount.WorkMode.User:
+                    return MainCollectionViewUser;
                 default:
                     return null;
             }

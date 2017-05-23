@@ -35,6 +35,7 @@ namespace CryPixivClient.ViewModels
         MyObservableCollection<PixivWork> displayedWorks_Bookmarks = new MyObservableCollection<PixivWork>();
         MyObservableCollection<PixivWork> displayedWorks_BookmarksPrivate = new MyObservableCollection<PixivWork>();
         MyObservableCollection<PixivWork> displayedWorks_Recommended = new MyObservableCollection<PixivWork>();
+        MyObservableCollection<PixivWork> displayedWorks_User = new MyObservableCollection<PixivWork>();
 
         readonly SemaphoreSlim semaphore;
 
@@ -48,6 +49,7 @@ namespace CryPixivClient.ViewModels
         List<PixivWork> following = new List<PixivWork>();
         List<PixivWork> results = new List<PixivWork>();
         List<PixivWork> recommended = new List<PixivWork>();
+        List<PixivWork> user = new List<PixivWork>();
         int currentPageResults = 1;
         string lastSearchQuery = null;
         int columns = 4;
@@ -90,7 +92,11 @@ namespace CryPixivClient.ViewModels
             get => displayedWorks_BookmarksPrivate;
             set { displayedWorks_BookmarksPrivate = value; Changed(); }
         }
-        
+        public MyObservableCollection<PixivWork> DisplayedWorks_User
+        {
+            get => displayedWorks_User;
+            set { displayedWorks_User= value; Changed(); }
+        }
 
         public int CurrentPageResults { get => currentPageResults; set { currentPageResults = value; } }
         public string Status
@@ -303,12 +309,17 @@ namespace CryPixivClient.ViewModels
         public async void ShowBookmarksPublic() =>
             await Show(bookmarks, DisplayedWorks_Bookmarks, PixivAccount.WorkMode.BookmarksPublic, "Bookmarks", 
                 "Getting bookmarks", (page) => MainWindow.Account.GetBookmarks(page, PixivAccount.Publicity.Public));
+
         public async void ShowBookmarksPrivate() =>
             await Show(bookmarksprivate, DisplayedWorks_BookmarksPrivate, PixivAccount.WorkMode.BookmarksPrivate, "Private Bookmarks",
                 "Getting private bookmarks", (page) => MainWindow.Account.GetBookmarks(page, PixivAccount.Publicity.Private));
+
         public async void ShowRecommended() =>
             await Show(recommended, DisplayedWorks_Recommended, PixivAccount.WorkMode.Recommended, "Recommended",
                 "Getting recommended feed", (page) => MainWindow.Account.GetRecommended(page), fixInvalid: false);
+        public async void ShowUserWork(long userId, string username) =>
+            await Show(user, DisplayedWorks_User, PixivAccount.WorkMode.User, "User work - " + username,
+                "Getting user works", (page) => MainWindow.Account.GetUserWorks(userId, page));
 
         Queue<CancellationTokenSource> queuedSearches = new Queue<CancellationTokenSource>();
         public void CancelRunningSearches()
@@ -367,6 +378,15 @@ namespace CryPixivClient.ViewModels
                     break;
                 case PixivAccount.WorkMode.BookmarksPublic:
                     UpdateImages(DisplayedWorks_Bookmarks);
+                    break;
+                case PixivAccount.WorkMode.BookmarksPrivate:
+                    UpdateImages(DisplayedWorks_BookmarksPrivate);
+                    break;
+                case PixivAccount.WorkMode.Recommended:
+                    UpdateImages(DisplayedWorks_Recommended);
+                    break;
+                case PixivAccount.WorkMode.User:
+                    UpdateImages(DisplayedWorks_User);
                     break;
             }
         }

@@ -13,7 +13,7 @@
         <vm:DesignMainViewModel x:Key="designViewModel"/>
         <BitmapImage x:Key="missingImage" UriSource="Images/missingImage.jpg" />
 
-        <!-- COLLECTION VIEW SOURCES START HERE -->      
+        <!-- COLLECTION VIEW SOURCES START HERE -->
         <CollectionViewSource x:Key="ItemListViewSource" Source="{Binding DisplayedWorks_Results, Source={StaticResource mainViewModel}}" 
                               d:Source="{Binding FoundWorks, Source={StaticResource designViewModel}}"/>
 
@@ -55,6 +55,12 @@
             </CollectionViewSource.SortDescriptions>
         </CollectionViewSource>
 
+        <CollectionViewSource x:Key="ItemListViewSourceUser" Source="{Binding DisplayedWorks_User, Source={StaticResource mainViewModel}}" 
+                              d:Source="{Binding FoundWorks, Source={StaticResource designViewModel}}">
+            <CollectionViewSource.SortDescriptions>
+                <scm:SortDescription PropertyName="OrderNumber" Direction="Ascending"/>
+            </CollectionViewSource.SortDescriptions>
+        </CollectionViewSource>
 
         <!-- BUTTON STYLE IS HERE -->
         <Style x:Key="buttonStyle" TargetType="Button">
@@ -190,7 +196,7 @@
                         </Style.Triggers>
                     </Style>
                 </StackPanel.Style>
-                
+
                 <!-- Animation triggers -->
                 <StackPanel.Triggers>
                     <EventTrigger RoutedEvent="MouseEnter">
@@ -319,6 +325,11 @@
                   ItemContainerStyle="{StaticResource itemContainerStyle}"/>
 
         <ListView x:Name="mainListBookmarksPrivate" Margin="0,94,0,22" ItemsSource="{Binding Mode=OneWay, Source={StaticResource ItemListViewSourceBookmarksPrivate}}" DataContext="{StaticResource mainViewModel}" 
+                  Grid.ColumnSpan="2" ScrollViewer.ScrollChanged="mainList_ScrollChanged" d:DataContext="{StaticResource designViewModel}"
+                  ItemTemplate="{StaticResource mainItemTemplate}"  ItemsPanel="{StaticResource mainItemsPanel}" MouseDoubleClick="mainListBookmarks_MouseDoubleClick"
+                  ItemContainerStyle="{StaticResource itemContainerStyle}"/>
+        
+        <ListView x:Name="mainListUser" Margin="0,94,0,22" ItemsSource="{Binding Mode=OneWay, Source={StaticResource ItemListViewSourceUser}}" DataContext="{StaticResource mainViewModel}" 
                   Grid.ColumnSpan="2" ScrollViewer.ScrollChanged="mainList_ScrollChanged" d:DataContext="{StaticResource designViewModel}"
                   ItemTemplate="{StaticResource mainItemTemplate}"  ItemsPanel="{StaticResource mainItemsPanel}" MouseDoubleClick="mainListBookmarks_MouseDoubleClick"
                   ItemContainerStyle="{StaticResource itemContainerStyle}"/>

@@ -286,6 +286,7 @@ namespace CryPixivClient.Windows
         void txtArtist_MouseDown(object sender, MouseButtonEventArgs e)
         {
             // search artist
+            MainWindow.ShowUserWork(LoadedWork.User.Id ?? -1, LoadedWork.User.Name);
         }
 
         void comboTags_SelectionChanged(object sender, SelectionChangedEventArgs e)
