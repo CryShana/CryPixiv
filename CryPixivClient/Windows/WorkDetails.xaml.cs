@@ -143,13 +143,29 @@ namespace CryPixivClient.Windows
 
         private void btnNext_Click(object sender, RoutedEventArgs e)
         {
-            if (currentPage + 1 > DownloadedImages.Count) return;
+            if (currentPage + 1 > DownloadedImages.Count)
+            {
+                if (currentPage + 1 > LoadedWork.PageCount.Value)
+                {
+                    var result = MainWindow.MainModel.OpenNextWork(LoadedWork);
+                    if (result == null) return;
+                    LoadWork(result);
+                }
+
+                return;
+            }
             SetImage(currentPage + 1);
         }
 
         private void btnPrev_Click(object sender, RoutedEventArgs e)
         {
-            if (currentPage - 1 <= 0) return;
+            if (currentPage - 1 <= 0)
+            {
+                var result = MainWindow.MainModel.OpenPrevWork(LoadedWork);
+                if (result == null) return;
+                LoadWork(result);
+                return;
+            }
             SetImage(currentPage - 1);
         }
 
@@ -281,11 +297,12 @@ namespace CryPixivClient.Windows
             txtClipboard.Text = "Tag copied to clipboard!";
         }
 
-        void CopyImage(object sender, RoutedEventArgs e)
+        async void CopyImage(object sender, RoutedEventArgs e)
         {
             if (DownloadedImages.ContainsKey(currentPage) == false) return;
 
-            Clipboard.SetImage(DownloadedImages[currentPage] as BitmapSource);
+            var img = await Task.Run(() => DownloadedImages[currentPage] as BitmapSource);
+            Clipboard.SetImage(img);
         }
     }
 }
