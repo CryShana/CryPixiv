@@ -152,6 +152,8 @@ namespace CryPixivClient
             Settings.Default.WindowLeft = Left;
             Settings.Default.WindowTop = Top;
             Settings.Default.Save();
+
+            Environment.Exit(1);
         }
         #endregion
 
