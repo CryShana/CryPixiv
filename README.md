@@ -1,6 +1,17 @@
 # CryPixiv
 Unofficial Pixiv client
 
+## Features
+- View your Public/Private Bookmarks
+- View Daily Ranking
+- View Following feed
+- View Recommended feed
+- Search by tag
+- Autosort search results by popularity
+- Hide NSFW works
+- Bookmark works
+- Download selected works
+
 ## Some screenshots
 
 [Screenshot 1](http://i.imgur.com/sQHVM5L.png)
