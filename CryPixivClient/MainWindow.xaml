@@ -7,7 +7,8 @@
         xmlns:cmd="clr-namespace:CryPixivClient.Commands"
         xmlns:local="clr-namespace:CryPixivClient"
         xmlns:scm="clr-namespace:System.ComponentModel;assembly=WindowsBase"
-        mc:Ignorable="d" MinHeight="350" MinWidth="687" Height="430" Width="749.5" Icon="Images/pixiv.ico" Closing="Window_Closing" SizeChanged="Window_SizeChanged" StateChanged="Window_StateChanged">
+        mc:Ignorable="d" MinHeight="350" MinWidth="740" Height="430" Width="745" 
+        Icon="Images/pixiv.ico" Closing="Window_Closing" SizeChanged="Window_SizeChanged" StateChanged="Window_StateChanged">
     <Window.Resources>
         <vm:MainViewModel x:Key="mainViewModel"/>
         <vm:DesignMainViewModel x:Key="designViewModel"/>
