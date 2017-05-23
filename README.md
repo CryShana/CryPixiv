@@ -19,3 +19,6 @@ Unofficial Pixiv client
 [Screenshot 2](http://i.imgur.com/LqfqS5n.png)
 
 [Screenshot 3](https://i.imgur.com/IWTX39u.png)
+
+
+Special thanks to Pixeez for the API, though I have modified it quite a bit myself.
