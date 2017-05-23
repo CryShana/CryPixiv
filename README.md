@@ -6,6 +6,7 @@ Unofficial Pixiv client
 - View Daily Ranking
 - View Following feed
 - View Recommended feed
+- View User's other works from selected work
 - Search by tag
 - Autosort search results by popularity
 - Hide NSFW works
