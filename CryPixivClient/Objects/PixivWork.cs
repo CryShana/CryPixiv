@@ -46,12 +46,13 @@ namespace CryPixivClient.Objects
         public int OrderNumber { get; set; } = int.MaxValue;
         public string IdText => Id?.ToString() ?? "";
 
+        bool shouldSkipFirst = false;
         public ImageSource img = null;
         public ImageSource ImageThumbnail
         {
             get
             {
-                if (img == null)
+                if (img == null && shouldSkipFirst == false)
                 {
                     try
                     {
@@ -63,6 +64,8 @@ namespace CryPixivClient.Objects
                         img = null;
                     }
                 }
+
+                shouldSkipFirst = false;
                 return img;
             }
         }
@@ -93,7 +96,12 @@ namespace CryPixivClient.Objects
         public void UpdateFavorite() => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("IsFavorited"));
         public void UpdateThumbnail() => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("ImageThumbnail"));
         public void UpdateNSFW() => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("ShouldBlur"));
-        public void ResetThumbnail() => img = null;
+        public void ResetThumbnail()
+        {
+            img = null;
+            shouldSkipFirst = true;
+        }
+
         public ImageSource GetImage(string url)
         {
             var image = new BitmapImage();

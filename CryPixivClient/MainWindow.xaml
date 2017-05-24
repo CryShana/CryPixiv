@@ -15,9 +15,6 @@
         <BitmapImage x:Key="missingImage" UriSource="Images/missingImage.jpg" />
 
         <!-- COLLECTION VIEW SOURCES START HERE -->
-        <CollectionViewSource x:Key="ItemListViewSource" Source="{Binding DisplayedWorks_Results, Source={StaticResource mainViewModel}}" 
-                              d:Source="{Binding FoundWorks, Source={StaticResource designViewModel}}"/>
-
         <CollectionViewSource x:Key="ItemListViewSourceSorted" Source="{Binding DisplayedWorks_Results, Source={StaticResource mainViewModel}}" 
                               d:Source="{Binding FoundWorks, Source={StaticResource designViewModel}}">
             <CollectionViewSource.SortDescriptions>
@@ -296,10 +293,6 @@
         </Grid.ColumnDefinitions>
 
         <!-- LIST VIEWS START HERE-->
-        <ListView x:Name="mainList" Margin="0,94,0,22" ItemsSource="{Binding Mode=OneWay, Source={StaticResource ItemListViewSource}}" DataContext="{StaticResource mainViewModel}" 
-                  Grid.ColumnSpan="2" ScrollViewer.ScrollChanged="mainList_ScrollChanged" d:DataContext="{StaticResource designViewModel}"
-                  ItemTemplate="{StaticResource mainItemTemplate}" ItemsPanel="{StaticResource mainItemsPanel}" MouseDoubleClick="mainListBookmarks_MouseDoubleClick"
-                  ItemContainerStyle="{StaticResource itemContainerStyle}"/>
         <ListView x:Name="mainListSorted" Margin="0,94,0,22" ItemsSource="{Binding Mode=OneWay, Source={StaticResource ItemListViewSourceSorted}}" DataContext="{StaticResource mainViewModel}" 
                   Grid.ColumnSpan="2" ScrollViewer.ScrollChanged="mainList_ScrollChanged" d:DataContext="{StaticResource designViewModel}"
                   ItemTemplate="{StaticResource mainItemTemplate}" ItemsPanel="{StaticResource mainItemsPanel}" MouseDoubleClick="mainListBookmarks_MouseDoubleClick"

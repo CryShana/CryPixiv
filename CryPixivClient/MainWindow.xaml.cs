@@ -33,7 +33,6 @@ namespace CryPixivClient
         public static int DynamicWorksLimit = 100;
         public const int DefaultWorksLimit = 100;
         public static PixivAccount.WorkMode CurrentWorkMode;
-        public static CollectionViewSource MainCollectionView;
         public static CollectionViewSource MainCollectionViewSorted;
         public static CollectionViewSource MainCollectionViewRecommended;
         public static CollectionViewSource MainCollectionViewRanking;
@@ -49,7 +48,6 @@ namespace CryPixivClient
 
             // set up all data
             MainModel = (MainViewModel)FindResource("mainViewModel");
-            MainCollectionView = (CollectionViewSource)FindResource("ItemListViewSource");
             MainCollectionViewSorted = (CollectionViewSource)FindResource("ItemListViewSourceSorted");
             MainCollectionViewRecommended = (CollectionViewSource)FindResource("ItemListViewSourceRecommended");
             MainCollectionViewRanking = (CollectionViewSource)FindResource("ItemListViewSourceRanking");
@@ -63,34 +61,11 @@ namespace CryPixivClient
 
             // events
             PixivAccount.AuthFailed += AuthenticationFailed;
-            
+
             // start
             ShowLoginPrompt();
             btnDailyRankings_Click(this, null);
             this.Loaded += (a, b) => txtSearchQuery.Focus();
-        }
-
-        private void AuthenticationFailed(object sender, string e)
-        {
-            UIContext.Send((a) => ShowLoginPrompt(true), null);
-        }
-
-        void ToggleLists(PixivAccount.WorkMode mode)
-        {
-            Panel.SetZIndex(mainList, (mode == PixivAccount.WorkMode.Search && checkPopular.IsChecked == false) ? 10 : 0);
-            Panel.SetZIndex(mainListSorted, (mode == PixivAccount.WorkMode.Search && checkPopular.IsChecked == true) ? 10 : 0);
-
-            Panel.SetZIndex(mainListRecommended, (mode == PixivAccount.WorkMode.Recommended) ? 10 : 0);
-
-            Panel.SetZIndex(mainListRanking, (mode == PixivAccount.WorkMode.Ranking) ? 10 : 0);
-
-            Panel.SetZIndex(mainListFollowing, (mode == PixivAccount.WorkMode.Following) ? 10 : 0);
-
-            Panel.SetZIndex(mainListBookmarks, (mode == PixivAccount.WorkMode.BookmarksPublic) ? 10 : 0);
-
-            Panel.SetZIndex(mainListBookmarksPrivate, (mode == PixivAccount.WorkMode.BookmarksPrivate) ? 10 : 0);
-
-            Panel.SetZIndex(mainListUser, (mode == PixivAccount.WorkMode.User) ? 10 : 0);
         }
 
         void ShowLoginPrompt(bool force = false)
@@ -103,7 +78,29 @@ namespace CryPixivClient
             if (Account == null || Account.IsLoggedIn == false) { Environment.Exit(1); return; }
 
             SaveAccount();
-            if(MainModel.DisplayedWorks_Ranking.Count > 0) MainModel.ForceRefreshImages();
+            if (MainModel.DisplayedWorks_Ranking.Count > 0) MainModel.ForceRefreshImages();
+        }
+
+        void AuthenticationFailed(object sender, string e)
+        {
+            UIContext.Send((a) => ShowLoginPrompt(true), null);
+        }
+
+        void ToggleLists(PixivAccount.WorkMode mode)
+        {
+            Panel.SetZIndex(mainListSorted, (mode == PixivAccount.WorkMode.Search) ? 10 : 0);
+
+            Panel.SetZIndex(mainListRecommended, (mode == PixivAccount.WorkMode.Recommended) ? 10 : 0);
+
+            Panel.SetZIndex(mainListRanking, (mode == PixivAccount.WorkMode.Ranking) ? 10 : 0);
+
+            Panel.SetZIndex(mainListFollowing, (mode == PixivAccount.WorkMode.Following) ? 10 : 0);
+
+            Panel.SetZIndex(mainListBookmarks, (mode == PixivAccount.WorkMode.BookmarksPublic) ? 10 : 0);
+
+            Panel.SetZIndex(mainListBookmarksPrivate, (mode == PixivAccount.WorkMode.BookmarksPrivate) ? 10 : 0);
+
+            Panel.SetZIndex(mainListUser, (mode == PixivAccount.WorkMode.User) ? 10 : 0);
         }
 
         #region Saving/Loading
@@ -158,6 +155,18 @@ namespace CryPixivClient
         #endregion
 
         #region Main Buttons
+        void ToggleButtons(PixivAccount.WorkMode mode)
+        {
+            btnDailyRankings.IsEnabled = mode != PixivAccount.WorkMode.Ranking;
+            btnBookmarks.IsEnabled = mode != PixivAccount.WorkMode.BookmarksPublic;
+            btnBookmarksPrivate.IsEnabled = mode != PixivAccount.WorkMode.BookmarksPrivate;
+            btnFollowing.IsEnabled = mode != PixivAccount.WorkMode.Following;
+            btnResults.IsEnabled = mode != PixivAccount.WorkMode.Search && MainModel.LastSearchQuery != null;
+            btnRecommended.IsEnabled = mode != PixivAccount.WorkMode.Recommended;
+
+            checkPopular.IsEnabled = mode == PixivAccount.WorkMode.Search;
+        }
+
         void btnDailyRankings_Click(object sender, RoutedEventArgs e)
         {
             ToggleButtons(PixivAccount.WorkMode.Ranking);
@@ -174,7 +183,7 @@ namespace CryPixivClient
         {
             ToggleButtons(PixivAccount.WorkMode.BookmarksPublic);
             ToggleLists(PixivAccount.WorkMode.BookmarksPublic);
-            MainModel.ShowBookmarksPublic(); 
+            MainModel.ShowBookmarksPublic();
         }
         void btnBookmarksPrivate_Click(object sender, RoutedEventArgs e)
         {
@@ -238,7 +247,7 @@ namespace CryPixivClient
             searching = true;
             SetSearchButtonState(true);
 
-            MainModel.ShowSearch(txtSearchQuery.Text, checkPopular.IsChecked == true, MainModel.CurrentPageResults);           
+            MainModel.ShowSearch(txtSearchQuery.Text, checkPopular.IsChecked == true, MainModel.CurrentPageResults);
         }
         private void btnResults_Click(object sender, RoutedEventArgs e)
         {
@@ -255,15 +264,23 @@ namespace CryPixivClient
         void checkPopular_Click(object sender, RoutedEventArgs e)
         {
             if (CurrentWorkMode != PixivAccount.WorkMode.Search) return;
-            ToggleLists(CurrentWorkMode);
+            if (checkPopular.IsChecked == true)
+            {
+                MainCollectionViewSorted.SortDescriptions.Clear();
+                MainCollectionViewSorted.SortDescriptions.Add(new System.ComponentModel.SortDescription("Stats.Score", System.ComponentModel.ListSortDirection.Descending));
+            }
+            else
+            {
+                MainCollectionViewSorted.SortDescriptions.Clear();
+            }
         }
         #endregion
 
-        #region Column display control
+        #region Column Control / Scrollviewer
         void Window_SizeChanged(object sender, SizeChangedEventArgs e)
         {
             MainModel.UpdateColumns(ActualWidth - 20);
-            mainList_ScrollChanged(mainList, null);
+            mainList_ScrollChanged(GetCurrentListView(), null);
         }
 
         void Window_StateChanged(object sender, EventArgs e) => Window_SizeChanged(this, null);
@@ -286,25 +303,13 @@ namespace CryPixivClient
         }
         #endregion
 
-        void ToggleButtons(PixivAccount.WorkMode mode)
-        {
-            btnDailyRankings.IsEnabled = mode != PixivAccount.WorkMode.Ranking;
-            btnBookmarks.IsEnabled = mode != PixivAccount.WorkMode.BookmarksPublic;
-            btnBookmarksPrivate.IsEnabled = mode != PixivAccount.WorkMode.BookmarksPrivate;
-            btnFollowing.IsEnabled = mode != PixivAccount.WorkMode.Following;
-            btnResults.IsEnabled = mode != PixivAccount.WorkMode.Search && MainModel.LastSearchQuery != null;
-            btnRecommended.IsEnabled = mode != PixivAccount.WorkMode.Recommended;
-
-            checkPopular.IsEnabled = mode == PixivAccount.WorkMode.Search;
-        }
-
+        #region Static Methods
         public static List<PixivWork> GetSelectedWorks()
         {
             switch (CurrentWorkMode)
             {
                 case PixivAccount.WorkMode.Search:
-                    if (currentWindow.checkPopular.IsChecked == true) return currentWindow.mainListSorted.SelectedItems.Cast<PixivWork>().ToList();
-                    return currentWindow.mainList.SelectedItems.Cast<PixivWork>().ToList();
+                    return currentWindow.mainListSorted.SelectedItems.Cast<PixivWork>().ToList();
 
                 case PixivAccount.WorkMode.Ranking:
                     return currentWindow.mainListRanking.SelectedItems.Cast<PixivWork>().ToList();
@@ -328,13 +333,41 @@ namespace CryPixivClient
             }
         }
 
+        public static ListView GetCurrentListView()
+        {
+            switch (CurrentWorkMode)
+            {
+                case PixivAccount.WorkMode.Search:
+                    return currentWindow.mainListSorted;
+
+                case PixivAccount.WorkMode.Ranking:
+                    return currentWindow.mainListRanking;
+
+                case PixivAccount.WorkMode.Following:
+                    return currentWindow.mainListFollowing;
+
+                case PixivAccount.WorkMode.BookmarksPublic:
+                    return currentWindow.mainListBookmarks;
+
+                case PixivAccount.WorkMode.BookmarksPrivate:
+                    return currentWindow.mainListBookmarksPrivate;
+
+                case PixivAccount.WorkMode.Recommended:
+                    return currentWindow.mainListRecommended;
+
+                case PixivAccount.WorkMode.User:
+                    return currentWindow.mainListUser;
+                default:
+                    return null;
+            }
+        }
+
         public static CollectionViewSource GetCurrentCollectionViewSource()
         {
             switch (CurrentWorkMode)
             {
                 case PixivAccount.WorkMode.Search:
-                    if (currentWindow.checkPopular.IsChecked == true) return MainCollectionViewSorted;
-                    else return MainCollectionView;
+                    return MainCollectionViewSorted;
 
                 case PixivAccount.WorkMode.Ranking:
                     return MainCollectionViewRanking;
@@ -360,7 +393,9 @@ namespace CryPixivClient
 
         public static bool IsNSFWAllowed() => currentWindow.checkNSFW.IsChecked == true;
 
-        private void mainListBookmarks_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        #endregion
+
+        void mainListBookmarks_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
             if (((ListView)sender).SelectedItems.Count == 0) return;
             var selected = ((ListView)sender).SelectedItem as PixivWork;
@@ -369,7 +404,7 @@ namespace CryPixivClient
             MainModel.OpenCmd.Execute(selected);
         }
 
-        private async void ResetResults_Click(object sender, RoutedEventArgs e)
+        async void ResetResults_Click(object sender, RoutedEventArgs e)
         {
             if (MessageBox.Show("This will reset the current Recommended results? You sure?", "Reset results", MessageBoxButton.YesNo, MessageBoxImage.Question)
                 == MessageBoxResult.Yes)
@@ -395,7 +430,7 @@ namespace CryPixivClient
         private void checkNSFW_Click(object sender, RoutedEventArgs e)
         {
             var collection = GetCurrentCollectionViewSource().Source as MyObservableCollection<PixivWork>;
-            foreach (var i in collection) if(i.IsNSFW) i.UpdateNSFW();
+            foreach (var i in collection) if (i.IsNSFW) i.UpdateNSFW();
         }
     }
 }
