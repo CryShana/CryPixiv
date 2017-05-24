@@ -264,14 +264,24 @@ namespace CryPixivClient
         void checkPopular_Click(object sender, RoutedEventArgs e)
         {
             if (CurrentWorkMode != PixivAccount.WorkMode.Search) return;
-            if (checkPopular.IsChecked == true)
+            
+            // Show a warning cuz the UI's gonna be blocked...
+            if ((GetCurrentCollectionViewSource().Source as MyObservableCollection<PixivWork>).Count > 300)
+                if (MessageBox.Show("This will take quite a while. The UI will be unresponsive while view is being resorted.\n\nAre you completely sure?",
+                    "Sure?", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.No) { checkPopular.IsChecked = !checkPopular.IsChecked; return; }
+
+            var view = MainCollectionViewSorted.View;
+            using (view.DeferRefresh())
             {
-                MainCollectionViewSorted.SortDescriptions.Clear();
-                MainCollectionViewSorted.SortDescriptions.Add(new System.ComponentModel.SortDescription("Stats.Score", System.ComponentModel.ListSortDirection.Descending));
-            }
-            else
-            {
-                MainCollectionViewSorted.SortDescriptions.Clear();
+                if (checkPopular.IsChecked == true)
+                {
+                    MainCollectionViewSorted.SortDescriptions.Clear();
+                    MainCollectionViewSorted.SortDescriptions.Add(new System.ComponentModel.SortDescription("Stats.Score", System.ComponentModel.ListSortDirection.Descending));
+                }
+                else
+                {
+                    MainCollectionViewSorted.SortDescriptions.Clear();
+                }
             }
         }
         #endregion
