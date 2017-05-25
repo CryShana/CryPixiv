@@ -33,6 +33,7 @@ namespace CryPixivClient
         public static PixivAccount Account = null;
         public static SynchronizationContext UIContext;
 
+        public static bool Paused = false;
         public static bool LimitReached = false;
         public static int DynamicWorksLimit = 100;
         public const int DefaultWorksLimit = 100;
@@ -219,11 +220,14 @@ namespace CryPixivClient
             {
                 if (isSearching)
                 {
+                    IsSearching = true;
+                    Paused = false;
                     currentWindow.btnSearch.Content = "Stop";
                     currentWindow.btnSearch.Background = (SolidColorBrush)new BrushConverter().ConvertFromString("#FFFFA5A5");
                 }
                 else
                 {
+                    IsSearching = false;
                     currentWindow.btnSearch.Content = "Search";
                     currentWindow.btnSearch.Background = (SolidColorBrush)new BrushConverter().ConvertFromString("#FFDDDDDD");
                 }
@@ -234,7 +238,6 @@ namespace CryPixivClient
         {
             if (IsSearching)
             {
-                IsSearching = false;
                 MainModel.CancelRunningSearches();
                 SetSearchButtonState(false);
                 return;
@@ -250,14 +253,13 @@ namespace CryPixivClient
             SetSearchButtonState(true);
             MainModel.ShowSearch(txtSearchQuery.Text, checkPopular.IsChecked == true, MainModel.CurrentPageResults);
         }
-        private void btnResults_Click(object sender, RoutedEventArgs e)
+        void btnResults_Click(object sender, RoutedEventArgs e)
         {
             txtSearchQuery.Text = MainModel.LastSearchQuery;
 
             ToggleButtons(PixivAccount.WorkMode.Search);
             ToggleLists(PixivAccount.WorkMode.Search);
 
-            IsSearching = true;
             SetSearchButtonState(true);
             MainModel.ShowSearch(null, checkPopular.IsChecked == true, MainModel.CurrentPageResults);  // "null" as search query will attempt to use the previous query
         }
@@ -516,5 +518,16 @@ namespace CryPixivClient
             e.Accepted = accepted;
         }
 
+        private void btnPause_Click(object sender, RoutedEventArgs e)
+        {
+            if (CurrentWorkMode != PixivAccount.WorkMode.Search) return;
+
+            if (Paused == false)
+            {
+                Paused = true;
+                MainModel.CancelRunningSearches();
+                SetSearchButtonState(false);
+            }
+        }
     }
 }

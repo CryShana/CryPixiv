@@ -260,7 +260,7 @@ namespace CryPixivClient.ViewModels
             MainWindow.CurrentWorkMode = mode;
 
             // load cached results if they exist
-            await ResetSearchResults();
+            if(otherWasRunning)  await ResetSearchResults();
 
             // show status
             TitleSuffix = "";
@@ -325,7 +325,7 @@ namespace CryPixivClient.ViewModels
                 {
                     IsWorking = false;
                     MainWindow.SetSearchButtonState(false);
-                    Status = ((csrc.IsCancellationRequested) ? "Stopped. " : "Done. ") + "(Found " + DisplayedWorks_Results.Count + " works)";
+                    Status = ((csrc.IsCancellationRequested) ? "Stopped. " : "Done. ") + "(Found " + Scheduler_DisplayedWorks_Results.Count + " works)";                   
                 }
             }, csrc.Token);
         }

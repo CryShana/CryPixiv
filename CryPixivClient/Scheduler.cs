@@ -54,7 +54,7 @@ namespace CryPixivClient
 
         private void Timer_Tick(object sender, EventArgs e)
         {
-            if (MainWindow.IsSearching == false && MainWindow.CurrentWorkMode == PixivAccount.WorkMode.Search) return;  // when user clicks pause - STOP adding items
+            if (MainWindow.Paused) return; 
 
             if (JobQueue.Count == 0 && PriorityJobQueue.Count == 0) return;
 
