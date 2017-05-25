@@ -51,7 +51,6 @@ namespace CryPixivClient.ViewModels
         List<PixivWork> recommended = new List<PixivWork>();
         List<PixivWork> user = new List<PixivWork>();
         int currentPageResults = 1;
-        string lastSearchQuery = null;
         int columns = 4;
         SynchronizationContext UIContext;
 
@@ -130,7 +129,7 @@ namespace CryPixivClient.ViewModels
 
         public int Columns => columns;
 
-        public string LastSearchQuery => lastSearchQuery;
+        public string LastSearchQuery { get; set; }
         #endregion
 
         #region Commands
@@ -233,13 +232,26 @@ namespace CryPixivClient.ViewModels
                 }
             });
         }
+
+        public async Task ResetSearchResults()
+        {
+            await semaphore.WaitAsync();
+
+            MainWindow.LimitReached = false;
+            MainWindow.ItemLimit = MainWindow.ItemsDisplayedLimit;
+            DisplayedWorks_Results = new MyObservableCollection<PixivWork>();
+            Scheduler_DisplayedWorks_Results.Stop();
+            Scheduler_DisplayedWorks_Results = new Scheduler<PixivWork>(ref displayedWorks_Results, RemovalPredicate);
+
+            semaphore.Release();
+        }
         public async void ShowSearch(string query, bool autosort = true, int continuePage = 1)
         {
             bool otherWasRunning = LastSearchQuery != query && query != null;
 
             if (query == null) query = LastSearchQuery;
             int maxResultCount = -1;
-            lastSearchQuery = query;
+            LastSearchQuery = query;
 
             CancelRunningSearches();
 
@@ -248,17 +260,7 @@ namespace CryPixivClient.ViewModels
             MainWindow.CurrentWorkMode = mode;
 
             // load cached results if they exist
-            await semaphore.WaitAsync();
-            if (otherWasRunning)
-            {
-                MainWindow.LimitReached = false;
-                MainWindow.ItemLimit = MainWindow.ItemsDisplayedLimit;
-                DisplayedWorks_Results = new MyObservableCollection<PixivWork>();
-                Scheduler_DisplayedWorks_Results.Stop();
-                Scheduler_DisplayedWorks_Results = new Scheduler<PixivWork>(ref displayedWorks_Results, RemovalPredicate);
-            }
-            // refresh if necessary
-            semaphore.Release();
+            await ResetSearchResults();
 
             // show status
             TitleSuffix = "";

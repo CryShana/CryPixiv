@@ -261,13 +261,28 @@ namespace CryPixivClient
             SetSearchButtonState(true);
             MainModel.ShowSearch(null, checkPopular.IsChecked == true, MainModel.CurrentPageResults);  // "null" as search query will attempt to use the previous query
         }
-        void checkPopular_Click(object sender, RoutedEventArgs e)
+        async void checkPopular_Click(object sender, RoutedEventArgs e)
         {
             if (CurrentWorkMode == PixivAccount.WorkMode.Search && IsSearching)
             {
                 // don't allow it to be checked when search in progress
+                MessageBox.Show("Stop the search first!", "Stop searching", MessageBoxButton.OK, MessageBoxImage.Warning);
                 checkPopular.IsChecked = !checkPopular.IsChecked;
                 return;
+            }
+
+            // if same tag is entered and there are results - ask User...
+            if (MainModel.LastSearchQuery == txtSearchQuery.Text && MainModel.DisplayedWorks_Results.Count > 0)
+            {
+                if (MessageBox.Show("This will reset the search. Are you sure?", "Reset search",
+                    MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.No)
+                {
+                    checkPopular.IsChecked = !checkPopular.IsChecked;
+                    return;
+                }
+
+                MainModel.LastSearchQuery = "";
+                await MainModel.ResetSearchResults();
             }
 
             var view = MainCollectionViewSorted.View;
@@ -276,7 +291,7 @@ namespace CryPixivClient
                 if (checkPopular.IsChecked == true)
                 {
                     MainCollectionViewSorted.SortDescriptions.Clear();
-                    MainCollectionViewSorted.SortDescriptions.Add(new System.ComponentModel.SortDescription("Stats.Score", System.ComponentModel.ListSortDirection.Descending));
+                    MainCollectionViewSorted.SortDescriptions.Add(new SortDescription("Stats.Score", ListSortDirection.Descending));
                 }
                 else
                 {
@@ -311,13 +326,13 @@ namespace CryPixivClient
                 // update it
                 if (LimitReached) DynamicWorksLimit += 30;
 
-                if (LimitReached && CurrentWorkMode == PixivAccount.WorkMode.Search 
-                    && MainModel.DisplayedWorks_Results.Count > ItemsDisplayedLimit 
+                if (LimitReached && CurrentWorkMode == PixivAccount.WorkMode.Search
+                    && MainModel.DisplayedWorks_Results.Count > ItemsDisplayedLimit
                     && scrollViewer.VerticalOffset > pointForUpade2)
                 {
                     ItemLimit += 200;
                     LimitReached = false;
-                }                                      
+                }
             }
         }
         #endregion
