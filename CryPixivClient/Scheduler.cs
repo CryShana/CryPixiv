@@ -14,33 +14,51 @@ namespace CryPixivClient
         SynchronizationContext UIContext;
         MyObservableCollection<T> collection;
         Queue<Tuple<T, Action>> JobQueue;
+        Queue<Tuple<T, Action>> PriorityJobQueue;
 
         DispatcherTimer timer;
-        public Scheduler(ref MyObservableCollection<T> collection, SynchronizationContext context = null)
+        Func<T, T, bool> removalComparison;
+        public int Count => (PriorityJobQueue.Count(x => x.Item2 == Action.Add) + JobQueue.Count(x => x.Item2 == Action.Add)
+            - PriorityJobQueue.Count(x => x.Item2 == Action.Remove) - JobQueue.Count(x => x.Item2 == Action.Remove)) + collection.Count;
+
+        public Scheduler(ref MyObservableCollection<T> collection, Func<T, T, bool> removalComparison, SynchronizationContext context = null)
         {
             this.collection = collection;
+            this.removalComparison = removalComparison;
 
             if (context == null) UIContext = SynchronizationContext.Current;
             else UIContext = context;
 
             JobQueue = new Queue<Tuple<T, Action>>();
+            PriorityJobQueue = new Queue<Tuple<T, Action>>();
 
             timer = new DispatcherTimer(DispatcherPriority.Loaded);
-            timer.Interval = TimeSpan.FromMilliseconds(100);
+            timer.Interval = TimeSpan.FromMilliseconds(60);
             timer.Tick += Timer_Tick;
             timer.Start();
         }
 
-        public void AddItem(T item) => JobQueue.Enqueue(new Tuple<T, Action>(item, Action.Add));
-        public void RemoveItem(T item) => JobQueue.Enqueue(new Tuple<T, Action>(item, Action.Remove));
+        public void AddItem(T item, bool asap = false)
+        {
+            if (asap == false) JobQueue.Enqueue(new Tuple<T, Action>(item, Action.Add));
+            else PriorityJobQueue.Enqueue(new Tuple<T, Action>(item, Action.Add));
+        }
+        public void RemoveItem(T item, bool asap = false)
+        {
+            if (asap == false) JobQueue.Enqueue(new Tuple<T, Action>(item, Action.Remove));
+            else PriorityJobQueue.Enqueue(new Tuple<T, Action>(item, Action.Remove));
+        }
+
         public void Stop() => timer.Stop();
         public void Continue() => timer.Start();
 
         private void Timer_Tick(object sender, EventArgs e)
         {
-            if (JobQueue.Count == 0) return;
+            if (MainWindow.IsSearching == false && MainWindow.CurrentWorkMode == PixivAccount.WorkMode.Search) return;  // when user clicks pause - STOP adding items
 
-            var job = JobQueue.Dequeue();
+            if (JobQueue.Count == 0 && PriorityJobQueue.Count == 0) return;
+
+            var job = (PriorityJobQueue.Count > 0) ? PriorityJobQueue.Dequeue() : JobQueue.Dequeue();
 
             UIContext.Send((a) =>
             {
@@ -52,11 +70,18 @@ namespace CryPixivClient
                             collection.Add(job.Item1);
                             break;
                         case Action.Remove:
-                            collection.Remove(job.Item1);
+                            if (removalComparison == null) collection.Remove(job.Item1);
+                            else
+                            {
+                                T toRemove = default(T);
+                                foreach (T item in collection)
+                                    if (removalComparison(job.Item1, item)) { toRemove = item; break; }
+                                collection.Remove(toRemove);
+                            }
                             break;
                     }
                 }
-                catch(Exception ex)
+                catch (Exception ex)
                 {
                     // ignore for now
                 }

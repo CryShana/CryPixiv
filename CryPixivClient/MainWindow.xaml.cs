@@ -167,8 +167,6 @@ namespace CryPixivClient
             btnFollowing.IsEnabled = mode != PixivAccount.WorkMode.Following;
             btnResults.IsEnabled = mode != PixivAccount.WorkMode.Search && MainModel.LastSearchQuery != null;
             btnRecommended.IsEnabled = mode != PixivAccount.WorkMode.Recommended;
-
-            checkPopular.IsEnabled = mode == PixivAccount.WorkMode.Search;
         }
 
         void btnDailyRankings_Click(object sender, RoutedEventArgs e)
@@ -214,7 +212,7 @@ namespace CryPixivClient
             });
         }
 
-        bool searching = false;
+        public static bool IsSearching = false;
         public static void SetSearchButtonState(bool isSearching)
         {
             UIContext.Send((a) =>
@@ -234,9 +232,9 @@ namespace CryPixivClient
 
         void btnSearch_Click(object sender, RoutedEventArgs e)
         {
-            if (searching)
+            if (IsSearching)
             {
-                searching = false;
+                IsSearching = false;
                 MainModel.CancelRunningSearches();
                 SetSearchButtonState(false);
                 return;
@@ -248,9 +246,8 @@ namespace CryPixivClient
             ToggleLists(PixivAccount.WorkMode.Search);
             if (MainModel?.LastSearchQuery != txtSearchQuery.Text) MainModel.CurrentPageResults = 1;
 
-            searching = true;
+            IsSearching = true;
             SetSearchButtonState(true);
-
             MainModel.ShowSearch(txtSearchQuery.Text, checkPopular.IsChecked == true, MainModel.CurrentPageResults);
         }
         private void btnResults_Click(object sender, RoutedEventArgs e)
@@ -260,19 +257,18 @@ namespace CryPixivClient
             ToggleButtons(PixivAccount.WorkMode.Search);
             ToggleLists(PixivAccount.WorkMode.Search);
 
-            searching = true;
+            IsSearching = true;
             SetSearchButtonState(true);
-
             MainModel.ShowSearch(null, checkPopular.IsChecked == true, MainModel.CurrentPageResults);  // "null" as search query will attempt to use the previous query
         }
         void checkPopular_Click(object sender, RoutedEventArgs e)
         {
-            if (CurrentWorkMode != PixivAccount.WorkMode.Search) return;
-
-            // Show a warning cuz the UI's gonna be blocked...
-            if ((GetCurrentCollectionViewSource().Source as MyObservableCollection<PixivWork>).Count > 300)
-                if (MessageBox.Show("This will take quite a while. The UI will be unresponsive while view is being resorted.\n\nAre you completely sure?",
-                    "Sure?", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.No) { checkPopular.IsChecked = !checkPopular.IsChecked; return; }
+            if (CurrentWorkMode == PixivAccount.WorkMode.Search && IsSearching)
+            {
+                // don't allow it to be checked when search in progress
+                checkPopular.IsChecked = !checkPopular.IsChecked;
+                return;
+            }
 
             var view = MainCollectionViewSorted.View;
             using (view.DeferRefresh())
@@ -309,10 +305,19 @@ namespace CryPixivClient
 
             // how much further can it go until it asks for updates
             double pointForUpade = scrollViewer.ScrollableHeight * 0.7;
+            double pointForUpade2 = scrollViewer.ScrollableHeight * 0.95;
             if (scrollViewer.VerticalOffset > pointForUpade)
             {
                 // update it
                 if (LimitReached) DynamicWorksLimit += 30;
+
+                if (LimitReached && CurrentWorkMode == PixivAccount.WorkMode.Search 
+                    && MainModel.DisplayedWorks_Results.Count > ItemsDisplayedLimit 
+                    && scrollViewer.VerticalOffset > pointForUpade2)
+                {
+                    ItemLimit += 200;
+                    LimitReached = false;
+                }                                      
             }
         }
         #endregion
@@ -448,11 +453,12 @@ namespace CryPixivClient
         }
 
         // Data Virtualization of some sort :D
-        public const int ItemsDisplayedLimit = 10;
+        public const int ItemsDisplayedLimit = 500;
+        public static int ItemLimit = 100;
         void PrepareCollectionFilter() => MainCollectionViewSorted.Filter += Filter;
+
         void Filter(object sender, FilterEventArgs e)
         {
-            /*
             PixivWork w = e.Item as PixivWork;
             bool accepted = false;
 
@@ -460,35 +466,39 @@ namespace CryPixivClient
             var src = collectionviewsource.Source as MyObservableCollection<PixivWork>;
             var view = collectionviewsource.View;
 
-            if (ItemsDisplayedLimit > src.Count) accepted = true;
+            int count = 0;
+            foreach (var item in view) count++;
+
+            if (src.Count < ItemLimit)
+                accepted = true;
             else
             {
                 int index = 0;
-                PixivWork toRemove = null;
+                bool remove = false;
                 foreach (PixivWork work in view)
                 {
-                    if (index > ItemsDisplayedLimit + 1) break;
+                    if (index > ItemLimit) break;
                     if (w.Stats.Score > work.Stats.Score)
                     {
-                        toRemove = work;
-
+                        if (count >= ItemLimit) remove = true;
                         accepted = true;
                         break;
                     }
 
                     index++;
                 }
-                
-                if (toRemove != null)
+
+                if (remove)
                 {
-                    int ix = 0;
-                    for (int i = 0; i < src.Count; i++) if (toRemove.Id.Value == src[i].Id.Value) { ix = i; break; }
-                    src.RemoveAt(ix);
-                    src.Add(toRemove);
+                    // get last item and remove it from view
+                    PixivWork lastItem = null;
+                    foreach (PixivWork item in view) lastItem = item;
+                    MainModel.Scheduler_DisplayedWorks_Results.RemoveItem(lastItem, true);
+                    MainModel.Scheduler_DisplayedWorks_Results.AddItem(lastItem);
                 }
             }
-            */
-            e.Accepted = true;
+
+            e.Accepted = accepted;
         }
 
     }
