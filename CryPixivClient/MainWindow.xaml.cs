@@ -4,7 +4,10 @@ using CryPixivClient.ViewModels;
 using CryPixivClient.Windows;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
+using System.Drawing;
+using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -15,6 +18,7 @@ using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Input;
+using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
@@ -48,7 +52,7 @@ namespace CryPixivClient
 
             // set up all data
             MainModel = (MainViewModel)FindResource("mainViewModel");
-            MainCollectionViewSorted = (CollectionViewSource)FindResource("ItemListViewSourceSorted");
+            MainCollectionViewSorted = (CollectionViewSource)FindResource("ItemListViewSourceSorted"); PrepareCollectionFilter();
             MainCollectionViewRecommended = (CollectionViewSource)FindResource("ItemListViewSourceRecommended");
             MainCollectionViewRanking = (CollectionViewSource)FindResource("ItemListViewSourceRanking");
             MainCollectionViewFollowing = (CollectionViewSource)FindResource("ItemListViewSourceFollowing");
@@ -264,7 +268,7 @@ namespace CryPixivClient
         void checkPopular_Click(object sender, RoutedEventArgs e)
         {
             if (CurrentWorkMode != PixivAccount.WorkMode.Search) return;
-            
+
             // Show a warning cuz the UI's gonna be blocked...
             if ((GetCurrentCollectionViewSource().Source as MyObservableCollection<PixivWork>).Count > 300)
                 if (MessageBox.Show("This will take quite a while. The UI will be unresponsive while view is being resorted.\n\nAre you completely sure?",
@@ -442,5 +446,50 @@ namespace CryPixivClient
             var collection = GetCurrentCollectionViewSource().Source as MyObservableCollection<PixivWork>;
             foreach (var i in collection) if (i.IsNSFW) i.UpdateNSFW();
         }
+
+        // Data Virtualization of some sort :D
+        public const int ItemsDisplayedLimit = 10;
+        void PrepareCollectionFilter() => MainCollectionViewSorted.Filter += Filter;
+        void Filter(object sender, FilterEventArgs e)
+        {
+            /*
+            PixivWork w = e.Item as PixivWork;
+            bool accepted = false;
+
+            var collectionviewsource = ((CollectionViewSource)sender);
+            var src = collectionviewsource.Source as MyObservableCollection<PixivWork>;
+            var view = collectionviewsource.View;
+
+            if (ItemsDisplayedLimit > src.Count) accepted = true;
+            else
+            {
+                int index = 0;
+                PixivWork toRemove = null;
+                foreach (PixivWork work in view)
+                {
+                    if (index > ItemsDisplayedLimit + 1) break;
+                    if (w.Stats.Score > work.Stats.Score)
+                    {
+                        toRemove = work;
+
+                        accepted = true;
+                        break;
+                    }
+
+                    index++;
+                }
+                
+                if (toRemove != null)
+                {
+                    int ix = 0;
+                    for (int i = 0; i < src.Count; i++) if (toRemove.Id.Value == src[i].Id.Value) { ix = i; break; }
+                    src.RemoveAt(ix);
+                    src.Add(toRemove);
+                }
+            }
+            */
+            e.Accepted = true;
+        }
+
     }
 }

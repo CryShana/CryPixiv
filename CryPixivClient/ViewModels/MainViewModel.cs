@@ -62,6 +62,14 @@ namespace CryPixivClient.ViewModels
         #endregion
 
         #region Properties
+        public Scheduler<PixivWork> Scheduler_DisplayedWorks_Results { get; private set; }
+        public Scheduler<PixivWork> Scheduler_DisplayedWorks_Ranking { get; private set; }
+        public Scheduler<PixivWork> Scheduler_DisplayedWorks_Following { get; private set; }
+        public Scheduler<PixivWork> Scheduler_DisplayedWorks_Bookmarks { get; private set; }
+        public Scheduler<PixivWork> Scheduler_DisplayedWorks_BookmarksPrivate { get; private set; }
+        public Scheduler<PixivWork> Scheduler_DisplayedWorks_Recommended { get; private set; }
+        public Scheduler<PixivWork> Scheduler_DisplayedWorks_User { get; private set; }
+
         public MyObservableCollection<PixivWork> DisplayedWorks_Results
         {
             get => displayedWorks_Results;
@@ -135,12 +143,20 @@ namespace CryPixivClient.ViewModels
         {
             UIContext = SynchronizationContext.Current;
             semaphore = new SemaphoreSlim(1);
+
+            Scheduler_DisplayedWorks_Results = new Scheduler<PixivWork>(ref displayedWorks_Results);
+            Scheduler_DisplayedWorks_Ranking = new Scheduler<PixivWork>(ref displayedWorks_Ranking);
+            Scheduler_DisplayedWorks_Following = new Scheduler<PixivWork>(ref displayedWorks_Following);
+            Scheduler_DisplayedWorks_Recommended = new Scheduler<PixivWork>(ref displayedWorks_Recommended);
+            Scheduler_DisplayedWorks_Bookmarks = new Scheduler<PixivWork>(ref displayedWorks_Bookmarks);
+            Scheduler_DisplayedWorks_BookmarksPrivate = new Scheduler<PixivWork>(ref displayedWorks_BookmarksPrivate);
+            Scheduler_DisplayedWorks_User = new Scheduler<PixivWork>(ref displayedWorks_User);
         }
 
         #region Show Methods
         public async Task Show(List<PixivWork> cache, MyObservableCollection<PixivWork> displayCollection,
             PixivAccount.WorkMode mode, string titleSuffix, string statusPrefix,
-            Func<int, Task<List<PixivWork>>> getWorks, bool waitForUser = true, bool fixInvalid = true)
+            Func<int, Task<List<PixivWork>>> getWorks, Scheduler<PixivWork> scheduler, bool waitForUser = true, bool fixInvalid = true)
         {
             // set starting values
             MainWindow.CurrentWorkMode = mode;
@@ -197,7 +213,7 @@ namespace CryPixivClient.ViewModels
                         UIContext.Send(async (a) =>
                         {
                             await semaphore.WaitAsync();
-                            displayCollection.UpdateWith(works, fixInvalid);
+                            displayCollection.UpdateWith(works, scheduler, fixInvalid);
                             semaphore.Release();
                         }, null);
 
@@ -235,6 +251,8 @@ namespace CryPixivClient.ViewModels
             if (otherWasRunning)
             {
                 DisplayedWorks_Results = new MyObservableCollection<PixivWork>();
+                Scheduler_DisplayedWorks_Results.Stop();
+                Scheduler_DisplayedWorks_Results = new Scheduler<PixivWork>(ref displayedWorks_Results);
             }
             // refresh if necessary
             semaphore.Release();
@@ -274,7 +292,7 @@ namespace CryPixivClient.ViewModels
                         UIContext.Send(async (a) =>
                         {
                             await semaphore.WaitAsync();
-                            DisplayedWorks_Results.UpdateWith(wworks, false);
+                            DisplayedWorks_Results.UpdateWith(wworks, Scheduler_DisplayedWorks_Results, false);
                             semaphore.Release();
                         }, null);
 
@@ -300,26 +318,32 @@ namespace CryPixivClient.ViewModels
 
         public async void ShowDailyRankings() =>
             await Show(dailyRankings, DisplayedWorks_Ranking, PixivAccount.WorkMode.Ranking, "Daily Ranking", 
-                "Getting daily ranking", (page) => MainWindow.Account.GetDailyRanking(page));
+                "Getting daily ranking", (page) => MainWindow.Account.GetDailyRanking(page), Scheduler_DisplayedWorks_Ranking);
 
         public async void ShowFollowing() =>
             await Show(following, DisplayedWorks_Following, PixivAccount.WorkMode.Following, "Following", 
-                "Getting following", (page) => MainWindow.Account.GetFollowing(page));
+                "Getting following", (page) => MainWindow.Account.GetFollowing(page), Scheduler_DisplayedWorks_Following);
 
         public async void ShowBookmarksPublic() =>
             await Show(bookmarks, DisplayedWorks_Bookmarks, PixivAccount.WorkMode.BookmarksPublic, "Bookmarks", 
-                "Getting bookmarks", (page) => MainWindow.Account.GetBookmarks(page, PixivAccount.Publicity.Public));
+                "Getting bookmarks", (page) => MainWindow.Account.GetBookmarks(page, PixivAccount.Publicity.Public), Scheduler_DisplayedWorks_Bookmarks);
 
         public async void ShowBookmarksPrivate() =>
             await Show(bookmarksprivate, DisplayedWorks_BookmarksPrivate, PixivAccount.WorkMode.BookmarksPrivate, "Private Bookmarks",
-                "Getting private bookmarks", (page) => MainWindow.Account.GetBookmarks(page, PixivAccount.Publicity.Private));
+                "Getting private bookmarks", (page) => MainWindow.Account.GetBookmarks(page, PixivAccount.Publicity.Private), Scheduler_DisplayedWorks_BookmarksPrivate);
 
         public async void ShowRecommended() =>
             await Show(recommended, DisplayedWorks_Recommended, PixivAccount.WorkMode.Recommended, "Recommended",
-                "Getting recommended feed", (page) => MainWindow.Account.GetRecommended(page), fixInvalid: false);
-        public async void ShowUserWork(long userId, string username) =>
+                "Getting recommended feed", (page) => MainWindow.Account.GetRecommended(page), Scheduler_DisplayedWorks_Recommended, fixInvalid: false);
+        public async void ShowUserWork(long userId, string username)
+        {
+            DisplayedWorks_User = new MyObservableCollection<PixivWork>();
+            Scheduler_DisplayedWorks_User.Stop();
+            Scheduler_DisplayedWorks_User = new Scheduler<PixivWork>(ref displayedWorks_User);
+
             await Show(user, DisplayedWorks_User, PixivAccount.WorkMode.User, "User work - " + username,
-                "Getting user works", (page) => MainWindow.Account.GetUserWorks(userId, page));
+                "Getting user works", (page) => MainWindow.Account.GetUserWorks(userId, page), Scheduler_DisplayedWorks_User);
+        }
 
         Queue<CancellationTokenSource> queuedSearches = new Queue<CancellationTokenSource>();
         public void CancelRunningSearches()
@@ -543,7 +567,8 @@ namespace CryPixivClient.ViewModels
             collection.AddList(target);
         }
 
-        public static void UpdateWith(this MyObservableCollection<PixivWork> collection, IEnumerable<PixivWork> target, bool fixInvalid = true)
+        public static void UpdateWith(this MyObservableCollection<PixivWork> collection, IEnumerable<PixivWork> target, 
+            Scheduler<PixivWork> associatedScheduler, bool fixInvalid = true)
         {
             if (target.Count() == 0) return;
 
@@ -564,7 +589,7 @@ namespace CryPixivClient.ViewModels
                     if (i.Stats != null && ti.Stats != null) i.Stats.Score = ti.Stats.Score;
                 }
                 
-                if (shouldAdd) collection.Add(ti);
+                if (shouldAdd) associatedScheduler.AddItem(ti);
             }
 
             if (fixInvalid == false) return;
@@ -584,7 +609,7 @@ namespace CryPixivClient.ViewModels
                 if (found == false) duplicates.Add(item);
             }
 
-            foreach (var d in duplicates) collection.Remove(d);
+            foreach (var d in duplicates) associatedScheduler.RemoveItem(d);
         }
 
         public static void AddToList(this List<PixivWork> collection, IEnumerable<PixivWork> target)
