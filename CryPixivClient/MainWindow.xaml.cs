@@ -459,10 +459,13 @@ namespace CryPixivClient
 
             MainModel.OpenCmd.Execute(selected);
         }
-        void SchedulerJobFinished(Scheduler<PixivWork> sender, Tuple<PixivWork, Action> job, MyObservableCollection<PixivWork> associatedCollection)
+        public void SchedulerJobFinished(Scheduler<PixivWork> sender, Tuple<PixivWork, Action> job, MyObservableCollection<PixivWork> associatedCollection)
         {
             if (sender.AssociatedWorkMode != CurrentWorkMode) return;
             bool isSearch = CurrentWorkMode == PixivAccount.WorkMode.Search;
+
+            // get cache
+            var cache = MainModel.GetCurrentCache();
 
             // set status text
             var toBeAdded = sender.Count - associatedCollection.Count;
@@ -486,7 +489,7 @@ namespace CryPixivClient
             var view = GetCurrentCollectionViewSource().View;
             int count = 0; foreach (var i in view) count++;
 
-            MainModel.CollectionStatus = $"Found {sender.Count} items [Displayed {count}]";
+            MainModel.CollectionStatus = $"Found {cache.Count} items [Displayed {count}]";
         }
 
         // Data Virtualization of some sort :D

@@ -132,6 +132,8 @@ namespace CryPixivClient.ViewModels
         public int Columns => columns;
 
         public string LastSearchQuery { get; set; }
+        public int MaxResults { get; private set; }
+        public bool Finished { get; private set; }
         #endregion
 
         #region Commands
@@ -184,6 +186,7 @@ namespace CryPixivClient.ViewModels
                     if (MainWindow.DynamicWorksLimit < cache.Count && waitForUser && cache.Count >= displayCollection.Count)
                     {
                         MainWindow.LimitReached = true;
+                        UIContext.Post(a => MainWindow.currentWindow.SchedulerJobFinished(scheduler, null, displayCollection), null);
                         lastWasStuck = true;                        
                         IsWorking = false;
                         await Task.Delay(200);
@@ -236,6 +239,7 @@ namespace CryPixivClient.ViewModels
         public async Task ResetSearchResults()
         {
             await semaphore.WaitAsync();
+            await Task.Run(() => results.Clear());
 
             MainWindow.LimitReached = false;
             MainWindow.ItemLimit = MainWindow.ItemsDisplayedLimit;
@@ -245,9 +249,6 @@ namespace CryPixivClient.ViewModels
 
             semaphore.Release();
         }
-
-        public int MaxResults { get; private set; }
-        public bool Finished { get; private set; }
         public async void ShowSearch(string query, bool autosort = true, int continuePage = 1)
         {
             bool otherWasRunning = LastSearchQuery != query && query != null;
@@ -277,7 +278,6 @@ namespace CryPixivClient.ViewModels
             // start searching...
             await Task.Run(async () =>
             {
-                results.Clear();
                 int currentPage = continuePage - 1;
                 for (;;)
                 {
@@ -294,7 +294,6 @@ namespace CryPixivClient.ViewModels
                             var view = MainWindow.GetCurrentCollectionViewSource().View;
                             foreach (var item in view) count++;
                         }, null);
-
                         if (count >= MainWindow.ItemLimit - 5) MainWindow.LimitReached = true;
 
                         // start downloading next page
@@ -431,6 +430,34 @@ namespace CryPixivClient.ViewModels
         void UpdateImages(MyObservableCollection<PixivWork> collection)
         {
             foreach (var i in collection) if (i.img == null) i.UpdateThumbnail();
+        }
+        public List<PixivWork> GetCurrentCache()
+        {
+            switch (MainWindow.CurrentWorkMode)
+            {
+                case PixivAccount.WorkMode.Search:
+                    return results;
+
+                case PixivAccount.WorkMode.Ranking:
+                    return dailyRankings;
+
+                case PixivAccount.WorkMode.Following:
+                    return following;
+
+                case PixivAccount.WorkMode.BookmarksPublic:
+                    return bookmarks;
+
+                case PixivAccount.WorkMode.BookmarksPrivate:
+                    return bookmarksprivate;
+
+                case PixivAccount.WorkMode.Recommended:
+                    return recommended;
+
+                case PixivAccount.WorkMode.User:
+                    return user;
+                default:
+                    return null;
+            }
         }
 
         public PixivWork OpenNextWork(PixivWork currentItem, bool openWindow = false)
