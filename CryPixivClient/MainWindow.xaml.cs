@@ -530,10 +530,15 @@ namespace CryPixivClient
                 {
                     // get last item and remove it from view
                     PixivWork lastItem = null;
-                    foreach (PixivWork item in view) lastItem = item;
+                    foreach (PixivWork item in view)
+                    {
+                        if (MainModel.Scheduler_DisplayedWorks_Results.ContainsItem(item, Action.Remove)) continue;
+                        lastItem = item;
+                    }
                     
-                    MainModel.Scheduler_DisplayedWorks_Results.RemoveItem(lastItem, true);
-                    MainModel.Scheduler_DisplayedWorks_Results.AddItem(lastItem);
+                    // need to find a better way to doing this :D
+                    MainModel.Scheduler_DisplayedWorks_Results.RemoveItem(lastItem, true);  
+                    // MainModel.Scheduler_DisplayedWorks_Results.AddItem(lastItem);
                 }
             }
 

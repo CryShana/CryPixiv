@@ -232,6 +232,7 @@ namespace Pixeez
                 catch(NullReferenceException nex)
                 {
                     if (json.Contains("存在しないランキングページを参照しています")) return null; // reached end
+                    if (json.Contains("Error occurred at the OAuth process")) return null;
                     else throw;
                 }
                 catch (Exception ex)
