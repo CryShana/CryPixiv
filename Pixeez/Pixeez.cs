@@ -9,6 +9,7 @@ using System.Linq;
 using System.IO;
 using System.Text;
 using Newtonsoft.Json;
+using System.Diagnostics;
 
 namespace Pixeez
 {
@@ -67,7 +68,7 @@ namespace Pixeez
             httpClient.DefaultRequestHeaders.Add("User-Agent", "PixivIOSApp/5.8.0");
 
             // Invalid grant_type parameter or parameter missing
-            
+
             var param = new FormUrlEncodedContent(new Dictionary<string, string>
             {
                 { "username", username },
@@ -76,7 +77,7 @@ namespace Pixeez
                 { "client_id", ClientId },
                 { "client_secret", ClientSecret },
             });
-            
+
             var requestIssued = DateTime.Now;
             var response = await httpClient.PostAsync("https://oauth.secure.pixiv.net/auth/token", param);
             if (!response.IsSuccessStatusCode)
@@ -188,14 +189,14 @@ namespace Pixeez
             return asyncResponse;
         }
 
-        private async Task<T> AccessApiAsync<T>(MethodType type, string url, IDictionary<string, string> param, IDictionary<string, string> headers = null) where T : class
+        private async Task<Tuple<T, string>> AccessApiAsync<T>(MethodType type, string url, IDictionary<string, string> param, IDictionary<string, string> headers = null) where T : class
         {
             using (var response = await this.SendRequestAsync(type, url, param, headers))
             {
                 var json = await response.GetResponseStringAsync();
                 T obj = default(T);
 
-                if (json == "{}") return obj;
+                if (json == "{}") return new Tuple<T, string>(obj, null); ;
 
                 json = json.Replace("created_time", "create_date"); // to make it compatible with newer JSON entries
                 json = json.Replace("tags", "tags_old");
@@ -205,43 +206,56 @@ namespace Pixeez
                 }
                 catch (NullReferenceException nex)
                 {
-                    if (json.Contains("存在しないランキングページを参照しています")) return null; // reached end
-                    if (json.Contains("has_error")) return null;
-                    else throw;
+                    if (json.Contains("存在しないランキングページを参照しています") || json.Contains("has_error"))
+                        return new Tuple<T, string>(obj, "Known Error: " + nex.Message);
+                    else return new Tuple<T, string>(obj, "Error: " + nex.Message);
+
+                }
+                catch (Exception ex)
+                {
+                    return new Tuple<T, string>(obj, "Error: " + ex.Message);
                 }
 
                 if (obj is IPagenated)
                     ((IPagenated)obj).Pagination = JToken.Parse(json).SelectToken("pagination").ToObject<Pagination>();
 
-                return obj;
+                return new Tuple<T, string>(obj, null);
             }
         }
-        private async Task<T> AccessApiAsyncNew<T>(MethodType type, string url, IDictionary<string, string> param, IDictionary<string, string> headers = null) where T : class
+        private async Task<Tuple<T, string>> AccessApiAsyncNew<T>(MethodType type, string url, IDictionary<string, string> param, IDictionary<string, string> headers = null) where T : class
         {
             using (var response = await this.SendRequestAsync(type, url, param, headers))
             {
-                var json = await response.GetResponseStringAsync();               
+                var json = await response.GetResponseStringAsync();
                 T obj = default(T);
 
-                if (json == "{}") return obj;
+                if (json == "{}") return new Tuple<T, string>(obj, null);
 
                 try
                 {
                     obj = JToken.Parse(json).SelectToken("illusts").ToObject<T>();  // response
                 }
-                catch(NullReferenceException nex)
+                catch (NullReferenceException nex)
                 {
-                    if (json.Contains("存在しないランキングページを参照しています")) return null; // reached end
-                    if (json.Contains("Error occurred at the OAuth process")) return null;
-                    else throw;
+                    if (json.Contains("存在しないランキングページを参照しています") || json.Contains("Error occurred at the OAuth process"))
+                        return new Tuple<T, string>(obj, "Known Error: " + nex.Message);
+                    else return new Tuple<T, string>(obj, "Error: " + nex.Message);
+
                 }
                 catch (Exception ex)
                 {
-                    throw;
+                    return new Tuple<T, string>(obj, "Error: " + ex.Message);
                 }
 
-                return obj;
+                return new Tuple<T, string>(obj, null);
             }
+        }
+
+        public void LogError(params string[] errors)
+        {
+            string line = $"[{DateTime.Now.ToString("HH:mm:ss")}] ";
+            foreach (var s in errors) line += s;
+            Debug.WriteLine(line);
         }
 
         public byte[] DownloadImage(string baseUri = null)
@@ -268,7 +282,7 @@ namespace Pixeez
         /// <para>- <c>long</c> illustId (required)</para>
         /// </summary>
         /// <returns>Works.</returns>
-        public async Task<List<Work>> GetWorksAsync(long illustId)
+        public async Task<Tuple<List<Work>, string>> GetWorksAsync(long illustId)
         {
             var url = "https://public-api.secure.pixiv.net/v1/works/" + illustId.ToString() + ".json";
 
@@ -287,7 +301,7 @@ namespace Pixeez
         /// <para>- <c>long</c> authorId (required)</para>
         /// </summary>
         /// <returns>Users.</returns>
-        public async Task<List<User>> GetUsersAsync(long authorId)
+        public async Task<Tuple<List<User>, string>> GetUsersAsync(long authorId)
         {
             var url = "https://public-api.secure.pixiv.net/v1/users/" + authorId.ToString() + ".json";
 
@@ -310,7 +324,7 @@ namespace Pixeez
         /// <para>- <c>bool</c> showR18 (optional)</para>
         /// </summary>
         /// <returns>Feeds.</returns>
-        public async Task<List<Feed>> GetMyFeedsAsync(long maxId = 0, bool showR18 = true)
+        public async Task<Tuple<List<Feed>, string>> GetMyFeedsAsync(long maxId = 0, bool showR18 = true)
         {
             var url = "https://public-api.secure.pixiv.net/v1/me/feeds.json";
 
@@ -335,7 +349,7 @@ namespace Pixeez
         /// <para>- <c>bool</c> includeSanityLevel (optional)</para>
         /// </summary>
         /// <returns>UsersFavoriteWorks. (Pagenated)</returns>
-        public async Task<Paginated<UsersFavoriteWork>> GetMyFavoriteWorksAsync(int page = 1, int perPage = 30, string publicity = "public", bool includeSanityLevel = true)
+        public async Task<Tuple<Paginated<UsersFavoriteWork>, string>> GetMyFavoriteWorksAsync(int page = 1, int perPage = 30, string publicity = "public", bool includeSanityLevel = true)
         {
             var url = "https://public-api.secure.pixiv.net/v1/me/favorite_works.json";
 
@@ -359,7 +373,7 @@ namespace Pixeez
         /// <para>- <c>string</c> publicity (optional) [ public, private ]</para>
         /// </summary>
         /// <returns>UsersWorks. (Pagenated)</returns>
-        public async Task<List<UsersFavoriteWork>> AddMyFavoriteWorksAsync(long workId, string comment = "", IEnumerable<string> tags = null, string publicity = "public")
+        public async Task<Tuple<List<UsersFavoriteWork>, string>> AddMyFavoriteWorksAsync(long workId, string comment = "", IEnumerable<string> tags = null, string publicity = "public")
         {
             var url = "https://public-api.secure.pixiv.net/v1/me/favorite_works.json";
 
@@ -382,7 +396,7 @@ namespace Pixeez
         /// <para>- <c>string</c> publicity (optional) [ public, private ]</para>
         /// </summary>
         /// <returns>UsersWorks. (Pagenated)</returns>
-        public async Task<Paginated<UsersFavoriteWork>> DeleteMyFavoriteWorksAsync(long workId, string publicity = "public")
+        public async Task<Tuple<Paginated<UsersFavoriteWork>, string>> DeleteMyFavoriteWorksAsync(long workId, string publicity = "public")
         {
             //var url = "https://public-api.secure.pixiv.net/v1/me/favorite_works.json";
             var url = "https://app-api.pixiv.net/v1/illust/bookmark/delete";  // new way of doing it :D
@@ -405,7 +419,7 @@ namespace Pixeez
         /// <para>- <c>bool</c> includeSanityLevel (optional)</para>
         /// </summary>
         /// <returns>UsersWorks. (Pagenated)</returns>
-        public async Task<Paginated<Work>> GetMyFollowingWorksAsync(int page = 1, int perPage = 30, string publicity = "public", bool includeSanityLevel = true)
+        public async Task<Tuple<Paginated<Work>, string>> GetMyFollowingWorksAsync(int page = 1, int perPage = 30, string publicity = "public", bool includeSanityLevel = true)
         {
             var url = "https://public-api.secure.pixiv.net/v1/me/following/works.json";
 
@@ -432,7 +446,7 @@ namespace Pixeez
         /// <para>- <c>bool</c> includeSanityLevel (optional)</para>
         /// </summary>
         /// <returns>UsersWorks. (Pagenated)</returns>
-        public async Task<Paginated<Work>> GetUsersWorksAsync(long authorId, int page = 1, int perPage = 30, string publicity = "public", bool includeSanityLevel = true)
+        public async Task<Tuple<Paginated<Work>, string>> GetUsersWorksAsync(long authorId, int page = 1, int perPage = 30, string publicity = "public", bool includeSanityLevel = true)
         {
             var url = "https://public-api.secure.pixiv.net/v1/users/" + authorId.ToString() + "/works.json";
 
@@ -459,7 +473,7 @@ namespace Pixeez
         /// <para>- <c>bool</c> includeSanityLevel (optional)</para>
         /// </summary>
         /// <returns>UsersFavoriteWorks. (Pagenated)</returns>
-        public async Task<Paginated<UsersFavoriteWork>> GetUsersFavoriteWorksAsync(long authorId, int page = 1, int perPage = 30, string publicity = "public", bool includeSanityLevel = true)
+        public async Task<Tuple<Paginated<UsersFavoriteWork>, string>> GetUsersFavoriteWorksAsync(long authorId, int page = 1, int perPage = 30, string publicity = "public", bool includeSanityLevel = true)
         {
             var url = "https://public-api.secure.pixiv.net/v1/users/" + authorId.ToString() + "/favorite_works.json";
 
@@ -483,7 +497,7 @@ namespace Pixeez
         /// <para>- <c>bool</c> showR18 (optional)</para>
         /// </summary>
         /// <returns>Feed.</returns>
-        public async Task<List<Feed>> GetUsersFeedsAsync(long authorId, long maxId = 0, bool showR18 = true)
+        public async Task<Tuple<List<Feed>, string>> GetUsersFeedsAsync(long authorId, long maxId = 0, bool showR18 = true)
         {
             var url = "https://public-api.secure.pixiv.net/v1/users/" + authorId.ToString() + "/feeds.json";
 
@@ -509,7 +523,7 @@ namespace Pixeez
         /// <para>- <c>bool</c> includeSanityLevel (optional)</para>
         /// </summary>
         /// <returns>RankingAll. (Pagenated)</returns>
-        public async Task<Paginated<Work>> GetRankingAllAsync(string mode = "day", int page = 1, int perPage = 30, string date = "", bool includeSanityLevel = true)
+        public async Task<Tuple<Paginated<Work>, string>> GetRankingAllAsync(string mode = "day", int page = 1, int perPage = 30, string date = "", bool includeSanityLevel = true)
         {
             // var url = "https://public-api.secure.pixiv.net/v1/ranking/all";
             var url = "https://app-api.pixiv.net/v1/illust/ranking";
@@ -543,7 +557,7 @@ namespace Pixeez
         /// <para>- <c>bool</c> includeSanityLevel (optional)</para>
         /// </summary>
         /// <returns>Works. (Pagenated)</returns>
-        public async Task<Paginated<Work>> SearchWorksAsync(string query, int page = 1, int perPage = 30, string mode = "text", string period = "all", string order = "desc", string sort = "date", bool includeSanityLevel = true)
+        public async Task<Tuple<Paginated<Work>, string>> SearchWorksAsync(string query, int page = 1, int perPage = 30, string mode = "text", string period = "all", string order = "desc", string sort = "date", bool includeSanityLevel = true)
         {
             var url = "https://public-api.secure.pixiv.net/v1/search/works.json";
 
@@ -573,7 +587,7 @@ namespace Pixeez
         /// <para>- <c>bool</c> includeSanityLevel (optional)</para>
         /// </summary>
         /// <returns>Works. (Pagenated)</returns>
-        public async Task<Paginated<Work>> GetLatestWorksAsync(int page = 1, int perPage = 30, bool includeSanityLevel = true)
+        public async Task<Tuple<Paginated<Work>, string>> GetLatestWorksAsync(int page = 1, int perPage = 30, bool includeSanityLevel = true)
         {
             var url = "https://public-api.secure.pixiv.net/v1/works.json";
 
@@ -591,7 +605,7 @@ namespace Pixeez
             return await this.AccessApiAsync<Paginated<Work>>(MethodType.GET, url, param);
         }
 
-        public async Task<List<Work>> GetRecommendedWorks(int page = 1, int perPage = 30)
+        public async Task<Tuple<Paginated<Work>, string>> GetRecommendedWorks(int page = 1, int perPage = 30)
         {
             var url = "https://app-api.pixiv.net/v1/illust/recommended";
 

@@ -16,13 +16,15 @@ namespace CryPixivClient
         MyObservableCollection<T> collection;
         Queue<Tuple<T, Action>> JobQueue;
         Queue<Tuple<T, Action>> PriorityJobQueue;
-        SortedDictionary<long, bool> StatusTree;
+        SortedDictionary<long, bool?> StatusTree;
         Func<T, long> GetIdFromItem;
 
         public PixivAccount.WorkMode AssociatedWorkMode { get; }
 
         DispatcherTimer timer;
         Func<T, T, bool> equilityComparer;
+
+        public int ToAddCount => JobQueue.Count(x => x.Item2 == Action.Add) + PriorityJobQueue.Count(x => x.Item2 == Action.Add);
         public int Count => (PriorityJobQueue.Count(x => x.Item2 == Action.Add) + JobQueue.Count(x => x.Item2 == Action.Add)
             - PriorityJobQueue.Count(x => x.Item2 == Action.Remove) - JobQueue.Count(x => x.Item2 == Action.Remove)) + collection.Count;
 
@@ -30,7 +32,7 @@ namespace CryPixivClient
             Func<T, long> GetIdFromItem, PixivAccount.WorkMode workmode,
             SynchronizationContext context = null)
         {
-            StatusTree = new SortedDictionary<long, bool>();
+            StatusTree = new SortedDictionary<long, bool?>();
             this.collection = collection;
             this.equilityComparer = equalityComparer;
             this.AssociatedWorkMode = workmode;
@@ -74,13 +76,20 @@ namespace CryPixivClient
             else PriorityJobQueue.Enqueue(new Tuple<T, Action>(item, Action.Remove));
             return true;
         }
+        public void MarkNone(T item)
+        {
+            // Update StatusTree
+            var id = GetIdFromItem(item);
+            if (StatusTree.ContainsKey(id)) StatusTree[id] = null;
+            else StatusTree.Add(id, null);
+        }
 
         public bool ContainsItem(T item, Action action)
         {
             var id = GetIdFromItem(item);
             if (StatusTree.ContainsKey(id) == false) return false;
 
-            if (action == Action.Add && StatusTree[id]) return true;
+            if (action == Action.Add && StatusTree[id] == true) return true;
             if (action == Action.Remove && StatusTree[id] == false) return true;
             return false;
         }
