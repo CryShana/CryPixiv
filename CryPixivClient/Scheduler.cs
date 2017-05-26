@@ -19,16 +19,16 @@ namespace CryPixivClient
         public PixivAccount.WorkMode AssociatedWorkMode { get; }
 
         DispatcherTimer timer;
-        Func<T, T, bool> removalComparison;
+        Func<T, T, bool> equilityComparer;
         public int Count => (PriorityJobQueue.Count(x => x.Item2 == Action.Add) + JobQueue.Count(x => x.Item2 == Action.Add)
-            - PriorityJobQueue.Count(x => x.Item2 == Action.Remove) - JobQueue.Count(x => x.Item2 == Action.Remove)) + collection.Count;        
+            - PriorityJobQueue.Count(x => x.Item2 == Action.Remove) - JobQueue.Count(x => x.Item2 == Action.Remove)) + collection.Count;
 
-        public Scheduler(ref MyObservableCollection<T> collection, Func<T, T, bool> removalComparison, 
+        public Scheduler(ref MyObservableCollection<T> collection, Func<T, T, bool> equalityComparer,
             PixivAccount.WorkMode workmode,
             SynchronizationContext context = null)
         {
             this.collection = collection;
-            this.removalComparison = removalComparison;
+            this.equilityComparer = equalityComparer;
             this.AssociatedWorkMode = workmode;
 
             if (context == null) UIContext = SynchronizationContext.Current;
@@ -43,15 +43,23 @@ namespace CryPixivClient
             timer.Start();
         }
 
-        public void AddItem(T item, bool asap = false)
+        public bool AddItem(T item, bool asap = false)
         {
+            if (JobQueue.Count(x => equilityComparer(x.Item1, item) && x.Item2 == Action.Add) > 0 ||
+                PriorityJobQueue.Count(x => equilityComparer(x.Item1, item) && x.Item2 == Action.Add) > 0) return false;
+
             if (asap == false) JobQueue.Enqueue(new Tuple<T, Action>(item, Action.Add));
             else PriorityJobQueue.Enqueue(new Tuple<T, Action>(item, Action.Add));
+            return true;
         }
-        public void RemoveItem(T item, bool asap = false)
+        public bool RemoveItem(T item, bool asap = false)
         {
+            if (JobQueue.Count(x => equilityComparer(x.Item1, item) && x.Item2 == Action.Remove) > 0 ||
+                PriorityJobQueue.Count(x => equilityComparer(x.Item1, item) && x.Item2 == Action.Remove) > 0) return false;
+
             if (asap == false) JobQueue.Enqueue(new Tuple<T, Action>(item, Action.Remove));
             else PriorityJobQueue.Enqueue(new Tuple<T, Action>(item, Action.Remove));
+            return true;
         }
 
         public void Stop() => timer.Stop();
@@ -59,7 +67,7 @@ namespace CryPixivClient
 
         private void Timer_Tick(object sender, EventArgs e)
         {
-            if (MainWindow.Paused) return; 
+            if (MainWindow.Paused) return;
 
             if (JobQueue.Count == 0 && PriorityJobQueue.Count == 0) return;
 
@@ -75,12 +83,12 @@ namespace CryPixivClient
                             collection.Add(job.Item1);
                             break;
                         case Action.Remove:
-                            if (removalComparison == null) collection.Remove(job.Item1);
+                            if (equilityComparer == null) collection.Remove(job.Item1);
                             else
                             {
                                 T toRemove = default(T);
                                 foreach (T item in collection)
-                                    if (removalComparison(job.Item1, item)) { toRemove = item; break; }
+                                    if (equilityComparer(job.Item1, item)) { toRemove = item; break; }
                                 collection.Remove(toRemove);
                             }
                             break;

@@ -340,7 +340,7 @@
                 <ItemsPanelTemplate>
                     <Grid>
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="0.5*" />
                             <ColumnDefinition Width="*" />
                         </Grid.ColumnDefinitions>
                     </Grid>
@@ -364,7 +364,7 @@
             <Button x:Name="btnLogout" Content="Log Out" HorizontalAlignment="Right" VerticalAlignment="Bottom" Width="78" 
                     Height="23" Background="#FFFFA3A3" Margin="0,0,43,0" Click="btnLogout_Click" IsTabStop="False"/>
             <Button x:Name="btnPause" Content="Pause" HorizontalAlignment="Right" VerticalAlignment="Bottom" Width="78" 
-                    Height="23" Background="#FFFFFCBC" Margin="0,0,121,0" Click="btnPause_Click" IsTabStop="False"/>
+                    Height="23" Background="#FFFFFCBC" Margin="0,0,119,0" Click="btnPause_Click" IsTabStop="False"/>
             <Grid.ContextMenu>
                 <ContextMenu>
                     <MenuItem Header="Reset Results" Click="ResetResults_Click"/>

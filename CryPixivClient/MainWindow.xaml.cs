@@ -309,7 +309,11 @@ namespace CryPixivClient
             if (scrollViewer.VerticalOffset > pointForUpade)
             {
                 // update it
-                if (LimitReached) DynamicWorksLimit += 30;
+                if (LimitReached)
+                {
+                    DynamicWorksLimit += 60;
+                    LimitReached = false;
+                }
 
                 if (LimitReached && CurrentWorkMode == PixivAccount.WorkMode.Search
                     && MainModel.DisplayedWorks_Results.Count > ItemsDisplayedLimit
@@ -460,16 +464,11 @@ namespace CryPixivClient
             if (sender.AssociatedWorkMode != CurrentWorkMode) return;
             bool isSearch = CurrentWorkMode == PixivAccount.WorkMode.Search;
 
-            // get view count
-            var view = GetCurrentCollectionViewSource().View;
-            int count = 0;
-            foreach (var item in view) count++;
-
             // set status text
             var toBeAdded = sender.Count - associatedCollection.Count;
             if (MainModel.Finished)
             {
-                MainModel.Status = "Done." + ((toBeAdded > 0) ? $" ({toBeAdded} to be added)" : "");               
+                MainModel.Status = "Done. " + ((toBeAdded > 0) ? $"({toBeAdded} to be added)" : "");               
             }
             else if (MainModel.IsWorking)
             {          
@@ -484,7 +483,10 @@ namespace CryPixivClient
                 MainModel.Status = "Idle. " + ((toBeAdded > 0) ? $" ({toBeAdded} to be added)" : "");
             }
 
-            MainModel.CollectionStatus = $"Found {sender.Count} items";
+            var view = GetCurrentCollectionViewSource().View;
+            int count = 0; foreach (var i in view) count++;
+
+            MainModel.CollectionStatus = $"Found {sender.Count} items [Displayed {count}]";
         }
 
         // Data Virtualization of some sort :D
@@ -503,6 +505,7 @@ namespace CryPixivClient
 
             int count = 0;
             foreach (var item in view) count++;
+            if (count >= ItemLimit) LimitReached = true;
 
             if (src.Count < ItemLimit)
                 accepted = true;
@@ -528,6 +531,7 @@ namespace CryPixivClient
                     // get last item and remove it from view
                     PixivWork lastItem = null;
                     foreach (PixivWork item in view) lastItem = item;
+                    
                     MainModel.Scheduler_DisplayedWorks_Results.RemoveItem(lastItem, true);
                     MainModel.Scheduler_DisplayedWorks_Results.AddItem(lastItem);
                 }

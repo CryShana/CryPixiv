@@ -57,7 +57,7 @@ namespace CryPixivClient.ViewModels
         #endregion
 
         #region Properties
-        public Func<PixivWork, PixivWork, bool> RemovalPredicate = (a, b) => a.Id.Value == b.Id.Value;
+        public Func<PixivWork, PixivWork, bool> PixivWorkEqualityComparer = (a, b) => a.Id.Value == b.Id.Value;
         public Scheduler<PixivWork> Scheduler_DisplayedWorks_Results { get; private set; }
         public Scheduler<PixivWork> Scheduler_DisplayedWorks_Ranking { get; private set; }
         public Scheduler<PixivWork> Scheduler_DisplayedWorks_Following { get; private set; }
@@ -145,13 +145,13 @@ namespace CryPixivClient.ViewModels
             UIContext = SynchronizationContext.Current;
             semaphore = new SemaphoreSlim(1);
 
-            Scheduler_DisplayedWorks_Results = new Scheduler<PixivWork>(ref displayedWorks_Results, RemovalPredicate, PixivAccount.WorkMode.Search);
-            Scheduler_DisplayedWorks_Ranking = new Scheduler<PixivWork>(ref displayedWorks_Ranking, RemovalPredicate, PixivAccount.WorkMode.Ranking);
-            Scheduler_DisplayedWorks_Following = new Scheduler<PixivWork>(ref displayedWorks_Following, RemovalPredicate, PixivAccount.WorkMode.Following);
-            Scheduler_DisplayedWorks_Recommended = new Scheduler<PixivWork>(ref displayedWorks_Recommended, RemovalPredicate, PixivAccount.WorkMode.Recommended);
-            Scheduler_DisplayedWorks_Bookmarks = new Scheduler<PixivWork>(ref displayedWorks_Bookmarks, RemovalPredicate, PixivAccount.WorkMode.BookmarksPublic);
-            Scheduler_DisplayedWorks_BookmarksPrivate = new Scheduler<PixivWork>(ref displayedWorks_BookmarksPrivate, RemovalPredicate, PixivAccount.WorkMode.BookmarksPrivate);
-            Scheduler_DisplayedWorks_User = new Scheduler<PixivWork>(ref displayedWorks_User, RemovalPredicate, PixivAccount.WorkMode.User);
+            Scheduler_DisplayedWorks_Results = new Scheduler<PixivWork>(ref displayedWorks_Results, PixivWorkEqualityComparer, PixivAccount.WorkMode.Search);
+            Scheduler_DisplayedWorks_Ranking = new Scheduler<PixivWork>(ref displayedWorks_Ranking, PixivWorkEqualityComparer, PixivAccount.WorkMode.Ranking);
+            Scheduler_DisplayedWorks_Following = new Scheduler<PixivWork>(ref displayedWorks_Following, PixivWorkEqualityComparer, PixivAccount.WorkMode.Following);
+            Scheduler_DisplayedWorks_Recommended = new Scheduler<PixivWork>(ref displayedWorks_Recommended, PixivWorkEqualityComparer, PixivAccount.WorkMode.Recommended);
+            Scheduler_DisplayedWorks_Bookmarks = new Scheduler<PixivWork>(ref displayedWorks_Bookmarks, PixivWorkEqualityComparer, PixivAccount.WorkMode.BookmarksPublic);
+            Scheduler_DisplayedWorks_BookmarksPrivate = new Scheduler<PixivWork>(ref displayedWorks_BookmarksPrivate, PixivWorkEqualityComparer, PixivAccount.WorkMode.BookmarksPrivate);
+            Scheduler_DisplayedWorks_User = new Scheduler<PixivWork>(ref displayedWorks_User, PixivWorkEqualityComparer, PixivAccount.WorkMode.User);
         }
 
         #region Show Methods
@@ -195,7 +195,6 @@ namespace CryPixivClient.ViewModels
                             Status = $"Continuing...";
                             lastWasStuck = false;
                         }
-                        MainWindow.LimitReached = false;
                     }
 
                     try
@@ -241,7 +240,7 @@ namespace CryPixivClient.ViewModels
             MainWindow.ItemLimit = MainWindow.ItemsDisplayedLimit;
             DisplayedWorks_Results = new MyObservableCollection<PixivWork>();
             Scheduler_DisplayedWorks_Results.Stop();
-            Scheduler_DisplayedWorks_Results = new Scheduler<PixivWork>(ref displayedWorks_Results, RemovalPredicate, PixivAccount.WorkMode.Search);
+            Scheduler_DisplayedWorks_Results = new Scheduler<PixivWork>(ref displayedWorks_Results, PixivWorkEqualityComparer, PixivAccount.WorkMode.Search);
 
             semaphore.Release();
         }
@@ -353,7 +352,7 @@ namespace CryPixivClient.ViewModels
         {
             DisplayedWorks_User = new MyObservableCollection<PixivWork>();
             Scheduler_DisplayedWorks_User.Stop();
-            Scheduler_DisplayedWorks_User = new Scheduler<PixivWork>(ref displayedWorks_User, RemovalPredicate, PixivAccount.WorkMode.User);
+            Scheduler_DisplayedWorks_User = new Scheduler<PixivWork>(ref displayedWorks_User, PixivWorkEqualityComparer, PixivAccount.WorkMode.User);
 
             await Show(user, DisplayedWorks_User, PixivAccount.WorkMode.User, "User work - " + username, (page) => MainWindow.Account.GetUserWorks(userId, page), Scheduler_DisplayedWorks_User);
         }
