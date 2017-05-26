@@ -6,23 +6,13 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
-using System.Drawing;
-using System.Drawing.Imaging;
-using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
-using System.Windows.Interop;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 
 namespace CryPixivClient
 {
@@ -66,6 +56,7 @@ namespace CryPixivClient
 
             // events
             PixivAccount.AuthFailed += AuthenticationFailed;
+            Scheduler<PixivWork>.JobFinished += this.SchedulerJobFinished;
 
             // start
             ShowLoginPrompt();
@@ -464,6 +455,37 @@ namespace CryPixivClient
 
             MainModel.OpenCmd.Execute(selected);
         }
+        void SchedulerJobFinished(Scheduler<PixivWork> sender, Tuple<PixivWork, Action> job, MyObservableCollection<PixivWork> associatedCollection)
+        {
+            if (sender.AssociatedWorkMode != CurrentWorkMode) return;
+            bool isSearch = CurrentWorkMode == PixivAccount.WorkMode.Search;
+
+            // get view count
+            var view = GetCurrentCollectionViewSource().View;
+            int count = 0;
+            foreach (var item in view) count++;
+
+            // set status text
+            var toBeAdded = sender.Count - associatedCollection.Count;
+            if (MainModel.Finished)
+            {
+                MainModel.Status = "Done." + ((toBeAdded > 0) ? $" ({toBeAdded} to be added)" : "");               
+            }
+            else if (MainModel.IsWorking)
+            {          
+                MainModel.Status = $"Searching... {associatedCollection.Count}" + ((isSearch) ? $"{((MainModel.MaxResults == -1) ? "" : $"/{MainModel.MaxResults}")}" : "") + $" ({toBeAdded} to be added)";
+            }
+            else if (LimitReached)
+            {
+                MainModel.Status = "Limit reached. Scroll for more. " + ((toBeAdded > 0) ? $" ({toBeAdded} to be added)" : "");
+            }
+            else
+            {
+                MainModel.Status = "Idle. " + ((toBeAdded > 0) ? $" ({toBeAdded} to be added)" : "");
+            }
+
+            MainModel.CollectionStatus = $"Found {sender.Count} items";
+        }
 
         // Data Virtualization of some sort :D
         public const int ItemsDisplayedLimit = 500;
@@ -521,6 +543,7 @@ namespace CryPixivClient
             if (Paused == false)
             {
                 Paused = true;
+                MainModel.Status = "Paused.";
                 MainModel.CancelRunningSearches();
                 SetSearchButtonState(false);
             }

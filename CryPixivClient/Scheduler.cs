@@ -2,29 +2,34 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using System.Windows.Threading;
 
 namespace CryPixivClient
 {
     public class Scheduler<T>
     {
+        public delegate void JobHandler(Scheduler<T> sender, Tuple<T, Action> job, MyObservableCollection<T> associatedCollection);
+        public static event JobHandler JobFinished;
+
         SynchronizationContext UIContext;
         MyObservableCollection<T> collection;
         Queue<Tuple<T, Action>> JobQueue;
         Queue<Tuple<T, Action>> PriorityJobQueue;
+        public PixivAccount.WorkMode AssociatedWorkMode { get; }
 
         DispatcherTimer timer;
         Func<T, T, bool> removalComparison;
         public int Count => (PriorityJobQueue.Count(x => x.Item2 == Action.Add) + JobQueue.Count(x => x.Item2 == Action.Add)
-            - PriorityJobQueue.Count(x => x.Item2 == Action.Remove) - JobQueue.Count(x => x.Item2 == Action.Remove)) + collection.Count;
+            - PriorityJobQueue.Count(x => x.Item2 == Action.Remove) - JobQueue.Count(x => x.Item2 == Action.Remove)) + collection.Count;        
 
-        public Scheduler(ref MyObservableCollection<T> collection, Func<T, T, bool> removalComparison, SynchronizationContext context = null)
+        public Scheduler(ref MyObservableCollection<T> collection, Func<T, T, bool> removalComparison, 
+            PixivAccount.WorkMode workmode,
+            SynchronizationContext context = null)
         {
             this.collection = collection;
             this.removalComparison = removalComparison;
+            this.AssociatedWorkMode = workmode;
 
             if (context == null) UIContext = SynchronizationContext.Current;
             else UIContext = context;
@@ -86,6 +91,8 @@ namespace CryPixivClient
                     // ignore for now
                 }
             }, null);
+
+            JobFinished?.Invoke(this, job, collection);
         }
     }
 
