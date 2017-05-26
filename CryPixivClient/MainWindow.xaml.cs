@@ -200,40 +200,6 @@ namespace CryPixivClient
             ToggleLists(PixivAccount.WorkMode.Recommended);
             MainModel.ShowRecommended();
         }
-        public static void ShowUserWork(long userId, string username)
-        {
-            if (userId <= 0 || CurrentWorkMode == PixivAccount.WorkMode.User)
-                return;
-
-            currentWindow.Dispatcher.Invoke(() =>
-            {
-                currentWindow.ToggleButtons(PixivAccount.WorkMode.User);
-                currentWindow.ToggleLists(PixivAccount.WorkMode.User);
-                MainModel.ShowUserWork(userId, username);
-            });
-        }
-
-        public static bool IsSearching = false;
-        public static void SetSearchButtonState(bool isSearching)
-        {
-            UIContext.Send((a) =>
-            {
-                if (isSearching)
-                {
-                    IsSearching = true;
-                    Paused = false;
-                    currentWindow.btnSearch.Content = "Stop";
-                    currentWindow.btnSearch.Background = (SolidColorBrush)new BrushConverter().ConvertFromString("#FFFFA5A5");
-                }
-                else
-                {
-                    IsSearching = false;
-                    currentWindow.btnSearch.Content = "Search";
-                    currentWindow.btnSearch.Background = (SolidColorBrush)new BrushConverter().ConvertFromString("#FFDDDDDD");
-                }
-            }, null);
-        }
-
         void btnSearch_Click(object sender, RoutedEventArgs e)
         {
             if (IsSearching)
@@ -300,6 +266,32 @@ namespace CryPixivClient
                     MainCollectionViewSorted.SortDescriptions.Clear();
                 }
             }
+        }
+        async void ResetResults_Click(object sender, RoutedEventArgs e)
+        {
+            if (MessageBox.Show("This will reset the current Recommended results? You sure?", "Reset results", MessageBoxButton.YesNo, MessageBoxImage.Question)
+                == MessageBoxResult.Yes)
+            {
+                await MainModel.ResetRecommended();
+            }
+        }
+        void btnLogout_Click(object sender, RoutedEventArgs e)
+        {
+            if (MessageBox.Show("This will log you out. Are you sure?", "Log out", MessageBoxButton.YesNo, MessageBoxImage.Warning)
+                == MessageBoxResult.Yes)
+            {
+                Settings.Default.Username = "";
+                Settings.Default.AuthPassword = "";
+                Settings.Default.Save();
+
+                Process.Start(Application.ResourceAssembly.Location);
+                Application.Current.Shutdown();
+            }
+        }
+        void checkNSFW_Click(object sender, RoutedEventArgs e)
+        {
+            var collection = GetCurrentCollectionViewSource().Source as MyObservableCollection<PixivWork>;
+            foreach (var i in collection) if (i.IsNSFW) i.UpdateNSFW();
         }
         #endregion
 
@@ -429,44 +421,48 @@ namespace CryPixivClient
 
         public static bool IsNSFWAllowed() => currentWindow.checkNSFW.IsChecked == true;
 
+        public static void ShowUserWork(long userId, string username)
+        {
+            if (userId <= 0 || CurrentWorkMode == PixivAccount.WorkMode.User)
+                return;
+
+            currentWindow.Dispatcher.Invoke(() =>
+            {
+                currentWindow.ToggleButtons(PixivAccount.WorkMode.User);
+                currentWindow.ToggleLists(PixivAccount.WorkMode.User);
+                MainModel.ShowUserWork(userId, username);
+            });
+        }
+
+        public static bool IsSearching = false;
+        public static void SetSearchButtonState(bool isSearching)
+        {
+            UIContext.Send((a) =>
+            {
+                if (isSearching)
+                {
+                    IsSearching = true;
+                    Paused = false;
+                    currentWindow.btnSearch.Content = "Stop";
+                    currentWindow.btnSearch.Background = (SolidColorBrush)new BrushConverter().ConvertFromString("#FFFFA5A5");
+                }
+                else
+                {
+                    IsSearching = false;
+                    currentWindow.btnSearch.Content = "Search";
+                    currentWindow.btnSearch.Background = (SolidColorBrush)new BrushConverter().ConvertFromString("#FFDDDDDD");
+                }
+            }, null);
+        }
         #endregion
 
-        void mainListBookmarks_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        void list_DoubleClick(object sender, MouseButtonEventArgs e)
         {
             if (((ListView)sender).SelectedItems.Count == 0) return;
             var selected = ((ListView)sender).SelectedItem as PixivWork;
             if (IsNSFWAllowed() == false && selected.IsNSFW) return;
 
             MainModel.OpenCmd.Execute(selected);
-        }
-
-        async void ResetResults_Click(object sender, RoutedEventArgs e)
-        {
-            if (MessageBox.Show("This will reset the current Recommended results? You sure?", "Reset results", MessageBoxButton.YesNo, MessageBoxImage.Question)
-                == MessageBoxResult.Yes)
-            {
-                await MainModel.ResetRecommended();
-            }
-        }
-
-        void btnLogout_Click(object sender, RoutedEventArgs e)
-        {
-            if (MessageBox.Show("This will log you out. Are you sure?", "Log out", MessageBoxButton.YesNo, MessageBoxImage.Warning)
-                == MessageBoxResult.Yes)
-            {
-                Settings.Default.Username = "";
-                Settings.Default.AuthPassword = "";
-                Settings.Default.Save();
-
-                Process.Start(Application.ResourceAssembly.Location);
-                Application.Current.Shutdown();
-            }
-        }
-
-        private void checkNSFW_Click(object sender, RoutedEventArgs e)
-        {
-            var collection = GetCurrentCollectionViewSource().Source as MyObservableCollection<PixivWork>;
-            foreach (var i in collection) if (i.IsNSFW) i.UpdateNSFW();
         }
 
         // Data Virtualization of some sort :D
