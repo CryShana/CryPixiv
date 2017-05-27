@@ -5,17 +5,13 @@ using CryPixivClient.Windows;
 using Pixeez.Objects;
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows.Data;
 using System.Windows.Forms;
 using System.Windows.Input;
 
@@ -26,7 +22,6 @@ namespace CryPixivClient.ViewModels
         public event PropertyChangedEventHandler PropertyChanged;
         public const int DefaultPerPage = 30;
         public void Changed([CallerMemberName]string name = "") => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
-     
 
         #region Private fields
         MyObservableCollection<PixivWork> displayedWorks_Results = new MyObservableCollection<PixivWork>();
@@ -40,6 +35,7 @@ namespace CryPixivClient.ViewModels
         readonly SemaphoreSlim semaphore;
 
         string status = "Idle";
+        string collectionstatus = "-";
         string title = "CryPixiv";
         bool isWorking = false;
         string titleSuffix = "";
@@ -51,7 +47,6 @@ namespace CryPixivClient.ViewModels
         List<PixivWork> recommended = new List<PixivWork>();
         List<PixivWork> user = new List<PixivWork>();
         int currentPageResults = 1;
-        string lastSearchQuery = null;
         int columns = 4;
         SynchronizationContext UIContext;
 
@@ -62,6 +57,16 @@ namespace CryPixivClient.ViewModels
         #endregion
 
         #region Properties
+        public Func<PixivWork, PixivWork, bool> PixivWorkEqualityComparer = (a, b) => a.Id.Value == b.Id.Value;
+        public Func<PixivWork, long> PixivIdGetter = a => a.Id ?? -1;
+        public Scheduler<PixivWork> Scheduler_DisplayedWorks_Results { get; private set; }
+        public Scheduler<PixivWork> Scheduler_DisplayedWorks_Ranking { get; private set; }
+        public Scheduler<PixivWork> Scheduler_DisplayedWorks_Following { get; private set; }
+        public Scheduler<PixivWork> Scheduler_DisplayedWorks_Bookmarks { get; private set; }
+        public Scheduler<PixivWork> Scheduler_DisplayedWorks_BookmarksPrivate { get; private set; }
+        public Scheduler<PixivWork> Scheduler_DisplayedWorks_Recommended { get; private set; }
+        public Scheduler<PixivWork> Scheduler_DisplayedWorks_User { get; private set; }
+
         public MyObservableCollection<PixivWork> DisplayedWorks_Results
         {
             get => displayedWorks_Results;
@@ -95,7 +100,7 @@ namespace CryPixivClient.ViewModels
         public MyObservableCollection<PixivWork> DisplayedWorks_User
         {
             get => displayedWorks_User;
-            set { displayedWorks_User= value; Changed(); }
+            set { displayedWorks_User = value; Changed(); }
         }
 
         public int CurrentPageResults { get => currentPageResults; set { currentPageResults = value; } }
@@ -103,6 +108,11 @@ namespace CryPixivClient.ViewModels
         {
             get => status;
             set { status = value; Changed(); }
+        }
+        public string CollectionStatus
+        {
+            get => collectionstatus;
+            set { collectionstatus = value; Changed(); }
         }
 
         public bool IsWorking
@@ -121,7 +131,9 @@ namespace CryPixivClient.ViewModels
 
         public int Columns => columns;
 
-        public string LastSearchQuery => lastSearchQuery;
+        public string LastSearchQuery { get; set; }
+        public int MaxResults { get; private set; }
+        public bool Finished { get; private set; }
         #endregion
 
         #region Commands
@@ -135,12 +147,20 @@ namespace CryPixivClient.ViewModels
         {
             UIContext = SynchronizationContext.Current;
             semaphore = new SemaphoreSlim(1);
+
+            Scheduler_DisplayedWorks_Results = new Scheduler<PixivWork>(ref displayedWorks_Results, PixivWorkEqualityComparer, PixivIdGetter, PixivAccount.WorkMode.Search);
+            Scheduler_DisplayedWorks_Ranking = new Scheduler<PixivWork>(ref displayedWorks_Ranking, PixivWorkEqualityComparer, PixivIdGetter, PixivAccount.WorkMode.Ranking);
+            Scheduler_DisplayedWorks_Following = new Scheduler<PixivWork>(ref displayedWorks_Following, PixivWorkEqualityComparer, PixivIdGetter, PixivAccount.WorkMode.Following);
+            Scheduler_DisplayedWorks_Recommended = new Scheduler<PixivWork>(ref displayedWorks_Recommended, PixivWorkEqualityComparer, PixivIdGetter, PixivAccount.WorkMode.Recommended);
+            Scheduler_DisplayedWorks_Bookmarks = new Scheduler<PixivWork>(ref displayedWorks_Bookmarks, PixivWorkEqualityComparer, PixivIdGetter, PixivAccount.WorkMode.BookmarksPublic);
+            Scheduler_DisplayedWorks_BookmarksPrivate = new Scheduler<PixivWork>(ref displayedWorks_BookmarksPrivate, PixivWorkEqualityComparer, PixivIdGetter, PixivAccount.WorkMode.BookmarksPrivate);
+            Scheduler_DisplayedWorks_User = new Scheduler<PixivWork>(ref displayedWorks_User, PixivWorkEqualityComparer, PixivIdGetter, PixivAccount.WorkMode.User);
         }
 
         #region Show Methods
         public async Task Show(List<PixivWork> cache, MyObservableCollection<PixivWork> displayCollection,
-            PixivAccount.WorkMode mode, string titleSuffix, string statusPrefix,
-            Func<int, Task<List<PixivWork>>> getWorks, bool waitForUser = true, bool fixInvalid = true)
+            PixivAccount.WorkMode mode, string titleSuffix, Func<int, Task<List<PixivWork>>> getWorks, 
+            Scheduler<PixivWork> scheduler, bool waitForUser = true, bool fixInvalid = true)
         {
             // set starting values
             MainWindow.CurrentWorkMode = mode;
@@ -148,7 +168,9 @@ namespace CryPixivClient.ViewModels
 
             // show status
             TitleSuffix = titleSuffix;
-            Status = $"{statusPrefix}...";
+            Finished = false;
+            Status = "Preparing to get data...";
+            CollectionStatus = "-";
 
             // start searching...
             await Task.Run(async () =>
@@ -164,8 +186,8 @@ namespace CryPixivClient.ViewModels
                     if (MainWindow.DynamicWorksLimit < cache.Count && waitForUser && cache.Count >= displayCollection.Count)
                     {
                         MainWindow.LimitReached = true;
-                        lastWasStuck = true;
-                        Status = "Waiting for user to scroll to get more works... (" + displayCollection.Count + " works displayed)";
+                        UIContext.Post(a => MainWindow.currentWindow.SchedulerJobFinished(scheduler, null, displayCollection), null);
+                        lastWasStuck = true;                        
                         IsWorking = false;
                         await Task.Delay(200);
                         continue;
@@ -177,7 +199,6 @@ namespace CryPixivClient.ViewModels
                             Status = $"Continuing...";
                             lastWasStuck = false;
                         }
-                        MainWindow.LimitReached = false;
                     }
 
                     try
@@ -191,17 +212,15 @@ namespace CryPixivClient.ViewModels
                         if (works == null || MainWindow.CurrentWorkMode != mode || works.Count == 0) break;
 
                         // start NUMBERIN
-                        if(mode != PixivAccount.WorkMode.Recommended) works.AssignOrderToWorks(currentPage, DefaultPerPage);
-                        
+                        if (mode != PixivAccount.WorkMode.Recommended) works.AssignOrderToWorks(currentPage, DefaultPerPage);
+
                         cache.AddRange(works);
                         UIContext.Send(async (a) =>
                         {
                             await semaphore.WaitAsync();
-                            displayCollection.UpdateWith(works, fixInvalid);
+                            displayCollection.UpdateWith(works, scheduler, fixInvalid);
                             semaphore.Release();
                         }, null);
-
-                        Status = $"{statusPrefix}... " + cache.Count + " works" + ((displayCollection.Count > cache.Count) ? $" (Displayed: {displayCollection.Count} works from cache)" : "");
                     }
                     catch (Exception ex)
                     {
@@ -212,17 +231,32 @@ namespace CryPixivClient.ViewModels
                 if (MainWindow.CurrentWorkMode == mode)
                 {
                     IsWorking = false;
-                    Status = "Done. (Found " + displayCollection.Count + " works)";
+                    Finished = true;
                 }
             });
+        }
+
+        public async Task ResetSearchResults()
+        {
+            await semaphore.WaitAsync();
+            await Task.Run(() => results.Clear());
+
+            MainWindow.LimitReached = false;
+            MainWindow.ItemLimit = MainWindow.ItemsDisplayedLimit;
+            DisplayedWorks_Results = new MyObservableCollection<PixivWork>();
+            Scheduler_DisplayedWorks_Results.Stop();
+            Scheduler_DisplayedWorks_Results = new Scheduler<PixivWork>(ref displayedWorks_Results, PixivWorkEqualityComparer, PixivIdGetter, PixivAccount.WorkMode.Search);
+
+            semaphore.Release();
         }
         public async void ShowSearch(string query, bool autosort = true, int continuePage = 1)
         {
             bool otherWasRunning = LastSearchQuery != query && query != null;
 
             if (query == null) query = LastSearchQuery;
-            int maxResultCount = -1;
-            lastSearchQuery = query;
+            MaxResults = -1;
+            Finished = false;
+            LastSearchQuery = query;
 
             CancelRunningSearches();
 
@@ -230,18 +264,13 @@ namespace CryPixivClient.ViewModels
             var mode = PixivAccount.WorkMode.Search;
             MainWindow.CurrentWorkMode = mode;
 
-            // load cached results if they exist
-            await semaphore.WaitAsync();
-            if (otherWasRunning)
-            {
-                DisplayedWorks_Results = new MyObservableCollection<PixivWork>();
-            }
-            // refresh if necessary
-            semaphore.Release();
-
             // show status
             TitleSuffix = "";
-            Status = "Searching...";
+            Status = "Preparing to get data...";
+            CollectionStatus = "-";
+
+            // load cached results if they exist
+            if (otherWasRunning) await ResetSearchResults();
 
             var csrc = new CancellationTokenSource();
             queuedSearches.Enqueue(csrc);
@@ -249,16 +278,20 @@ namespace CryPixivClient.ViewModels
             // start searching...
             await Task.Run(async () =>
             {
-                results.Clear();
                 int currentPage = continuePage - 1;
                 for (;;)
                 {
                     if (MainWindow.CurrentWorkMode != mode || csrc.IsCancellationRequested) break; // if user changes mode or requests task to be cancelled - break;
                     // check if max results reached
-                    if (maxResultCount != -1 && maxResultCount <= results.Count) break;
+                    if (MaxResults != -1 && MaxResults <= results.Count) break;
 
                     try
                     {
+                        // check limit
+                        int count = 0;
+                        UIContext.Send((a) => count = MainWindow.GetCurrentCollectionViewSource().View.Count(), null);
+                        if (count >= MainWindow.ItemLimit - 5) MainWindow.LimitReached = true;
+
                         // start downloading next page
                         IsWorking = true;
                         currentPage++;
@@ -266,7 +299,7 @@ namespace CryPixivClient.ViewModels
                         // download current page
                         var works = await MainWindow.Account.SearchWorks(query, currentPage);
                         if (works == null || MainWindow.CurrentWorkMode != mode || csrc.IsCancellationRequested || works.Count == 0) break;
-                        if (maxResultCount == -1) maxResultCount = works.Pagination.Total ?? 0;
+                        if (MaxResults == -1) MaxResults = works.Pagination.Total ?? 0;
 
                         var wworks = works.ToPixivWork();
                         results.AddToList(wworks);
@@ -274,13 +307,11 @@ namespace CryPixivClient.ViewModels
                         UIContext.Send(async (a) =>
                         {
                             await semaphore.WaitAsync();
-                            DisplayedWorks_Results.UpdateWith(wworks, false);
+                            DisplayedWorks_Results.UpdateWith(wworks, Scheduler_DisplayedWorks_Results, false);
                             semaphore.Release();
                         }, null);
 
                         currentPageResults = currentPage;
-
-                        Status = $"Searching... {DisplayedWorks_Results.Count}/{maxResultCount} works";
                     }
                     catch (Exception ex)
                     {
@@ -292,35 +323,41 @@ namespace CryPixivClient.ViewModels
                 {
                     IsWorking = false;
                     MainWindow.SetSearchButtonState(false);
-                    Status = ((csrc.IsCancellationRequested) ? "Stopped. " : "Done. ") + "(Found " + DisplayedWorks_Results.Count + " works)";
+                    UIContext.Post(a => MainWindow.currentWindow.SchedulerJobFinished(
+                            Scheduler_DisplayedWorks_Results, null, displayedWorks_Results), null);
+
+                    Finished = true;
                 }
             }, csrc.Token);
         }
         #endregion
 
+        #region Show Method Callers
         public async void ShowDailyRankings() =>
-            await Show(dailyRankings, DisplayedWorks_Ranking, PixivAccount.WorkMode.Ranking, "Daily Ranking", 
-                "Getting daily ranking", (page) => MainWindow.Account.GetDailyRanking(page));
+            await Show(dailyRankings, DisplayedWorks_Ranking, PixivAccount.WorkMode.Ranking, "Daily Ranking", (page) => MainWindow.Account.GetDailyRanking(page), Scheduler_DisplayedWorks_Ranking);
 
         public async void ShowFollowing() =>
-            await Show(following, DisplayedWorks_Following, PixivAccount.WorkMode.Following, "Following", 
-                "Getting following", (page) => MainWindow.Account.GetFollowing(page));
+            await Show(following, DisplayedWorks_Following, PixivAccount.WorkMode.Following, "Following", (page) => MainWindow.Account.GetFollowing(page), Scheduler_DisplayedWorks_Following);
 
         public async void ShowBookmarksPublic() =>
-            await Show(bookmarks, DisplayedWorks_Bookmarks, PixivAccount.WorkMode.BookmarksPublic, "Bookmarks", 
-                "Getting bookmarks", (page) => MainWindow.Account.GetBookmarks(page, PixivAccount.Publicity.Public));
+            await Show(bookmarks, DisplayedWorks_Bookmarks, PixivAccount.WorkMode.BookmarksPublic, "Bookmarks", (page) => MainWindow.Account.GetBookmarks(page, PixivAccount.Publicity.Public), Scheduler_DisplayedWorks_Bookmarks);
 
         public async void ShowBookmarksPrivate() =>
-            await Show(bookmarksprivate, DisplayedWorks_BookmarksPrivate, PixivAccount.WorkMode.BookmarksPrivate, "Private Bookmarks",
-                "Getting private bookmarks", (page) => MainWindow.Account.GetBookmarks(page, PixivAccount.Publicity.Private));
+            await Show(bookmarksprivate, DisplayedWorks_BookmarksPrivate, PixivAccount.WorkMode.BookmarksPrivate, "Private Bookmarks", (page) => MainWindow.Account.GetBookmarks(page, PixivAccount.Publicity.Private), Scheduler_DisplayedWorks_BookmarksPrivate);
 
         public async void ShowRecommended() =>
-            await Show(recommended, DisplayedWorks_Recommended, PixivAccount.WorkMode.Recommended, "Recommended",
-                "Getting recommended feed", (page) => MainWindow.Account.GetRecommended(page), fixInvalid: false);
-        public async void ShowUserWork(long userId, string username) =>
-            await Show(user, DisplayedWorks_User, PixivAccount.WorkMode.User, "User work - " + username,
-                "Getting user works", (page) => MainWindow.Account.GetUserWorks(userId, page));
+            await Show(recommended, DisplayedWorks_Recommended, PixivAccount.WorkMode.Recommended, "Recommended", (page) => MainWindow.Account.GetRecommended(page), Scheduler_DisplayedWorks_Recommended, fixInvalid: false);
+        public async void ShowUserWork(long userId, string username)
+        {
+            DisplayedWorks_User = new MyObservableCollection<PixivWork>();
+            Scheduler_DisplayedWorks_User.Stop();
+            Scheduler_DisplayedWorks_User = new Scheduler<PixivWork>(ref displayedWorks_User, PixivWorkEqualityComparer, PixivIdGetter, PixivAccount.WorkMode.User);
 
+            await Show(user, DisplayedWorks_User, PixivAccount.WorkMode.User, "User work - " + username, (page) => MainWindow.Account.GetUserWorks(userId, page), Scheduler_DisplayedWorks_User);
+        }
+        #endregion
+
+        #region Other Methods
         Queue<CancellationTokenSource> queuedSearches = new Queue<CancellationTokenSource>();
         public void CancelRunningSearches()
         {
@@ -361,7 +398,6 @@ namespace CryPixivClient.ViewModels
 
             Changed("Columns");
         }
-
         public void ForceRefreshImages()
         {
             // refresh all images depending on current mode
@@ -390,12 +426,93 @@ namespace CryPixivClient.ViewModels
                     break;
             }
         }
-
         void UpdateImages(MyObservableCollection<PixivWork> collection)
         {
-            foreach(var i in collection) if(i.img == null) i.UpdateThumbnail();            
+            foreach (var i in collection) if (i.img == null) i.UpdateThumbnail();
+        }
+        public List<PixivWork> GetCurrentCache()
+        {
+            switch (MainWindow.CurrentWorkMode)
+            {
+                case PixivAccount.WorkMode.Search:
+                    return results;
+
+                case PixivAccount.WorkMode.Ranking:
+                    return dailyRankings;
+
+                case PixivAccount.WorkMode.Following:
+                    return following;
+
+                case PixivAccount.WorkMode.BookmarksPublic:
+                    return bookmarks;
+
+                case PixivAccount.WorkMode.BookmarksPrivate:
+                    return bookmarksprivate;
+
+                case PixivAccount.WorkMode.Recommended:
+                    return recommended;
+
+                case PixivAccount.WorkMode.User:
+                    return user;
+                default:
+                    return null;
+            }
         }
 
+        public PixivWork OpenNextWork(PixivWork currentItem, bool openWindow = false)
+        {
+            var colview = MainWindow.GetCurrentCollectionViewSource().View;
+
+            bool next = false;
+            PixivWork nextwork = null;
+            foreach (PixivWork i in colview)
+            {
+                if (next)
+                {
+                    if (MainWindow.IsNSFWAllowed() == false && i.IsNSFW) continue;
+                    nextwork = i; break;
+                }
+                if (i.Id.Value == currentItem.Id.Value) next = true;
+            }
+
+            if (nextwork == null) return null;
+
+            if (openWindow) OpenWork(nextwork);
+            return nextwork;
+        }
+        public PixivWork OpenPrevWork(PixivWork currentItem, bool openWindow = false)
+        {
+            var colview = MainWindow.GetCurrentCollectionViewSource().View;
+
+            PixivWork prevwork = null;
+            foreach (PixivWork i in colview)
+            {
+                if (i.Id.Value == currentItem.Id.Value) break;
+                if (MainWindow.IsNSFWAllowed() == false && i.IsNSFW) continue;
+                prevwork = i;
+            }
+
+            if (prevwork == null) return null;
+
+            if (openWindow) OpenWork(prevwork);
+            return prevwork;
+        }
+
+        public async void FillResultsFromCache(int from, int length)
+        {
+            await Task.Run(() => results.Sort((a, b) => b.Stats.Score.Value.CompareTo(a.Stats.Score.Value)));
+
+            int added = 0;
+            for(int i = from - 2; i < results.Count; i++)
+            {
+                if (added >= length) break;
+                var item = results[i];
+                
+                Scheduler_DisplayedWorks_Results.AddItem(item);
+                added++;
+            }
+        }
+        #endregion
 
         #region Command Methods
         public void OpenInBrowser(PixivWork work)
@@ -452,7 +569,7 @@ namespace CryPixivClient.ViewModels
             if (force == false) selected = MainWindow.GetSelectedWorks();
             else selected = new List<PixivWork>() { work };
 
-            if(MainWindow.IsNSFWAllowed() == false)
+            if (MainWindow.IsNSFWAllowed() == false)
             {
                 // remove all NSFW works
                 selected.RemoveAll(x => x.IsNSFW);
@@ -494,56 +611,12 @@ namespace CryPixivClient.ViewModels
             manager.Show();
         }
         #endregion
-
-        public PixivWork OpenNextWork(PixivWork currentItem, bool openWindow = false)
-        {
-            var colview = MainWindow.GetCurrentCollectionViewSource().View;
-
-            bool next = false;
-            PixivWork nextwork = null;
-            foreach(PixivWork i in colview)
-            {
-                if (next)
-                {
-                    if (MainWindow.IsNSFWAllowed() == false && i.IsNSFW) continue;
-                    nextwork = i; break;
-                }
-                if (i.Id.Value == currentItem.Id.Value) next = true;
-            }
-
-            if (nextwork == null) return null;
-
-            if (openWindow) OpenWork(nextwork);
-            return nextwork;
-        }
-        public PixivWork OpenPrevWork(PixivWork currentItem, bool openWindow = false)
-        {
-            var colview = MainWindow.GetCurrentCollectionViewSource().View;
-
-            PixivWork prevwork = null;
-            foreach (PixivWork i in colview)
-            {
-                if (i.Id.Value == currentItem.Id.Value) break;
-                if (MainWindow.IsNSFWAllowed() == false && i.IsNSFW) continue;
-                prevwork = i;
-            }
-
-            if (prevwork == null) return null;
-
-            if (openWindow) OpenWork(prevwork);
-            return prevwork;
-        }
     }
 
     public static class Extensions
     {
-        public static void SwapCollection<T>(this MyObservableCollection<T> collection, IEnumerable<T> target)
-        {
-            collection.Clear();
-            collection.AddList(target);
-        }
-
-        public static void UpdateWith(this MyObservableCollection<PixivWork> collection, IEnumerable<PixivWork> target, bool fixInvalid = true)
+        public static void UpdateWith(this MyObservableCollection<PixivWork> collection, IEnumerable<PixivWork> target,
+            Scheduler<PixivWork> associatedScheduler, bool fixInvalid = true)
         {
             if (target.Count() == 0) return;
 
@@ -563,8 +636,8 @@ namespace CryPixivClient.ViewModels
 
                     if (i.Stats != null && ti.Stats != null) i.Stats.Score = ti.Stats.Score;
                 }
-                
-                if (shouldAdd) collection.Add(ti);
+
+                if (shouldAdd) associatedScheduler.AddItem(ti);
             }
 
             if (fixInvalid == false) return;
@@ -574,17 +647,17 @@ namespace CryPixivClient.ViewModels
             int max = target.Last().OrderNumber;
 
             List<PixivWork> duplicates = new List<PixivWork>();
-            foreach(var item in collection)
+            foreach (var item in collection)
             {
                 if (item.OrderNumber < min || item.OrderNumber > max) continue;
 
                 bool found = false;
-                foreach(var ti in target) if (item.Id == ti.Id) { found = true; break; }
+                foreach (var ti in target) if (item.Id == ti.Id) { found = true; break; }
 
                 if (found == false) duplicates.Add(item);
             }
 
-            foreach (var d in duplicates) collection.Remove(d);
+            foreach (var d in duplicates) associatedScheduler.RemoveItem(d);
         }
 
         public static void AddToList(this List<PixivWork> collection, IEnumerable<PixivWork> target)
@@ -618,6 +691,13 @@ namespace CryPixivClient.ViewModels
                 collection[i].OrderNumber = startNumber;
                 startNumber++;
             }
+        }
+
+        public static int Count(this ICollectionView view)
+        {
+            int count = 0;
+            foreach (var i in view) count++;
+            return count;
         }
     }
 }

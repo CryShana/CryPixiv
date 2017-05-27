@@ -10,6 +10,7 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
 
 namespace CryPixivClient
 {
@@ -75,59 +76,73 @@ namespace CryPixivClient
         }
 
         #region Getting Data
-        public async Task<Paginated<Work>> SearchWorks(string searchQuery, int page = 1) => await GetData(() => tokens.SearchWorksAsync(searchQuery, page, mode: "tag", perPage: MainViewModel.DefaultPerPage));
+        public async Task<Paginated<Work>> SearchWorks(string searchQuery, int page = 1)
+        {
+            var result = await GetData(() => tokens.SearchWorksAsync(searchQuery, page, mode: "tag", perPage: MainViewModel.DefaultPerPage));
+            if (result == null || string.IsNullOrEmpty(result.Item2) == false) ShowError((result == null) ? "Unknown error." : result.Item2);
+            return result.Item1;
+        }
         public async Task<List<PixivWork>> GetDailyRanking(int page = 1)
         {
             var result = await GetData(() => tokens.GetRankingAllAsync(page: page, perPage: MainViewModel.DefaultPerPage));
-            if (result == null) return null;
-
-            return result.ToPixivWork();
+            if (result == null || string.IsNullOrEmpty(result.Item2) == false) ShowError((result == null) ? "Unknown error." : result.Item2);
+            return result.Item1.ToPixivWork();
         }
         public async Task<List<PixivWork>> GetFollowing(int page = 1, Publicity publicity = Publicity.Public)
         {
             var result = await GetData(() => tokens.GetMyFollowingWorksAsync(page: page, publicity: publicity.ToString().ToLower(), perPage: MainViewModel.DefaultPerPage));
-            return result.ToPixivWork();
+            if (result == null || string.IsNullOrEmpty(result.Item2) == false) ShowError((result == null) ? "Unknown error." : result.Item2);
+            return result.Item1.ToPixivWork();
         }
         public async Task<List<PixivWork>> GetBookmarks(int page = 1, Publicity publicity = Publicity.Public)
         {
             var result = await GetData(() => tokens.GetMyFavoriteWorksAsync(page: page, publicity: publicity.ToString().ToLower(), perPage: MainViewModel.DefaultPerPage));
-            return result.Select(x => x.Work).ToPixivWork();
+            if (result == null || string.IsNullOrEmpty(result.Item2) == false) ShowError((result == null) ? "Unknown error." : result.Item2);
+            return result.Item1.Select(x => x.Work).ToPixivWork();
         }
         public async Task<List<PixivWork>> GetRecommended(int page = 1)
-        {           
+        {
             var result = await GetData(() => tokens.GetRecommendedWorks(page: page, perPage: MainViewModel.DefaultPerPage));
-            return result.ToPixivWork();
+            if (result == null || string.IsNullOrEmpty(result.Item2) == false) ShowError((result == null) ? "Unknown error." : result.Item2);
+            return result.Item1.ToPixivWork();
         }
         public async Task<List<PixivWork>> GetUserWorks(long userId, int page = 1)
         {
             var result = await GetData(() => tokens.GetUsersWorksAsync(userId, page: page, perPage: MainViewModel.DefaultPerPage));
-            return result.ToPixivWork();
+            if (result == null || string.IsNullOrEmpty(result.Item2) == false) ShowError((result == null) ? "Unknown error." : result.Item2);
+            return result.Item1.ToPixivWork();
         }
 
-        async Task<T> GetData<T>(Func<Task<T>> toDo)
+        void ShowError(string msg)
+        {
+            IsLoggedIn = false;
+            MessageBox.Show(msg, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            AuthFailed?.Invoke(this, msg);
+        }
+        async Task<Tuple<T, string>> GetData<T>(Func<Task<Tuple<T, string>>> toDo)
         {
             try
             {
-                if (AuthDetails.IsExpired) throw new Exception("Expired AuthToken!");
+                if (AuthDetails.IsExpired) throw new Exception("Expired session! Please login again!");
 
                 var result = await toDo();
                 return result;
             }
             catch (Exception ex)
             {
-                IsLoggedIn = false;
-                AuthFailed?.Invoke(this, ex.Message);
-                return default(T);
+                ShowError(ex.Message);
+                return null;
             }
         }
         #endregion
 
-        public async Task<Tuple<bool,long?>> AddToBookmarks(long workId)
+        public async Task<Tuple<bool, long?>> AddToBookmarks(long workId)
         {
             try
             {
                 var result = await tokens.AddMyFavoriteWorksAsync(workId);
-                return new Tuple<bool, long?>(true, result.First().Id);
+                if (result == null || string.IsNullOrEmpty(result.Item2) == false) ShowError((result == null) ? "Unknown error." : result.Item2);
+                return new Tuple<bool, long?>(true, result.Item1.First().Id);
             }
             catch
             {

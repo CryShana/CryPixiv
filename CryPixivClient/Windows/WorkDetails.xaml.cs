@@ -305,5 +305,10 @@ namespace CryPixivClient.Windows
             var img = await Task.Run(() => DownloadedImages[currentPage] as BitmapSource);
             Clipboard.SetImage(img);
         }
+
+        private void CopyLink(object sender, RoutedEventArgs e)
+        {
+            Clipboard.SetText($"https://www.pixiv.net/member_illust.php?mode=medium&illust_id={LoadedWork.Id}");
+        }
     }
 }
