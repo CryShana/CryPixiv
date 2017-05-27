@@ -495,7 +495,7 @@ namespace CryPixivClient
         }
 
         // Data Virtualization of some sort :D
-        public const int ItemsDisplayedLimit = 200;
+        public const int ItemsDisplayedLimit = 500;
         public static int ItemLimit = 100;
         void PrepareCollectionFilter() => MainCollectionViewSorted.Filter += Filter;
 

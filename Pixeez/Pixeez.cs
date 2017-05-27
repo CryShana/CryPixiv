@@ -196,7 +196,8 @@ namespace Pixeez
                 var json = await response.GetResponseStringAsync();
                 T obj = default(T);
 
-                if (json == "{}") return new Tuple<T, string>(obj, null); ;
+                if (json == "{}" || json.Contains("{\"system\":{\"message\":404,\"code\":null}}}"))
+                    return new Tuple<T, string>(obj, null); ;
 
                 json = json.Replace("created_time", "create_date"); // to make it compatible with newer JSON entries
                 json = json.Replace("tags", "tags_old");
@@ -207,7 +208,7 @@ namespace Pixeez
                 catch (NullReferenceException nex)
                 {
                     if (json.Contains("存在しないランキングページを参照しています") || json.Contains("has_error"))
-                        return new Tuple<T, string>(obj, "Known Error: " + nex.Message);
+                        return new Tuple<T, string>(obj, "Known Error: " + "Invalid response from server received!");
                     else return new Tuple<T, string>(obj, "Error: " + nex.Message);
 
                 }

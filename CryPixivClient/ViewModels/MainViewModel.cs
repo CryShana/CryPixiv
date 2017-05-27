@@ -289,11 +289,7 @@ namespace CryPixivClient.ViewModels
                     {
                         // check limit
                         int count = 0;
-                        UIContext.Send((a) =>
-                        {
-                            var view = MainWindow.GetCurrentCollectionViewSource().View;
-                            foreach (var item in view) count++;
-                        }, null);
+                        UIContext.Send((a) => count = MainWindow.GetCurrentCollectionViewSource().View.Count(), null);
                         if (count >= MainWindow.ItemLimit - 5) MainWindow.LimitReached = true;
 
                         // start downloading next page
@@ -327,7 +323,9 @@ namespace CryPixivClient.ViewModels
                 {
                     IsWorking = false;
                     MainWindow.SetSearchButtonState(false);
-                    Status = "Done.";
+                    UIContext.Post(a => MainWindow.currentWindow.SchedulerJobFinished(
+                            Scheduler_DisplayedWorks_Results, null, displayedWorks_Results), null);
+
                     Finished = true;
                 }
             }, csrc.Token);
