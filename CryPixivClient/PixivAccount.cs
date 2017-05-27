@@ -53,6 +53,7 @@ namespace CryPixivClient
                 Settings.Default.AuthPassword = EncryptPassword(pass, MainWindow.Account.AuthDetails.RefreshToken);
                 Settings.Default.Save();
 
+                IsLoggedIn = true;
                 return true;
             }
             catch
@@ -79,37 +80,41 @@ namespace CryPixivClient
         public async Task<Paginated<Work>> SearchWorks(string searchQuery, int page = 1)
         {
             var result = await GetData(() => tokens.SearchWorksAsync(searchQuery, page, mode: "tag", perPage: MainViewModel.DefaultPerPage));
-            if (result == null || string.IsNullOrEmpty(result.Item2) == false) ShowError((result == null) ? "Unknown error." : result.Item2);
+
+            if (result == null || result.Item1 == null) return new Paginated<Work>();
             return result.Item1;
         }
         public async Task<List<PixivWork>> GetDailyRanking(int page = 1)
         {
             var result = await GetData(() => tokens.GetRankingAllAsync(page: page, perPage: MainViewModel.DefaultPerPage));
-            if (result == null || string.IsNullOrEmpty(result.Item2) == false) ShowError((result == null) ? "Unknown error." : result.Item2);
+
+            if (result == null || result.Item1 == null) return new List<PixivWork>();
             return result.Item1.ToPixivWork();
         }
         public async Task<List<PixivWork>> GetFollowing(int page = 1, Publicity publicity = Publicity.Public)
         {
             var result = await GetData(() => tokens.GetMyFollowingWorksAsync(page: page, publicity: publicity.ToString().ToLower(), perPage: MainViewModel.DefaultPerPage));
-            if (result == null || string.IsNullOrEmpty(result.Item2) == false) ShowError((result == null) ? "Unknown error." : result.Item2);
+
+            if (result == null || result.Item1 == null) return new List<PixivWork>();
             return result.Item1.ToPixivWork();
         }
         public async Task<List<PixivWork>> GetBookmarks(int page = 1, Publicity publicity = Publicity.Public)
         {
             var result = await GetData(() => tokens.GetMyFavoriteWorksAsync(page: page, publicity: publicity.ToString().ToLower(), perPage: MainViewModel.DefaultPerPage));
-            if (result == null || string.IsNullOrEmpty(result.Item2) == false) ShowError((result == null) ? "Unknown error." : result.Item2);
+
+            if (result == null || result.Item1 == null) return new List<PixivWork>();
             return result.Item1.Select(x => x.Work).ToPixivWork();
         }
         public async Task<List<PixivWork>> GetRecommended(int page = 1)
         {
             var result = await GetData(() => tokens.GetRecommendedWorks(page: page, perPage: MainViewModel.DefaultPerPage));
-            if (result == null || string.IsNullOrEmpty(result.Item2) == false) ShowError((result == null) ? "Unknown error." : result.Item2);
             return result.Item1.ToPixivWork();
         }
         public async Task<List<PixivWork>> GetUserWorks(long userId, int page = 1)
         {
             var result = await GetData(() => tokens.GetUsersWorksAsync(userId, page: page, perPage: MainViewModel.DefaultPerPage));
-            if (result == null || string.IsNullOrEmpty(result.Item2) == false) ShowError((result == null) ? "Unknown error." : result.Item2);
+            
+            if (result == null || result.Item1 == null) return new List<PixivWork>();
             return result.Item1.ToPixivWork();
         }
 
@@ -126,6 +131,8 @@ namespace CryPixivClient
                 if (AuthDetails.IsExpired) throw new Exception("Expired session! Please login again!");
 
                 var result = await toDo();
+                if (result == null || string.IsNullOrEmpty(result.Item2) == false) ShowError((result == null) ? "Unknown error." : result.Item2);
+           
                 return result;
             }
             catch (Exception ex)
