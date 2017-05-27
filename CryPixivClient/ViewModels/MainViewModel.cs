@@ -264,13 +264,13 @@ namespace CryPixivClient.ViewModels
             var mode = PixivAccount.WorkMode.Search;
             MainWindow.CurrentWorkMode = mode;
 
-            // load cached results if they exist
-            if (otherWasRunning) await ResetSearchResults();
-
             // show status
             TitleSuffix = "";
             Status = "Preparing to get data...";
             CollectionStatus = "-";
+
+            // load cached results if they exist
+            if (otherWasRunning) await ResetSearchResults();
 
             var csrc = new CancellationTokenSource();
             queuedSearches.Enqueue(csrc);
@@ -503,7 +503,7 @@ namespace CryPixivClient.ViewModels
             await Task.Run(() => results.Sort((a, b) => b.Stats.Score.Value.CompareTo(a.Stats.Score.Value)));
 
             int added = 0;
-            for(int i = from - 1; i < results.Count; i++)
+            for(int i = from - 2; i < results.Count; i++)
             {
                 if (added >= length) break;
                 var item = results[i];
