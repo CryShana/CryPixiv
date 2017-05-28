@@ -308,9 +308,17 @@ namespace CryPixivClient.Windows
         async void CopyImage(object sender, RoutedEventArgs e)
         {
             if (DownloadedImages.ContainsKey(currentPage) == false) return;
+            
+            var copyTd = new Thread(CopyImageToClipboard);
+            copyTd.SetApartmentState(ApartmentState.STA);
+            copyTd.Start();
+        }
 
-            var img = await Task.Run(() => DownloadedImages[currentPage] as BitmapSource);
-            Clipboard.SetImage(img);
+        void CopyImageToClipboard()
+        {
+            var src = DownloadedImages[currentPage] as BitmapSource;
+            src.Freeze();
+            Clipboard.SetImage(src);            
         }
 
         private void CopyLink(object sender, RoutedEventArgs e)
