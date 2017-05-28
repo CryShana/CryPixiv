@@ -94,6 +94,11 @@ namespace CryPixivClient
             return false;
         }
         
+        public void Clear()
+        {
+            JobQueue.Clear();
+            PriorityJobQueue.Clear();
+        }
         public void Stop() => timer.Stop();
         public void Continue() => timer.Start();
 

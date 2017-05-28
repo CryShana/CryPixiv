@@ -332,27 +332,28 @@ namespace CryPixivClient.ViewModels
 
         #region Show Method Callers
         public async void ShowDailyRankings() =>
-            await Show(dailyRankings, DisplayedWorks_Ranking, PixivAccount.WorkMode.Ranking, "Daily Ranking", (page) => MainWindow.Account.GetDailyRanking(page), Scheduler_DisplayedWorks_Ranking);
+            await Show(dailyRankings, DisplayedWorks_Ranking, PixivAccount.WorkMode.Ranking, "Daily Ranking", 
+                (page) => MainWindow.Account.GetDailyRanking(page), Scheduler_DisplayedWorks_Ranking);
 
         public async void ShowFollowing() =>
-            await Show(following, DisplayedWorks_Following, PixivAccount.WorkMode.Following, "Following", (page) => MainWindow.Account.GetFollowing(page), Scheduler_DisplayedWorks_Following);
+            await Show(following, DisplayedWorks_Following, PixivAccount.WorkMode.Following, "Following", 
+                (page) => MainWindow.Account.GetFollowing(page), Scheduler_DisplayedWorks_Following);
 
         public async void ShowBookmarksPublic() =>
-            await Show(bookmarks, DisplayedWorks_Bookmarks, PixivAccount.WorkMode.BookmarksPublic, "Bookmarks", (page) => MainWindow.Account.GetBookmarks(page, PixivAccount.Publicity.Public), Scheduler_DisplayedWorks_Bookmarks);
+            await Show(bookmarks, DisplayedWorks_Bookmarks, PixivAccount.WorkMode.BookmarksPublic, "Bookmarks", 
+                (page) => MainWindow.Account.GetBookmarks(page, PixivAccount.Publicity.Public), Scheduler_DisplayedWorks_Bookmarks);
 
         public async void ShowBookmarksPrivate() =>
-            await Show(bookmarksprivate, DisplayedWorks_BookmarksPrivate, PixivAccount.WorkMode.BookmarksPrivate, "Private Bookmarks", (page) => MainWindow.Account.GetBookmarks(page, PixivAccount.Publicity.Private), Scheduler_DisplayedWorks_BookmarksPrivate);
+            await Show(bookmarksprivate, DisplayedWorks_BookmarksPrivate, PixivAccount.WorkMode.BookmarksPrivate, "Private Bookmarks", 
+                (page) => MainWindow.Account.GetBookmarks(page, PixivAccount.Publicity.Private), Scheduler_DisplayedWorks_BookmarksPrivate);
 
         public async void ShowRecommended() =>
-            await Show(recommended, DisplayedWorks_Recommended, PixivAccount.WorkMode.Recommended, "Recommended", (page) => MainWindow.Account.GetRecommended(page), Scheduler_DisplayedWorks_Recommended, fixInvalid: false);
-        public async void ShowUserWork(long userId, string username)
-        {
-            DisplayedWorks_User = new MyObservableCollection<PixivWork>();
-            Scheduler_DisplayedWorks_User.Stop();
-            Scheduler_DisplayedWorks_User = new Scheduler<PixivWork>(ref displayedWorks_User, PixivWorkEqualityComparer, PixivIdGetter, PixivAccount.WorkMode.User);
-
-            await Show(user, DisplayedWorks_User, PixivAccount.WorkMode.User, "User work - " + username, (page) => MainWindow.Account.GetUserWorks(userId, page), Scheduler_DisplayedWorks_User);
-        }
+            await Show(recommended, DisplayedWorks_Recommended, PixivAccount.WorkMode.Recommended, "Recommended", 
+                (page) => MainWindow.Account.GetRecommended(page), Scheduler_DisplayedWorks_Recommended, fixInvalid: false);
+        public async void ShowUserWork(long userId, string username) => 
+            await Show(user, DisplayedWorks_User, PixivAccount.WorkMode.User, "User work - " + username, 
+                (page) => MainWindow.Account.GetUserWorks(userId, page), Scheduler_DisplayedWorks_User);
+        
         #endregion
 
         #region Other Methods
@@ -388,30 +389,28 @@ namespace CryPixivClient.ViewModels
 
             semaphore.Release();
         }
-        public async Task ResetRecommended()
+        public async Task ResetRecommended(bool autoshow = true)
         {
             bool wasRecommended = MainWindow.CurrentWorkMode == PixivAccount.WorkMode.Recommended;
-            if (wasRecommended)
-            {
-                MainWindow.CurrentWorkMode = PixivAccount.WorkMode.Following;
-                await Task.Delay(300);
-            }
 
             await semaphore.WaitAsync();
             recommended = new List<PixivWork>();
             DisplayedWorks_Recommended = new MyObservableCollection<PixivWork>();
+            Scheduler_DisplayedWorks_Recommended.Stop();
+            Scheduler_DisplayedWorks_Recommended = new Scheduler<PixivWork>(ref displayedWorks_Recommended,
+                PixivWorkEqualityComparer, PixivIdGetter, PixivAccount.WorkMode.Recommended, UIContext);
             semaphore.Release();
 
-            if (wasRecommended)
-            {
-                ShowRecommended();
-            }
+            if (wasRecommended && autoshow) ShowRecommended();          
         }
         public async Task ResetUsers()
         {
             await semaphore.WaitAsync();
             user = new List<PixivWork>();
             DisplayedWorks_User = new MyObservableCollection<PixivWork>();
+            Scheduler_DisplayedWorks_User.Stop();
+            Scheduler_DisplayedWorks_User = new Scheduler<PixivWork>(ref displayedWorks_User, 
+                PixivWorkEqualityComparer, PixivIdGetter, PixivAccount.WorkMode.User, UIContext);
             semaphore.Release();
         }
         public void ForceRefreshImages()

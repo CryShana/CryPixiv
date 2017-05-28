@@ -424,13 +424,9 @@ namespace CryPixivClient
         static long currentUserId = -1;
         public async static void ShowUserWork(long userId, string username)
         {
-            if (userId <= 0 || CurrentWorkMode == PixivAccount.WorkMode.User)
-            {
-                if (userId == currentUserId) return;
-
-                await MainModel.ResetUsers();
-            }
-
+            if (userId <= 0 || userId == currentUserId) return;
+            else await MainModel.ResetUsers();
+            
             currentUserId = userId;
             currentWindow.Dispatcher.Invoke(() =>
             {
