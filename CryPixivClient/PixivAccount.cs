@@ -121,6 +121,8 @@ namespace CryPixivClient
         void ShowError(string msg)
         {
             IsLoggedIn = false;
+            if (MainWindow.IsClosing) return;
+
             MessageBox.Show(msg, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             AuthFailed?.Invoke(this, msg);
         }

@@ -35,6 +35,7 @@ namespace CryPixivClient
         public static CollectionViewSource MainCollectionViewBookmarks;
         public static CollectionViewSource MainCollectionViewBookmarksPrivate;
         public static CollectionViewSource MainCollectionViewUser;
+        public static bool IsClosing = false;
 
         public MainWindow()
         {
@@ -138,6 +139,8 @@ namespace CryPixivClient
 
         void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
+            IsClosing = true;
+
             // save window data
             Settings.Default.NSFW = checkNSFW.IsChecked == true;
             Settings.Default.WindowHeight = Height;
@@ -303,8 +306,6 @@ namespace CryPixivClient
             // Get scrollviewer
             ScrollViewer scrollViewer = border.Child as ScrollViewer;
 
-            // how much further can it go until it asks for updates
-
             // speed up scrolling when scrolling with mouse
             bool mouseIsDown = Mouse.LeftButton == MouseButtonState.Pressed;
             if (e != null && scrolled == false && mouseIsDown == false)
@@ -314,6 +315,7 @@ namespace CryPixivClient
             }
             else scrolled = false;
 
+            // how much further can it go until it asks for updates
             double pointForUpade = scrollViewer.ScrollableHeight * 0.7;
             double pointForUpade2 = scrollViewer.ScrollableHeight * 0.95;
             if (scrollViewer.VerticalOffset > pointForUpade)

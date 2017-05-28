@@ -478,21 +478,6 @@ namespace CryPixivClient.ViewModels
             if (openWindow) OpenWork(prevwork);
             return prevwork;
         }
-
-        public async void FillResultsFromCache(int from, int length)
-        {
-            await Task.Run(() => results.Sort((a, b) => b.Stats.Score.Value.CompareTo(a.Stats.Score.Value)));
-
-            int added = 0;
-            for(int i = from - 2; i < results.Count; i++)
-            {
-                if (added >= length) break;
-                var item = results[i];
-                
-                Scheduler_DisplayedWorks_Results.AddItem(item);
-                added++;
-            }
-        }
         #endregion
 
         #region Command Methods
