@@ -78,26 +78,24 @@ namespace CryPixivClient
             if (MainModel.DisplayedWorks_Ranking.Count > 0) MainModel.ForceRefreshImages();
         }
 
-        void AuthenticationFailed(object sender, string e)
-        {
-            UIContext.Send((a) => ShowLoginPrompt(true), null);
-        }
+        void AuthenticationFailed(object sender, string e) => UIContext.Send((a) => ShowLoginPrompt(true), null);
+        
 
         void ToggleLists(PixivAccount.WorkMode mode)
         {
-            Panel.SetZIndex(mainListSorted, (mode == PixivAccount.WorkMode.Search) ? 10 : 0);
+            mainListSorted.Visibility = (mode == PixivAccount.WorkMode.Search) ? Visibility.Visible : Visibility.Hidden;
 
-            Panel.SetZIndex(mainListRecommended, (mode == PixivAccount.WorkMode.Recommended) ? 10 : 0);
+            mainListRecommended.Visibility = (mode == PixivAccount.WorkMode.Recommended) ? Visibility.Visible : Visibility.Hidden;
 
-            Panel.SetZIndex(mainListRanking, (mode == PixivAccount.WorkMode.Ranking) ? 10 : 0);
+            mainListRanking.Visibility = (mode == PixivAccount.WorkMode.Ranking) ? Visibility.Visible : Visibility.Hidden;
 
-            Panel.SetZIndex(mainListFollowing, (mode == PixivAccount.WorkMode.Following) ? 10 : 0);
+            mainListFollowing.Visibility = (mode == PixivAccount.WorkMode.Following) ? Visibility.Visible : Visibility.Hidden;
 
-            Panel.SetZIndex(mainListBookmarks, (mode == PixivAccount.WorkMode.BookmarksPublic) ? 10 : 0);
+            mainListBookmarks.Visibility = (mode == PixivAccount.WorkMode.BookmarksPublic) ? Visibility.Visible : Visibility.Hidden;
 
-            Panel.SetZIndex(mainListBookmarksPrivate, (mode == PixivAccount.WorkMode.BookmarksPrivate) ? 10 : 0);
+            mainListBookmarksPrivate.Visibility = (mode == PixivAccount.WorkMode.BookmarksPrivate) ? Visibility.Visible : Visibility.Hidden;
 
-            Panel.SetZIndex(mainListUser, (mode == PixivAccount.WorkMode.User) ? 10 : 0);
+            mainListUser.Visibility = (mode == PixivAccount.WorkMode.User) ? Visibility.Visible : Visibility.Hidden;
         }
 
         #region Saving/Loading

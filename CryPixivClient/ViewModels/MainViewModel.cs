@@ -187,69 +187,81 @@ namespace CryPixivClient.ViewModels
             var csrc = new CancellationTokenSource();
             queuedSearches.Enqueue(csrc);
 
-            // start searching...
-            await Task.Run(async () =>
+            try
             {
-                cache.Clear();
-                int currentPage = 0;
-                bool lastWasStuck = false;
-                for (;;)
+                // start searching...
+                await Task.Run(async () =>
                 {
-                    if (MainWindow.CurrentWorkMode != mode || csrc.IsCancellationRequested) break;  // if user changes mode - break;
+                    cache.Clear();
+                    int currentPage = 0;
+                    bool lastWasStuck = false;
+                    for (;;)
+                    {
+                        if (MainWindow.CurrentWorkMode != mode || csrc.IsCancellationRequested) break;  // if user changes mode - break;
 
                     // if limit exceeded, stop downloading until user scrolls
                     if (MainWindow.DynamicWorksLimit < cache.Count && waitForUser && cache.Count >= displayCollection.Count)
-                    {
-                        MainWindow.LimitReached = true;
-                        UIContext.Post(a => MainWindow.currentWindow.SchedulerJobFinished(scheduler, null, displayCollection), null);
-                        lastWasStuck = true;
-                        IsWorking = false;
-                        await Task.Delay(200);
-                        continue;
-                    }
-                    else
-                    {
-                        if (lastWasStuck)
                         {
-                            Status = $"Continuing...";
-                            lastWasStuck = false;
+                            MainWindow.LimitReached = true;
+                            UIContext.Post(a => MainWindow.currentWindow.SchedulerJobFinished(scheduler, null, displayCollection), null);
+                            lastWasStuck = true;
+                            IsWorking = false;
+                            await Task.Delay(200);
+                            continue;
                         }
-                    }
+                        else
+                        {
+                            if (lastWasStuck)
+                            {
+                                Status = $"Continuing...";
+                                lastWasStuck = false;
+                            }
+                        }
 
-                    try
-                    {
+                        try
+                        {
                         // start downloading next page
                         IsWorking = true;
-                        currentPage++;
+                            currentPage++;
 
                         // download current page
                         var works = await getWorks(currentPage);
-                        if (works == null || MainWindow.CurrentWorkMode != mode 
-                            || works.Count == 0 || csrc.IsCancellationRequested) break;
+                            if (works == null || MainWindow.CurrentWorkMode != mode
+                                || works.Count == 0 || csrc.IsCancellationRequested) break;
 
                         // start NUMBERIN
                         if (mode != PixivAccount.WorkMode.Recommended) works.AssignOrderToWorks(currentPage, DefaultPerPage);
 
-                        cache.AddRange(works);
-                        UIContext.Send(async (a) =>
+                            cache.AddRange(works);
+                            UIContext.Send(async (a) =>
+                            {
+                                await semaphore.WaitAsync();
+                                displayCollection.UpdateWith(works, scheduler, fixInvalid);
+                                semaphore.Release();
+                            }, null);
+                        }
+                        catch (Exception ex)
                         {
-                            await semaphore.WaitAsync();
-                            displayCollection.UpdateWith(works, scheduler, fixInvalid);
-                            semaphore.Release();
-                        }, null);
+                            break;
+                        }
                     }
-                    catch (Exception ex)
-                    {
-                        break;
-                    }
-                }
 
-                if (MainWindow.CurrentWorkMode == mode)
-                {
-                    IsWorking = false;
-                    Finished = true;
-                }
-            });
+                    if (MainWindow.CurrentWorkMode == mode)
+                    {
+                        IsWorking = false;
+                        Finished = true;
+                    }
+                });
+            }
+            catch (TaskCanceledException tex)
+            {
+                // ignore
+            }
+            catch (Exception ex)
+            {
+                System.Windows.MessageBox.Show("Download Error: " + ex.Message, "Download Error",
+                    MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
 
         public async void ShowSearch(string query, bool autosort = true, int continuePage = 1)
@@ -278,55 +290,67 @@ namespace CryPixivClient.ViewModels
             var csrc = new CancellationTokenSource();
             queuedSearches.Enqueue(csrc);
 
-            // start searching...
-            await Task.Run(async () =>
+            try
             {
-                int currentPage = continuePage - 1;
-                for (;;)
+                // start searching...
+                await Task.Run(async () =>
                 {
-                    if (MainWindow.CurrentWorkMode != mode || csrc.IsCancellationRequested) break; // if user changes mode or requests task to be cancelled - break;
-                    // check if max results reached
+                    int currentPage = continuePage - 1;
+                    for (;;)
+                    {
+                        if (MainWindow.CurrentWorkMode != mode || csrc.IsCancellationRequested) break; // if user changes mode or requests task to be cancelled - break;
+                                                                                                       // check if max results reached
                     if (MaxResults != -1 && MaxResults <= results.Count) break;
 
-                    try
-                    {
+                        try
+                        {
                         // start downloading next page
                         IsWorking = true;
-                        currentPage++;
+                            currentPage++;
 
                         // download current page
                         var works = await MainWindow.Account.SearchWorks(query, currentPage);
-                        if (works == null || MainWindow.CurrentWorkMode != mode || csrc.IsCancellationRequested || works.Count == 0) break;
-                        if (MaxResults == -1) MaxResults = works.Pagination.Total ?? 0;
+                            if (works == null || MainWindow.CurrentWorkMode != mode || csrc.IsCancellationRequested || works.Count == 0) break;
+                            if (MaxResults == -1) MaxResults = works.Pagination.Total ?? 0;
 
-                        var wworks = works.ToPixivWork();
-                        results.AddToList(wworks);
+                            var wworks = works.ToPixivWork();
+                            results.AddToList(wworks);
 
-                        UIContext.Send(async (a) =>
+                            UIContext.Send(async (a) =>
+                            {
+                                await semaphore.WaitAsync();
+                                DisplayedWorks_Results.UpdateWith(wworks, Scheduler_DisplayedWorks_Results, false);
+                                semaphore.Release();
+                            }, null);
+
+                            currentPageResults = currentPage;
+                        }
+                        catch (Exception ex)
                         {
-                            await semaphore.WaitAsync();
-                            DisplayedWorks_Results.UpdateWith(wworks, Scheduler_DisplayedWorks_Results, false);
-                            semaphore.Release();
-                        }, null);
-
-                        currentPageResults = currentPage;
+                            break;
+                        }
                     }
-                    catch (Exception ex)
+
+                    if (MainWindow.CurrentWorkMode == mode)
                     {
-                        break;
+                        IsWorking = false;
+                        MainWindow.SetSearchButtonState(false);
+                        UIContext.Post(a => MainWindow.currentWindow.SchedulerJobFinished(
+                                Scheduler_DisplayedWorks_Results, null, displayedWorks_Results), null);
+
+                        Finished = true;
                     }
-                }
-
-                if (MainWindow.CurrentWorkMode == mode)
-                {
-                    IsWorking = false;
-                    MainWindow.SetSearchButtonState(false);
-                    UIContext.Post(a => MainWindow.currentWindow.SchedulerJobFinished(
-                            Scheduler_DisplayedWorks_Results, null, displayedWorks_Results), null);
-
-                    Finished = true;
-                }
-            }, csrc.Token);
+                }, csrc.Token);
+            }
+            catch(TaskCanceledException tex)
+            {
+                // ignore
+            }
+            catch(Exception ex)
+            {
+                System.Windows.MessageBox.Show("Download Error: " + ex.Message, "Download Error", 
+                    MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
         #endregion
 
