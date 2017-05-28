@@ -12,50 +12,42 @@
         Icon="Images/pixiv.ico" Closing="Window_Closing" SizeChanged="Window_SizeChanged" StateChanged="Window_StateChanged">
     <Window.Resources>
         <vm:MainViewModel x:Key="mainViewModel"/>
-        <vm:DesignMainViewModel x:Key="designViewModel"/>
         <BitmapImage x:Key="missingImage" UriSource="Images/missingImage.jpg" />
 
         <!-- COLLECTION VIEW SOURCES START HERE -->
-        <CollectionViewSource x:Key="ItemListViewSourceSorted" Source="{Binding DisplayedWorks_Results, Source={StaticResource mainViewModel}}" 
-                              d:Source="{Binding FoundWorks, Source={StaticResource designViewModel}}">
+        <CollectionViewSource x:Key="ItemListViewSourceSorted" Source="{Binding DisplayedWorks_Results, Source={StaticResource mainViewModel}}">
             <CollectionViewSource.SortDescriptions>
                 <scm:SortDescription PropertyName="Stats.Score" Direction="Descending"/>
             </CollectionViewSource.SortDescriptions>
         </CollectionViewSource>
 
-        <CollectionViewSource x:Key="ItemListViewSourceRecommended" Source="{Binding DisplayedWorks_Recommended, Source={StaticResource mainViewModel}}" 
-                              d:Source="{Binding FoundWorks, Source={StaticResource designViewModel}}"/>
+        <CollectionViewSource x:Key="ItemListViewSourceRecommended" Source="{Binding DisplayedWorks_Recommended, Source={StaticResource mainViewModel}}" />
 
-        <CollectionViewSource x:Key="ItemListViewSourceRanking" Source="{Binding DisplayedWorks_Ranking, Source={StaticResource mainViewModel}}" 
-                              d:Source="{Binding FoundWorks, Source={StaticResource designViewModel}}">
+        <CollectionViewSource x:Key="ItemListViewSourceRanking" Source="{Binding DisplayedWorks_Ranking, Source={StaticResource mainViewModel}}">
             <CollectionViewSource.SortDescriptions>
                 <scm:SortDescription PropertyName="OrderNumber" Direction="Ascending"/>
             </CollectionViewSource.SortDescriptions>
         </CollectionViewSource>
 
-        <CollectionViewSource x:Key="ItemListViewSourceFollowing" Source="{Binding DisplayedWorks_Following, Source={StaticResource mainViewModel}}" 
-                              d:Source="{Binding FoundWorks, Source={StaticResource designViewModel}}">
+        <CollectionViewSource x:Key="ItemListViewSourceFollowing" Source="{Binding DisplayedWorks_Following, Source={StaticResource mainViewModel}}">
             <CollectionViewSource.SortDescriptions>
                 <scm:SortDescription PropertyName="CreatedTime" Direction="Descending"/>
             </CollectionViewSource.SortDescriptions>
         </CollectionViewSource>
 
-        <CollectionViewSource x:Key="ItemListViewSourceBookmarks" Source="{Binding DisplayedWorks_Bookmarks, Source={StaticResource mainViewModel}}" 
-                              d:Source="{Binding FoundWorks, Source={StaticResource designViewModel}}">
+        <CollectionViewSource x:Key="ItemListViewSourceBookmarks" Source="{Binding DisplayedWorks_Bookmarks, Source={StaticResource mainViewModel}}">
             <CollectionViewSource.SortDescriptions>
                 <scm:SortDescription PropertyName="OrderNumber" Direction="Ascending"/>
             </CollectionViewSource.SortDescriptions>
         </CollectionViewSource>
 
-        <CollectionViewSource x:Key="ItemListViewSourceBookmarksPrivate" Source="{Binding DisplayedWorks_BookmarksPrivate, Source={StaticResource mainViewModel}}" 
-                              d:Source="{Binding FoundWorks, Source={StaticResource designViewModel}}">
+        <CollectionViewSource x:Key="ItemListViewSourceBookmarksPrivate" Source="{Binding DisplayedWorks_BookmarksPrivate, Source={StaticResource mainViewModel}}">
             <CollectionViewSource.SortDescriptions>
                 <scm:SortDescription PropertyName="OrderNumber" Direction="Ascending"/>
             </CollectionViewSource.SortDescriptions>
         </CollectionViewSource>
 
-        <CollectionViewSource x:Key="ItemListViewSourceUser" Source="{Binding DisplayedWorks_User, Source={StaticResource mainViewModel}}" 
-                              d:Source="{Binding FoundWorks, Source={StaticResource designViewModel}}">
+        <CollectionViewSource x:Key="ItemListViewSourceUser" Source="{Binding DisplayedWorks_User, Source={StaticResource mainViewModel}}">
             <CollectionViewSource.SortDescriptions>
                 <scm:SortDescription PropertyName="OrderNumber" Direction="Ascending"/>
             </CollectionViewSource.SortDescriptions>
@@ -172,7 +164,7 @@
 
         <!-- ITEM TEMPLATE IS HERE -->
         <DataTemplate x:Key="mainItemTemplate">
-            <StackPanel>
+            <StackPanel Width="250" Height="250">
                 <StackPanel.Style>
                     <Style TargetType="StackPanel">
                         <Setter Property="Opacity" Value="1"/>
@@ -207,7 +199,7 @@
                 </StackPanel.Triggers>
 
                 <!-- The actual template -->
-                <Grid x:Name="itemGrid">
+                <Grid x:Name="itemGrid" Width="250" Height="250">
                     <!-- Page Count -->
                     <TextBlock Panel.ZIndex="2" Margin="5" FontWeight="Bold" Text="{Binding PageCountText, Mode=OneWay}" Foreground="White" FontSize="20">
                         <TextBlock.Effect>
@@ -225,7 +217,8 @@
                     </Image>
 
                     <!-- The toolbar -->
-                    <StackPanel x:Name="toolbar" Orientation="Horizontal" VerticalAlignment="Bottom" HorizontalAlignment="Center" Height="0" Panel.ZIndex="3" Background="White">
+                    <StackPanel x:Name="toolbar" Orientation="Horizontal" VerticalAlignment="Bottom" HorizontalAlignment="Center" 
+                                Height="0" Panel.ZIndex="3" Background="White">
                         <!-- Height goes to 40 when mouse over -->
                         <Button CommandParameter="{Binding}" Command="{Binding OpenBrowserCmd, Source={StaticResource mainViewModel}}" Style="{DynamicResource buttonStyle}">
                             <Image x:Name="internetImage" RenderOptions.BitmapScalingMode="Fant" Width="35" Source="Images/internet.png" Margin="0,6"/>

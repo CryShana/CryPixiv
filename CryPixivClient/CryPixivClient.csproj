@@ -70,7 +70,6 @@
     <Compile Include="Objects\MyObservableCollection.cs" />
     <Compile Include="Objects\PixivWork.cs" />
     <Compile Include="Scheduler.cs" />
-    <Compile Include="ViewModels\DesignMainViewModel.cs" />
     <Compile Include="ViewModels\MainViewModel.cs" />
     <Compile Include="VirtualizingPanel\VirtualizingTilePanel.cs" />
     <Compile Include="Windows\DownloadManager.xaml.cs">
