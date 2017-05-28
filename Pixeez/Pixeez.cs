@@ -196,8 +196,12 @@ namespace Pixeez
                 var json = await response.GetResponseStringAsync();
                 T obj = default(T);
 
-                if (json == "{}" || json.Contains("{\"system\":{\"message\":404,\"code\":null}}}"))
-                    return new Tuple<T, string>(obj, null); ;
+                if (json == "{}" || json.Contains("{\"system\":{\"message\":404,\"code\":null}}}") ||
+                    json.Contains("存在しないランキングページを参照しています"))
+                {
+                    return new Tuple<T, string>(obj, null);
+                }
+                   
 
                 json = json.Replace("created_time", "create_date"); // to make it compatible with newer JSON entries
                 json = json.Replace("tags", "tags_old");
@@ -207,14 +211,13 @@ namespace Pixeez
                 }
                 catch (NullReferenceException nex)
                 {
-                    if (json.Contains("存在しないランキングページを参照しています") || json.Contains("has_error"))
-                        return new Tuple<T, string>(obj, "Known Error: " + "Invalid response from server received!");
-                    else return new Tuple<T, string>(obj, "Error: " + nex.Message);
-
+                    if (json.Contains("1000ページまでしか取得できませ")) return new Tuple<T, string>(obj, "Can only get up to 1000 pages of works!");
+                    if (json.Contains("has_error")) return new Tuple<T, string>(obj, "Known Error: " + "Invalid response from server received!" + "\n\nResponse: " + json ?? "-");
+                    else return new Tuple<T, string>(obj, "Error: " + nex.Message + "\n\nResponse: " + json ?? "-");
                 }
                 catch (Exception ex)
                 {
-                    return new Tuple<T, string>(obj, "Error: " + ex.Message);
+                    return new Tuple<T, string>(obj, "Error: " + ex.Message + "\n\nResponse: " + json ?? "-");
                 }
 
                 if (obj is IPagenated)
@@ -230,7 +233,7 @@ namespace Pixeez
                 var json = await response.GetResponseStringAsync();
                 T obj = default(T);
 
-                if (json == "{}") return new Tuple<T, string>(obj, null);
+                if (json == "{}" || json.Contains("存在しないランキングページを参照しています")) return new Tuple<T, string>(obj, null);
 
                 try
                 {
@@ -238,14 +241,13 @@ namespace Pixeez
                 }
                 catch (NullReferenceException nex)
                 {
-                    if (json.Contains("存在しないランキングページを参照しています") || json.Contains("Error occurred at the OAuth process"))
-                        return new Tuple<T, string>(obj, "Known Error: " + nex.Message);
-                    else return new Tuple<T, string>(obj, "Error: " + nex.Message);
+                    if (json.Contains("Error occurred at the OAuth process")) return new Tuple<T, string>(obj, "Known Error: " + nex.Message + "\n\nResponse: " + json ?? "-");
+                    else return new Tuple<T, string>(obj, "Error: " + nex.Message + "\n\nResponse: " + json ?? "-");
 
                 }
                 catch (Exception ex)
                 {
-                    return new Tuple<T, string>(obj, "Error: " + ex.Message);
+                    return new Tuple<T, string>(obj, "Error: " + ex.Message + "\n\nResponse: " + json ?? "-");
                 }
 
                 return new Tuple<T, string>(obj, null);

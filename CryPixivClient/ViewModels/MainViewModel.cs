@@ -199,8 +199,8 @@ namespace CryPixivClient.ViewModels
                     {
                         if (MainWindow.CurrentWorkMode != mode || csrc.IsCancellationRequested) break;  // if user changes mode - break;
 
-                    // if limit exceeded, stop downloading until user scrolls
-                    if (MainWindow.DynamicWorksLimit < cache.Count && waitForUser && cache.Count >= displayCollection.Count)
+                        // if limit exceeded, stop downloading until user scrolls
+                        if (MainWindow.DynamicWorksLimit < cache.Count && waitForUser && cache.Count >= displayCollection.Count)
                         {
                             MainWindow.LimitReached = true;
                             UIContext.Post(a => MainWindow.currentWindow.SchedulerJobFinished(scheduler, null, displayCollection), null);
@@ -220,17 +220,18 @@ namespace CryPixivClient.ViewModels
 
                         try
                         {
-                        // start downloading next page
-                        IsWorking = true;
+                            // start downloading next page
+                            IsWorking = true;
                             currentPage++;
 
-                        // download current page
-                        var works = await getWorks(currentPage);
+                            // download current page
+                            var works = await getWorks(currentPage);
+
                             if (works == null || MainWindow.CurrentWorkMode != mode
                                 || works.Count == 0 || csrc.IsCancellationRequested) break;
 
-                        // start NUMBERIN
-                        if (mode != PixivAccount.WorkMode.Recommended) works.AssignOrderToWorks(currentPage, DefaultPerPage);
+                            // start NUMBERIN
+                            if (mode != PixivAccount.WorkMode.Recommended) works.AssignOrderToWorks(currentPage, DefaultPerPage);
 
                             cache.AddRange(works);
                             UIContext.Send(async (a) =>
@@ -295,22 +296,35 @@ namespace CryPixivClient.ViewModels
                 // start searching...
                 await Task.Run(async () =>
                 {
+                    int retries = 4;
                     int currentPage = continuePage - 1;
                     for (;;)
                     {
                         if (MainWindow.CurrentWorkMode != mode || csrc.IsCancellationRequested) break; // if user changes mode or requests task to be cancelled - break;
                                                                                                        // check if max results reached
-                    if (MaxResults != -1 && MaxResults <= results.Count) break;
+                        if (MaxResults != -1 && MaxResults <= results.Count) break;
 
                         try
                         {
-                        // start downloading next page
-                        IsWorking = true;
+                            // start downloading next page
+                            IsWorking = true;
                             currentPage++;
 
-                        // download current page
-                        var works = await MainWindow.Account.SearchWorks(query, currentPage);
-                            if (works == null || MainWindow.CurrentWorkMode != mode || csrc.IsCancellationRequested || works.Count == 0) break;
+                            // download current page
+                            var works = await MainWindow.Account.SearchWorks(query, currentPage);
+                            if (MainWindow.CurrentWorkMode != mode || csrc.IsCancellationRequested) break;
+                            if (works == null || works.Count == 0)
+                            {
+                                if (DisplayedWorks_Results.Count < MaxResults)
+                                {
+                                    Status = "Retrying...";
+                                    currentPage--;
+                                    retries--;
+                                    if (retries <= 0) break;
+                                    continue;
+                                }
+                                else break;
+                            }
                             if (MaxResults == -1) MaxResults = works.Pagination.Total ?? 0;
 
                             var wworks = works.ToPixivWork();
@@ -342,13 +356,13 @@ namespace CryPixivClient.ViewModels
                     }
                 }, csrc.Token);
             }
-            catch(TaskCanceledException tex)
+            catch (TaskCanceledException tex)
             {
                 // ignore
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
-                System.Windows.MessageBox.Show("Download Error: " + ex.Message, "Download Error", 
+                System.Windows.MessageBox.Show("Download Error: " + ex.Message, "Download Error",
                     MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
@@ -356,28 +370,28 @@ namespace CryPixivClient.ViewModels
 
         #region Show Method Callers
         public async void ShowDailyRankings() =>
-            await Show(dailyRankings, DisplayedWorks_Ranking, PixivAccount.WorkMode.Ranking, "Daily Ranking", 
+            await Show(dailyRankings, DisplayedWorks_Ranking, PixivAccount.WorkMode.Ranking, "Daily Ranking",
                 (page) => MainWindow.Account.GetDailyRanking(page), Scheduler_DisplayedWorks_Ranking);
 
         public async void ShowFollowing() =>
-            await Show(following, DisplayedWorks_Following, PixivAccount.WorkMode.Following, "Following", 
+            await Show(following, DisplayedWorks_Following, PixivAccount.WorkMode.Following, "Following",
                 (page) => MainWindow.Account.GetFollowing(page), Scheduler_DisplayedWorks_Following);
 
         public async void ShowBookmarksPublic() =>
-            await Show(bookmarks, DisplayedWorks_Bookmarks, PixivAccount.WorkMode.BookmarksPublic, "Bookmarks", 
+            await Show(bookmarks, DisplayedWorks_Bookmarks, PixivAccount.WorkMode.BookmarksPublic, "Bookmarks",
                 (page) => MainWindow.Account.GetBookmarks(page, PixivAccount.Publicity.Public), Scheduler_DisplayedWorks_Bookmarks);
 
         public async void ShowBookmarksPrivate() =>
-            await Show(bookmarksprivate, DisplayedWorks_BookmarksPrivate, PixivAccount.WorkMode.BookmarksPrivate, "Private Bookmarks", 
+            await Show(bookmarksprivate, DisplayedWorks_BookmarksPrivate, PixivAccount.WorkMode.BookmarksPrivate, "Private Bookmarks",
                 (page) => MainWindow.Account.GetBookmarks(page, PixivAccount.Publicity.Private), Scheduler_DisplayedWorks_BookmarksPrivate);
 
         public async void ShowRecommended() =>
-            await Show(recommended, DisplayedWorks_Recommended, PixivAccount.WorkMode.Recommended, "Recommended", 
+            await Show(recommended, DisplayedWorks_Recommended, PixivAccount.WorkMode.Recommended, "Recommended",
                 (page) => MainWindow.Account.GetRecommended(page), Scheduler_DisplayedWorks_Recommended, fixInvalid: false);
-        public async void ShowUserWork(long userId, string username) => 
-            await Show(user, DisplayedWorks_User, PixivAccount.WorkMode.User, "User work - " + username, 
+        public async void ShowUserWork(long userId, string username) =>
+            await Show(user, DisplayedWorks_User, PixivAccount.WorkMode.User, "User work - " + username,
                 (page) => MainWindow.Account.GetUserWorks(userId, page), Scheduler_DisplayedWorks_User);
-        
+
         #endregion
 
         #region Other Methods
@@ -425,7 +439,7 @@ namespace CryPixivClient.ViewModels
                 PixivWorkEqualityComparer, PixivIdGetter, PixivAccount.WorkMode.Recommended, UIContext);
             semaphore.Release();
 
-            if (wasRecommended && autoshow) ShowRecommended();          
+            if (wasRecommended && autoshow) ShowRecommended();
         }
         public async Task ResetUsers()
         {
@@ -433,7 +447,7 @@ namespace CryPixivClient.ViewModels
             user = new List<PixivWork>();
             DisplayedWorks_User = new MyObservableCollection<PixivWork>();
             Scheduler_DisplayedWorks_User.Stop();
-            Scheduler_DisplayedWorks_User = new Scheduler<PixivWork>(ref displayedWorks_User, 
+            Scheduler_DisplayedWorks_User = new Scheduler<PixivWork>(ref displayedWorks_User,
                 PixivWorkEqualityComparer, PixivIdGetter, PixivAccount.WorkMode.User, UIContext);
             semaphore.Release();
         }
