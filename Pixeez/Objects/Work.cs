@@ -20,7 +20,12 @@ namespace Pixeez.Objects
         [JsonProperty("square_medium")]
         public string SquareMedium
         {
-            get => sqMedium ?? px128x128;
+            get
+            {
+                if (sqMedium != null) return sqMedium;
+                else if (string.IsNullOrEmpty(Medium) == false) return Medium;
+                else return px128x128;
+            }
             set { sqMedium = value; }
         }
 
@@ -91,7 +96,7 @@ namespace Pixeez.Objects
 
         [JsonProperty("caption")]
         public string Caption { get; set; }
-      
+
         [JsonProperty("tags_old")]
         public List<string> TagsOld { get; set; }
 
@@ -105,13 +110,13 @@ namespace Pixeez.Objects
 
         [JsonProperty("meta_pages")]
         public IList<Page> MetaPages { get; set; }
-        
-        public string OriginalImageUrl => (MetaSinglePage == null) ? 
-            ((MetaPages == null || MetaPages.Count == 0) ? 
+
+        public string OriginalImageUrl => (MetaSinglePage == null) ?
+            ((MetaPages == null || MetaPages.Count == 0) ?
                 ImageUrls.Large : MetaPages.First().ImageUrls.Original) : MetaSinglePage.Original;
 
 
-       [JsonProperty("favorite_id")]
+        [JsonProperty("favorite_id")]
         public long? FavoriteId { get; set; }
 
         [JsonProperty("image_urls")]
@@ -148,7 +153,7 @@ namespace Pixeez.Objects
         public string Type { get; set; }
 
         public string GetImageUri(string baseUri, int pageNumber = 0)
-        {            
+        {
             if (pageNumber == 0 && MetaSinglePage?.Original != null) return MetaSinglePage.Original;
 
             if (MetaPages == null || MetaPages.Count < pageNumber + 1)

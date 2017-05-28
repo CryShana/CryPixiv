@@ -19,7 +19,7 @@ namespace CryPixivClient.VirtualizingTilePanel
         // Dependency property that controls the size of the child elements - SET SIZE HERE
         public static readonly DependencyProperty ChildSizeProperty
            = DependencyProperty.RegisterAttached("ChildSize", typeof(double), typeof(VirtualizingTilePanel),
-              new FrameworkPropertyMetadata(130.0d, FrameworkPropertyMetadataOptions.AffectsMeasure |
+              new FrameworkPropertyMetadata(250.0d, FrameworkPropertyMetadataOptions.AffectsMeasure |
               FrameworkPropertyMetadataOptions.AffectsArrange));
 
         // Accessor for the child size dependency property
