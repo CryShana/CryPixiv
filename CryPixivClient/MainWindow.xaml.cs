@@ -292,6 +292,7 @@ namespace CryPixivClient
         #region Column Control / Scrollviewer
         void Window_SizeChanged(object sender, SizeChangedEventArgs e)
         {
+            MainModel.UpdateListMargins(this.ActualWidth);
             mainList_ScrollChanged(GetCurrentListView(), null);
         }
 
@@ -420,11 +421,17 @@ namespace CryPixivClient
 
         public static bool IsNSFWAllowed() => currentWindow.checkNSFW.IsChecked == true;
 
-        public static void ShowUserWork(long userId, string username)
+        static long currentUserId = -1;
+        public async static void ShowUserWork(long userId, string username)
         {
             if (userId <= 0 || CurrentWorkMode == PixivAccount.WorkMode.User)
-                return;
+            {
+                if (userId == currentUserId) return;
 
+                await MainModel.ResetUsers();
+            }
+
+            currentUserId = userId;
             currentWindow.Dispatcher.Invoke(() =>
             {
                 currentWindow.ToggleButtons(PixivAccount.WorkMode.User);

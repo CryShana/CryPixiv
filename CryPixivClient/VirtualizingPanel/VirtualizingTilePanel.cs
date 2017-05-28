@@ -5,6 +5,7 @@ using System.Windows.Media;
 using System;
 using System.Diagnostics;
 using System.Collections.Specialized;
+using CryPixivClient.ViewModels;
 
 namespace CryPixivClient.VirtualizingTilePanel
 {
@@ -19,7 +20,7 @@ namespace CryPixivClient.VirtualizingTilePanel
         // Dependency property that controls the size of the child elements - SET SIZE HERE
         public static readonly DependencyProperty ChildSizeProperty
            = DependencyProperty.RegisterAttached("ChildSize", typeof(double), typeof(VirtualizingTilePanel),
-              new FrameworkPropertyMetadata(250.0d, FrameworkPropertyMetadataOptions.AffectsMeasure |
+              new FrameworkPropertyMetadata((double)MainViewModel.ListViewItemWidth, FrameworkPropertyMetadataOptions.AffectsMeasure |
               FrameworkPropertyMetadataOptions.AffectsArrange));
 
         // Accessor for the child size dependency property

@@ -279,7 +279,7 @@
 
         <!-- ITEMS PANEL TEMPLATE IS HERE -->
         <ItemsPanelTemplate x:Key="mainItemsPanel">
-            <virt:VirtualizingTilePanel HorizontalAlignment="Stretch"  VerticalAlignment="Top"/>
+            <virt:VirtualizingTilePanel />
         </ItemsPanelTemplate>
 
     </Window.Resources>
@@ -294,40 +294,40 @@
         </Grid.ColumnDefinitions>
 
         <!-- LIST VIEWS START HERE-->
-        <ListView x:Name="mainListSorted" Margin="0,94,0,22" ItemsSource="{Binding Mode=OneWay, Source={StaticResource ItemListViewSourceSorted}}" DataContext="{StaticResource mainViewModel}" 
+        <ListView x:Name="mainListSorted" Margin="{Binding ListMargin}" ItemsSource="{Binding Mode=OneWay, Source={StaticResource ItemListViewSourceSorted}}" DataContext="{StaticResource mainViewModel}" 
                   Grid.ColumnSpan="2" ScrollViewer.ScrollChanged="mainList_ScrollChanged" d:DataContext="{StaticResource designViewModel}" HorizontalContentAlignment="Center"
                   ItemTemplate="{StaticResource mainItemTemplate}" ItemsPanel="{StaticResource mainItemsPanel}" MouseDoubleClick="list_DoubleClick"
-                  ItemContainerStyle="{StaticResource itemContainerStyle}"/>
+                  ItemContainerStyle="{StaticResource itemContainerStyle}" BorderBrush="{x:Null}"/>
 
-        <ListView x:Name="mainListRecommended" Margin="0,94,0,22" ItemsSource="{Binding Mode=OneWay, Source={StaticResource ItemListViewSourceRecommended}}" DataContext="{StaticResource mainViewModel}" 
+        <ListView x:Name="mainListRecommended" Margin="{Binding ListMargin}"  ItemsSource="{Binding Mode=OneWay, Source={StaticResource ItemListViewSourceRecommended}}" DataContext="{StaticResource mainViewModel}" 
                   Grid.ColumnSpan="2" ScrollViewer.ScrollChanged="mainList_ScrollChanged" d:DataContext="{StaticResource designViewModel}" HorizontalContentAlignment="Center"
                   ItemTemplate="{StaticResource mainItemTemplate}" ItemsPanel="{StaticResource mainItemsPanel}" MouseDoubleClick="list_DoubleClick"
-                  ItemContainerStyle="{StaticResource itemContainerStyle}"/>
+                  ItemContainerStyle="{StaticResource itemContainerStyle}" BorderBrush="{x:Null}"/>
 
-        <ListView x:Name="mainListRanking" Margin="0,94,0,22" ItemsSource="{Binding Mode=OneWay, Source={StaticResource ItemListViewSourceRanking}}" DataContext="{StaticResource mainViewModel}" 
+        <ListView x:Name="mainListRanking" Margin="{Binding ListMargin}"  ItemsSource="{Binding Mode=OneWay, Source={StaticResource ItemListViewSourceRanking}}" DataContext="{StaticResource mainViewModel}" 
                   Grid.ColumnSpan="2" ScrollViewer.ScrollChanged="mainList_ScrollChanged" d:DataContext="{StaticResource designViewModel}" HorizontalContentAlignment="Center"
                   ItemTemplate="{StaticResource mainItemTemplate}" ItemsPanel="{StaticResource mainItemsPanel}" MouseDoubleClick="list_DoubleClick"
-                  ItemContainerStyle="{StaticResource itemContainerStyle}" BorderThickness="0"/>
+                  ItemContainerStyle="{StaticResource itemContainerStyle}" BorderBrush="{x:Null}"/>
 
-        <ListView x:Name="mainListFollowing" Margin="0,94,0,22" ItemsSource="{Binding Mode=OneWay, Source={StaticResource ItemListViewSourceFollowing}}" DataContext="{StaticResource mainViewModel}" 
+        <ListView x:Name="mainListFollowing" Margin="{Binding ListMargin}"  ItemsSource="{Binding Mode=OneWay, Source={StaticResource ItemListViewSourceFollowing}}" DataContext="{StaticResource mainViewModel}" 
                   Grid.ColumnSpan="2" ScrollViewer.ScrollChanged="mainList_ScrollChanged" d:DataContext="{StaticResource designViewModel}" HorizontalContentAlignment="Center"
                   ItemTemplate="{StaticResource mainItemTemplate}" ItemsPanel="{StaticResource mainItemsPanel}" MouseDoubleClick="list_DoubleClick"
-                  ItemContainerStyle="{StaticResource itemContainerStyle}"/>
+                  ItemContainerStyle="{StaticResource itemContainerStyle}" BorderBrush="{x:Null}"/>
 
-        <ListView x:Name="mainListBookmarks" Margin="0,94,0,22" ItemsSource="{Binding Mode=OneWay, Source={StaticResource ItemListViewSourceBookmarks}}" DataContext="{StaticResource mainViewModel}" 
+        <ListView x:Name="mainListBookmarks" Margin="{Binding ListMargin}"  ItemsSource="{Binding Mode=OneWay, Source={StaticResource ItemListViewSourceBookmarks}}" DataContext="{StaticResource mainViewModel}" 
                   Grid.ColumnSpan="2" ScrollViewer.ScrollChanged="mainList_ScrollChanged" d:DataContext="{StaticResource designViewModel}" HorizontalContentAlignment="Center"
                   ItemTemplate="{StaticResource mainItemTemplate}"  ItemsPanel="{StaticResource mainItemsPanel}" MouseDoubleClick="list_DoubleClick"
-                  ItemContainerStyle="{StaticResource itemContainerStyle}"/>
+                  ItemContainerStyle="{StaticResource itemContainerStyle}" BorderBrush="{x:Null}"/>
 
-        <ListView x:Name="mainListBookmarksPrivate" Margin="0,94,0,22" ItemsSource="{Binding Mode=OneWay, Source={StaticResource ItemListViewSourceBookmarksPrivate}}" DataContext="{StaticResource mainViewModel}" 
+        <ListView x:Name="mainListBookmarksPrivate" Margin="{Binding ListMargin}"  ItemsSource="{Binding Mode=OneWay, Source={StaticResource ItemListViewSourceBookmarksPrivate}}" DataContext="{StaticResource mainViewModel}" 
                   Grid.ColumnSpan="2" ScrollViewer.ScrollChanged="mainList_ScrollChanged" d:DataContext="{StaticResource designViewModel}" HorizontalContentAlignment="Center"
                   ItemTemplate="{StaticResource mainItemTemplate}"  ItemsPanel="{StaticResource mainItemsPanel}" MouseDoubleClick="list_DoubleClick"
-                  ItemContainerStyle="{StaticResource itemContainerStyle}"/>
-        
-        <ListView x:Name="mainListUser" Margin="0,94,0,22" ItemsSource="{Binding Mode=OneWay, Source={StaticResource ItemListViewSourceUser}}" DataContext="{StaticResource mainViewModel}" 
+                  ItemContainerStyle="{StaticResource itemContainerStyle}" BorderBrush="{x:Null}"/>
+
+        <ListView x:Name="mainListUser" Margin="{Binding ListMargin}"  ItemsSource="{Binding Mode=OneWay, Source={StaticResource ItemListViewSourceUser}}" DataContext="{StaticResource mainViewModel}" 
                   Grid.ColumnSpan="2" ScrollViewer.ScrollChanged="mainList_ScrollChanged" d:DataContext="{StaticResource designViewModel}" HorizontalContentAlignment="Center"
                   ItemTemplate="{StaticResource mainItemTemplate}"  ItemsPanel="{StaticResource mainItemsPanel}" MouseDoubleClick="list_DoubleClick"
-                  ItemContainerStyle="{StaticResource itemContainerStyle}"/>
+                  ItemContainerStyle="{StaticResource itemContainerStyle}" BorderBrush="{x:Null}"/>
         <!-- LIST VIEWS END HERE-->
 
         <TextBox x:Name="txtSearchQuery" Height="24" Margin="10,28,65,0" TextWrapping="Wrap" VerticalAlignment="Top" FontSize="14" MaxLength="300" MaxLines="1" TabIndex="1"/>
