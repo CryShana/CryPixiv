@@ -43,7 +43,7 @@ namespace CryPixivClient
 
             // set up all data
             MainModel = (MainViewModel)FindResource("mainViewModel");
-            MainCollectionViewSorted = (CollectionViewSource)FindResource("ItemListViewSourceSorted"); PrepareCollectionFilter();
+            MainCollectionViewSorted = (CollectionViewSource)FindResource("ItemListViewSourceSorted");
             MainCollectionViewRecommended = (CollectionViewSource)FindResource("ItemListViewSourceRecommended");
             MainCollectionViewRanking = (CollectionViewSource)FindResource("ItemListViewSourceRanking");
             MainCollectionViewFollowing = (CollectionViewSource)FindResource("ItemListViewSourceFollowing");
@@ -289,12 +289,12 @@ namespace CryPixivClient
         #region Column Control / Scrollviewer
         void Window_SizeChanged(object sender, SizeChangedEventArgs e)
         {
-            MainModel.UpdateColumns(ActualWidth - 20);
             mainList_ScrollChanged(GetCurrentListView(), null);
         }
 
         void Window_StateChanged(object sender, EventArgs e) => Window_SizeChanged(this, null);
 
+        bool scrolled = false;
         void mainList_ScrollChanged(object sender, ScrollChangedEventArgs e)
         {
             // Get the border of the listview(first child of a listview)
@@ -304,22 +304,21 @@ namespace CryPixivClient
             ScrollViewer scrollViewer = border.Child as ScrollViewer;
 
             // how much further can it go until it asks for updates
+
+            // speed up scrolling when scrolling with mouse
+            bool mouseIsDown = Mouse.LeftButton == MouseButtonState.Pressed;
+            if (e != null && scrolled == false && mouseIsDown == false)
+            {
+                scrolled = true;
+                scrollViewer.ScrollToVerticalOffset(scrollViewer.VerticalOffset + e.VerticalChange * 3);
+            }
+            else scrolled = false;
+
             double pointForUpade = scrollViewer.ScrollableHeight * 0.7;
             double pointForUpade2 = scrollViewer.ScrollableHeight * 0.95;
             if (scrollViewer.VerticalOffset > pointForUpade)
             {
-                // Update search results limit
-                if (LimitReached && CurrentWorkMode == PixivAccount.WorkMode.Search
-                    && scrollViewer.VerticalOffset > pointForUpade2)
-                {
-                    ItemLimit += 200;
-                    LimitReached = false;
-
-                    int count = MainCollectionViewSorted.View.Count();
-
-                    MainModel.FillResultsFromCache(count, 200);
-                }
-                else if (LimitReached && CurrentWorkMode != PixivAccount.WorkMode.Search)
+                if (LimitReached && CurrentWorkMode != PixivAccount.WorkMode.Search)
                 {
                     // load more results in other workmodes
                     DynamicWorksLimit += 60;
@@ -490,68 +489,8 @@ namespace CryPixivClient
                 MainModel.Status = "Idle. " + ((toBeAdded > 0) ? $" ({toBeAdded} to be added)" : "");
             }
 
-            var count = GetCurrentCollectionViewSource().View.Count();
-            MainModel.CollectionStatus = $"Found {cache.Count} items. [{count} displayed]";
-        }
-
-        // Data Virtualization of some sort :D
-        public const int ItemsDisplayedLimit = 500;
-        public static int ItemLimit = 100;
-        void PrepareCollectionFilter() => MainCollectionViewSorted.Filter += Filter;
-
-        void Filter(object sender, FilterEventArgs e)
-        {
-            PixivWork w = e.Item as PixivWork;
-            bool accepted = false;
-
-            var collectionviewsource = ((CollectionViewSource)sender);
-            var src = collectionviewsource.Source as MyObservableCollection<PixivWork>;
-            var view = collectionviewsource.View;
-
-            // Limit is reached when above ItemLimit
-            int count = view.Count();
-            if (count >= ItemLimit - 1) LimitReached = true;
-
-            if (src.Count < ItemLimit) accepted = true;  // accept it automatically if below limit
-            else
-            {
-                // otherwise compare it with every other item and if it has a large enough score, accept it
-                // if accepted, remove last item - otherwise remove current item
-
-                int index = 0;
-                bool remove = false;
-                foreach (PixivWork work in view)
-                {
-                    if (index > ItemLimit) break;
-                    if (w.Stats.Score > work.Stats.Score)
-                    {
-                        if (count >= ItemLimit) remove = true;
-                        accepted = true;
-                        break;
-                    }
-
-                    index++;
-                }
-
-                if (remove || accepted == false)
-                {
-                    // get last item and remove it from view
-                    PixivWork lastItem = w;
-                    if (accepted)
-                        foreach (PixivWork item in view)
-                        {
-                            if (MainModel.Scheduler_DisplayedWorks_Results.ContainsItem(item, Action.Remove)) continue;
-                            lastItem = item;
-                        }
-                    
-                    // need to find a better way to do this :D  
-                    // (removing items makes adding new ones slower to maintain the scheduler's consistent adding speed)
-                    MainModel.Scheduler_DisplayedWorks_Results.RemoveItem(lastItem, true);  
-                }
-            }
-            
-            e.Accepted = accepted;
-        }
+            MainModel.CollectionStatus = $"Found {cache.Count} items.";
+        }       
 
         private void btnPause_Click(object sender, RoutedEventArgs e)
         {

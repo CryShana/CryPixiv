@@ -47,7 +47,6 @@ namespace CryPixivClient.ViewModels
         List<PixivWork> recommended = new List<PixivWork>();
         List<PixivWork> user = new List<PixivWork>();
         int currentPageResults = 1;
-        int columns = 4;
         SynchronizationContext UIContext;
 
         ICommand bookmarkcmd;
@@ -128,8 +127,6 @@ namespace CryPixivClient.ViewModels
         }
 
         public string Title => title + (string.IsNullOrEmpty(titleSuffix) ? "" : " - " + titleSuffix);
-
-        public int Columns => columns;
 
         public string LastSearchQuery { get; set; }
         public int MaxResults { get; private set; }
@@ -242,7 +239,6 @@ namespace CryPixivClient.ViewModels
             await Task.Run(() => results.Clear());
 
             MainWindow.LimitReached = false;
-            MainWindow.ItemLimit = MainWindow.ItemsDisplayedLimit;
             DisplayedWorks_Results = new MyObservableCollection<PixivWork>();
             Scheduler_DisplayedWorks_Results.Stop();
             Scheduler_DisplayedWorks_Results = new Scheduler<PixivWork>(ref displayedWorks_Results, PixivWorkEqualityComparer, PixivIdGetter, PixivAccount.WorkMode.Search);
@@ -287,11 +283,6 @@ namespace CryPixivClient.ViewModels
 
                     try
                     {
-                        // check limit
-                        int count = 0;
-                        UIContext.Send((a) => count = MainWindow.GetCurrentCollectionViewSource().View.Count(), null);
-                        if (count >= MainWindow.ItemLimit - 5) MainWindow.LimitReached = true;
-
                         // start downloading next page
                         IsWorking = true;
                         currentPage++;
@@ -387,16 +378,6 @@ namespace CryPixivClient.ViewModels
             {
                 ShowRecommended();
             }
-        }
-        public void UpdateColumns(double w)
-        {
-            if (w < 590) columns = 3;
-            else if (w < 727) columns = 4;
-            else if (w < 846) columns = 5;
-            else if (w < 986) columns = 6;
-            else columns = (int)Math.Floor(w / 140.0);
-
-            Changed("Columns");
         }
         public void ForceRefreshImages()
         {

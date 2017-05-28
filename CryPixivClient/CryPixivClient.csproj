@@ -72,6 +72,7 @@
     <Compile Include="Scheduler.cs" />
     <Compile Include="ViewModels\DesignMainViewModel.cs" />
     <Compile Include="ViewModels\MainViewModel.cs" />
+    <Compile Include="VirtualizingPanel\VirtualizingTilePanel.cs" />
     <Compile Include="Windows\DownloadManager.xaml.cs">
       <DependentUpon>DownloadManager.xaml</DependentUpon>
     </Compile>

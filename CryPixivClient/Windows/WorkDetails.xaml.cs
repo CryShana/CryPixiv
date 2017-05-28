@@ -138,7 +138,14 @@ namespace CryPixivClient.Windows
         {
             currentPage = page;
             SetPageStatus();
-            mainImage.Source = DownloadedImages[page];
+            try
+            {
+                mainImage.Source = DownloadedImages[page];
+            }
+            catch(Exception ex)
+            {
+                MessageBox.Show("Debug error: " + ex.Message);
+            }
         }
 
         private void btnNext_Click(object sender, RoutedEventArgs e)
