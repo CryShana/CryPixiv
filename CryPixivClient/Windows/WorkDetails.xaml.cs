@@ -15,7 +15,6 @@ using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
 
 namespace CryPixivClient.Windows
 {
@@ -39,7 +38,6 @@ namespace CryPixivClient.Windows
             SetWindow();
             if (wasMaximized) WindowState = WindowState.Maximized;
 
-            LoadedWork = work;
             DataContext = this;
 
             this.Closing += WorkDetails_Closing;
@@ -72,7 +70,7 @@ namespace CryPixivClient.Windows
             }
             else openedCache = false;
 
-            comboTags.ItemsSource = LoadedWork.Tags;
+            comboTags.ItemsSource = GetTranslatedTags(LoadedWork.Tags);
             txtClipboard.Text = "Click on tag to copy it!";
             txtScore.Text = $"Score: {LoadedWork.Stats?.Score ?? LoadedWork.TotalBookmarks}";
             txtArtist.Text = LoadedWork.User.Name;
@@ -148,7 +146,7 @@ namespace CryPixivClient.Windows
             }
         }
 
-        private void btnNext_Click(object sender, RoutedEventArgs e)
+        void btnNext_Click(object sender, RoutedEventArgs e)
         {
             if (currentPage + 1 > DownloadedImages.Count)
             {
@@ -164,7 +162,7 @@ namespace CryPixivClient.Windows
             SetImage(currentPage + 1);
         }
 
-        private void btnPrev_Click(object sender, RoutedEventArgs e)
+        void btnPrev_Click(object sender, RoutedEventArgs e)
         {
             if (currentPage - 1 <= 0)
             {
@@ -176,7 +174,7 @@ namespace CryPixivClient.Windows
             SetImage(currentPage - 1);
         }
 
-        private void Window_PreviewKeyDown(object sender, KeyEventArgs e)
+        void Window_PreviewKeyDown(object sender, KeyEventArgs e)
         {
             switch (e.Key)
             {
@@ -228,6 +226,8 @@ namespace CryPixivClient.Windows
         void ToggleState() => this.WindowState = (this.WindowState == WindowState.Maximized) ? WindowState.Normal : WindowState.Maximized;
         void PreviewImageClick(object sender, MouseButtonEventArgs e)
         {
+            if (e.LeftButton == MouseButtonState.Released) return;
+
             var stampNow = DateTime.Now;
             if (stampNow.Subtract(timestamp).TotalSeconds < 0.3)
             {
@@ -300,8 +300,8 @@ namespace CryPixivClient.Windows
         {
             if (comboTags.SelectedIndex == -1) return;
 
-            var text = comboTags.SelectedItem as string;
-            Clipboard.SetText(text);
+            var text = comboTags.SelectedItem as Translation;
+            Clipboard.SetText(text.Original);
             txtClipboard.Text = "Tag copied to clipboard!";
         }
 
@@ -321,9 +321,51 @@ namespace CryPixivClient.Windows
             Clipboard.SetImage(src);            
         }
 
-        private void CopyLink(object sender, RoutedEventArgs e)
+        void CopyLink(object sender, RoutedEventArgs e)
         {
             Clipboard.SetText($"https://www.pixiv.net/member_illust.php?mode=medium&illust_id={LoadedWork.Id}");
+        }
+
+        List<Translation> GetTranslatedTags(List<string> tags)
+        {
+            var newTags = new List<Translation>();
+
+            foreach (var t in tags) newTags.Add(new Translation(t));
+            
+            return newTags;
+        }
+    }
+
+    public class Translation : INotifyPropertyChanged
+    {
+        public string Original { get; set; }
+
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        public Translation(string original) => this.Original = original;
+        
+
+
+        string translated = null;
+        public string Translated
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(translated)) translated = GetTranslation();
+                return translated;
+            }
+            set
+            {
+                translated = value;
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("Translated"));
+            }
+        }
+
+        string GetTranslation()
+        {
+            Translated = Translator.Translate(Original);
+            return Translated;
         }
     }
 }
