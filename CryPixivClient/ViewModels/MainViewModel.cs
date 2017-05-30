@@ -265,6 +265,8 @@ namespace CryPixivClient.ViewModels
             }
         }
 
+        const int InitialRetries = 4;
+        int retries = 4;
         public async void ShowSearch(string query, bool autosort = true, int continuePage = 1)
         {
             bool otherWasRunning = LastSearchQuery != query && query != null;
@@ -272,6 +274,7 @@ namespace CryPixivClient.ViewModels
             if (query == null) query = LastSearchQuery;
             MaxResults = -1;
             Finished = false;
+            retries = InitialRetries;
             LastSearchQuery = query;
 
             CancelRunningSearches();
@@ -296,7 +299,6 @@ namespace CryPixivClient.ViewModels
                 // start searching...
                 await Task.Run(async () =>
                 {
-                    int retries = 4;
                     int currentPage = continuePage - 1;
                     for (;;)
                     {
@@ -315,7 +317,7 @@ namespace CryPixivClient.ViewModels
                             if (MainWindow.CurrentWorkMode != mode || csrc.IsCancellationRequested) break;
                             if (works == null || works.Count == 0)
                             {
-                                if (DisplayedWorks_Results.Count < MaxResults)
+                                if (DisplayedWorks_Results.Count < MaxResults && MainWindow.ShowingError == false)
                                 {
                                     Status = "Retrying...";
                                     currentPage--;
@@ -420,6 +422,7 @@ namespace CryPixivClient.ViewModels
             await semaphore.WaitAsync();
             await Task.Run(() => results.Clear());
 
+            Finished = false;
             MainWindow.LimitReached = false;
             DisplayedWorks_Results = new MyObservableCollection<PixivWork>();
             Scheduler_DisplayedWorks_Results.Stop();

@@ -123,6 +123,7 @@ namespace CryPixivClient
             IsLoggedIn = false;
             if (MainWindow.IsClosing) return;
 
+            MainWindow.ShowingError = true;
             MessageBox.Show(msg, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             AuthFailed?.Invoke(this, msg);
         }
@@ -130,6 +131,7 @@ namespace CryPixivClient
         {
             try
             {
+                MainWindow.ShowingError = false;
                 if (AuthDetails.IsExpired) throw new Exception("Expired session! Please login again!");
 
                 var result = await toDo();

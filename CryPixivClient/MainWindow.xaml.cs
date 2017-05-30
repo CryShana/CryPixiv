@@ -22,6 +22,7 @@ namespace CryPixivClient
         public static MainViewModel MainModel;
         public static PixivAccount Account = null;
         public static SynchronizationContext UIContext;
+        public static bool ShowingError = false;
 
         public static bool Paused = false;
         public static bool LimitReached = false;
@@ -443,6 +444,7 @@ namespace CryPixivClient
                 {
                     IsSearching = true;
                     Paused = false;
+                    currentWindow.btnPause.Content = "Pause";
                     currentWindow.btnSearch.Content = "Stop";
                     currentWindow.btnSearch.Background = (SolidColorBrush)new BrushConverter().ConvertFromString("#FFFFA5A5");
                 }
@@ -502,9 +504,15 @@ namespace CryPixivClient
             if (Paused == false)
             {
                 Paused = true;
+                btnPause.Content = "Continue";
                 MainModel.Status = "Paused.";
                 MainModel.CancelRunningSearches();
                 SetSearchButtonState(false);
+            }
+            else
+            {
+                SetSearchButtonState(true);
+                btnSearch_Click(this, null);
             }
         }
     }

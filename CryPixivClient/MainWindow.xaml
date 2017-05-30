@@ -356,16 +356,16 @@
         <Grid Grid.Column="1">
             <Button x:Name="btnRecommended" Content="Recommended"  HorizontalAlignment="Left" Margin="274,28,0,0" VerticalAlignment="Top"
                 Width="95" Height="45" Background="White" Click="btnRecommended_Click" TabIndex="5"/>
-            <Button x:Name="btnLogout" Content="Log Out" HorizontalAlignment="Right" VerticalAlignment="Bottom" Width="78" 
-                    Height="23" Background="#FFFFA3A3" Margin="0,0,43,0" Click="btnLogout_Click" IsTabStop="False"/>
-            <Button x:Name="btnPause" Content="Pause" HorizontalAlignment="Right" VerticalAlignment="Bottom" Width="78" 
-                    Height="23" Background="#FFFFFCBC" Margin="0,0,119,0" Click="btnPause_Click" IsTabStop="False"/>
             <Grid.ContextMenu>
                 <ContextMenu>
                     <MenuItem Header="Reset Results" Click="ResetResults_Click"/>
                 </ContextMenu>
             </Grid.ContextMenu>
         </Grid>
+        <Button x:Name="btnLogout" Content="Log Out" HorizontalAlignment="Right" VerticalAlignment="Bottom" Width="78" 
+                    Height="23" Background="#FFFFA3A3" Margin="0,0,51,0" Click="btnLogout_Click" IsTabStop="False" Grid.Column="1"/>
+        <Button x:Name="btnPause" Content="Pause" HorizontalAlignment="Right" VerticalAlignment="Bottom" Width="78" 
+                    Height="23" Background="#FFFFFCBC" Margin="0,0,127,0" Click="btnPause_Click" IsTabStop="False" Grid.Column="1"/>
         <Button x:Name="btnBookmarksPrivate" Content="Private" Grid.Column="1" HorizontalAlignment="Right" Margin="0,50,28,0" VerticalAlignment="Top" Width="91" Height="23" TabIndex="6" Click="btnBookmarksPrivate_Click" Background="#FFFFEAEA"/>
         <TextBlock Grid.Column="1" HorizontalAlignment="Right" Margin="0,8,60,0" TextWrapping="Wrap" Text="Bookmarks" VerticalAlignment="Top"/>
         <TextBlock HorizontalAlignment="Left" Margin="10,7,0,0" TextWrapping="Wrap" Text="Search by tag:" VerticalAlignment="Top"/>

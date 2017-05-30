@@ -95,6 +95,6 @@
         <TextBlock HorizontalAlignment="Left" Margin="10,6,0,0" TextWrapping="Wrap" Text="Tags: " VerticalAlignment="Top"/>
         <TextBlock x:Name="txtClipboard" Margin="3,6,0,0" TextWrapping="Wrap" Text="Click on tag to copy it!" VerticalAlignment="Top" Foreground="#FFAEAEAE" Height="18" 
                    HorizontalAlignment="Left" Width="130" Grid.ColumnSpan="2" Grid.Column="1"/>
-        <TextBlock x:Name="sometEXT" HorizontalAlignment="Right" Margin="0,8,9,0" TextWrapping="Wrap" Text="Try using A/D, Q/E, Arrow keys" VerticalAlignment="Top" Foreground="#FFD4D4D4" Grid.Column="2"/>
+        <TextBlock x:Name="sometEXT" HorizontalAlignment="Right" Margin="0,6,9,0" TextWrapping="Wrap" Text="Try using A/D, Q/E, Arrow keys" VerticalAlignment="Top" Foreground="#FFD4D4D4" Grid.Column="2"/>
     </Grid>
 </Window>
