@@ -40,6 +40,10 @@ namespace CryPixivClient.Windows
             SetControls();
         }
 
+        public void AddContent(params UIElement[] elements)
+        {
+            foreach (var e in elements) _contentGrid.Children.Add(e);
+        }
         
         void SetArrow(ArrowPosition position)
         {

@@ -30,6 +30,7 @@ namespace CryPixivClient
         public static bool LimitReached = false;
         public static int DynamicWorksLimit = 100;
         public const int DefaultWorksLimit = 100;
+        public const string HistoryPath = "searchhistory.txt";
         public static PixivAccount.WorkMode CurrentWorkMode;
         public static CollectionViewSource MainCollectionViewSorted;
         public static CollectionViewSource MainCollectionViewRecommended;
@@ -38,6 +39,7 @@ namespace CryPixivClient
         public static CollectionViewSource MainCollectionViewBookmarks;
         public static CollectionViewSource MainCollectionViewBookmarksPrivate;
         public static CollectionViewSource MainCollectionViewUser;
+        public static MyObservableCollection<string> SearchHistory = new MyObservableCollection<string>();
         public static bool IsClosing = false;
 
         public MainWindow()
@@ -46,7 +48,6 @@ namespace CryPixivClient
             currentWindow = this;
 
             // set up all data
-            SetupPopups();
             MainModel = (MainViewModel)FindResource("mainViewModel");
             MainCollectionViewSorted = (CollectionViewSource)FindResource("ItemListViewSourceSorted");
             MainCollectionViewRecommended = (CollectionViewSource)FindResource("ItemListViewSourceRecommended");
@@ -56,8 +57,10 @@ namespace CryPixivClient
             MainCollectionViewBookmarksPrivate = (CollectionViewSource)FindResource("ItemListViewSourceBookmarksPrivate");
             MainCollectionViewUser = (CollectionViewSource)FindResource("ItemListViewSourceUser");
             UIContext = SynchronizationContext.Current;
+            LoadSearchHistory();
             LoadWindowData();
             LoadAccount();
+            SetupPopups();
 
             // events
             PixivAccount.AuthFailed += AuthenticationFailed;
@@ -139,6 +142,46 @@ namespace CryPixivClient
             Settings.Default.Save();
         }
 
+        void LoadSearchHistory()
+        {
+            if (File.Exists(HistoryPath) == false) { SearchHistory = new MyObservableCollection<string>(); return; }
+
+            try
+            {
+                string[] content = File.ReadAllLines(HistoryPath);
+
+                // check
+                bool isvalid = true;
+                foreach (var l in content)
+                    if (l.Length > 200) { isvalid = false; break; }
+
+                content.ToList().RemoveAll(x => x.Length == 0 || x == "\n");
+
+                if (isvalid) SearchHistory = new MyObservableCollection<string>(content);
+            }
+            catch
+            {
+                MessageBox.Show("Invalid history search file. Will be deleted after closing this message.", "Invalid History Search File", MessageBoxButton.OK, MessageBoxImage.Error);
+                File.Delete(HistoryPath);
+            }
+        }
+
+        void SaveSearchHistory()
+        {
+            if (File.Exists(HistoryPath)) File.Delete(HistoryPath);
+
+            try
+            {
+                while (SearchHistory.Count > 50) SearchHistory.RemoveAt(SearchHistory.Count - 1);
+
+                File.WriteAllLines(HistoryPath, SearchHistory);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Failed to save search history!\n\n" + ex.Message, "Failed to save!", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
         void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
             IsClosing = true;
@@ -150,6 +193,8 @@ namespace CryPixivClient
             Settings.Default.WindowLeft = Left;
             Settings.Default.WindowTop = Top;
             Settings.Default.Save();
+
+            SaveSearchHistory();
 
             // clear temp directory if files exist
             while (WorkDetails.CreatedTemporaryFiles.Count > 0)
@@ -205,6 +250,8 @@ namespace CryPixivClient
         }
         void btnSearch_Click(object sender, RoutedEventArgs e)
         {
+            popupTags?.Hide();
+            
             if (IsSearching)
             {
                 MainModel.CancelRunningSearches();
@@ -220,6 +267,7 @@ namespace CryPixivClient
 
             IsSearching = true;
             SetSearchButtonState(true);
+            SearchHistory.Insert(0, txtSearchQuery.Text);
             MainModel.ShowSearch(txtSearchQuery.Text, checkPopular.IsChecked == true, MainModel.CurrentPageResults);
         }
         void btnResults_Click(object sender, RoutedEventArgs e)
@@ -528,15 +576,35 @@ namespace CryPixivClient
 
         void SetupPopups()
         {
-            /*
-            popupTags = new PopUp(PopUp.ArrowPosition.UpLeft);
-            popupTags.Margin = new Thickness(10, 52, 0, 0);
-            popupTags.VerticalAlignment = VerticalAlignment.Top;
-            popupTags.HorizontalAlignment = HorizontalAlignment.Left;
-            popupTags.Height = 310.0;
-            popupTags.Width = 433.0;
+            // add list and shit
 
-            mainGrid.Children.Add(popupTags);*/
+            var history = new List<string>();
+
+            TextBlock txt = new TextBlock()
+            {
+                HorizontalAlignment = HorizontalAlignment.Left,
+                Margin = new Thickness(20, 18, 0, 0),
+                TextWrapping = TextWrapping.Wrap,
+                Text = "Your search history will be displayed here",
+                VerticalAlignment = VerticalAlignment.Top,
+                Foreground = System.Windows.Media.Brushes.Gray
+            };
+
+            ListBox lstBox = new ListBox()
+            {
+                Margin = new Thickness(20, 39, 18, 19),
+                BorderBrush = null,
+            };
+
+            lstBox.ItemsSource = SearchHistory;
+            lstBox.SelectionChanged += (a, b) =>
+            {
+                var tt = lstBox.SelectedItem as string;
+                if (tt != null) txtSearchQuery.Text = tt;
+            };
+
+            popupTags.AddContent(txt, lstBox);
+
         }
 
 
