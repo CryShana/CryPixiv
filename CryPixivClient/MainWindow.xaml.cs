@@ -46,6 +46,7 @@ namespace CryPixivClient
             currentWindow = this;
 
             // set up all data
+            SetupPopups();
             MainModel = (MainViewModel)FindResource("mainViewModel");
             MainCollectionViewSorted = (CollectionViewSource)FindResource("ItemListViewSourceSorted");
             MainCollectionViewRecommended = (CollectionViewSource)FindResource("ItemListViewSourceRecommended");
@@ -524,5 +525,31 @@ namespace CryPixivClient
                 btnSearch_Click(this, null);
             }
         }
+
+        void SetupPopups()
+        {
+            /*
+            popupTags = new PopUp(PopUp.ArrowPosition.UpLeft);
+            popupTags.Margin = new Thickness(10, 52, 0, 0);
+            popupTags.VerticalAlignment = VerticalAlignment.Top;
+            popupTags.HorizontalAlignment = HorizontalAlignment.Left;
+            popupTags.Height = 310.0;
+            popupTags.Width = 433.0;
+
+            mainGrid.Children.Add(popupTags);*/
+        }
+
+
+        void txtSearchQuery_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            var text = txtSearchQuery.Text;
+
+            if (text.Length == 0) popupTags?.Hide();
+            else popupTags?.Show();
+        }
+
+        void txtSearchQuery_LostFocus(object sender, RoutedEventArgs e) => popupTags?.Hide();
+
+        void txtSearchQuery_GotFocus(object sender, RoutedEventArgs e) => txtSearchQuery_TextChanged(this, null);
     }
 }

@@ -33,7 +33,7 @@
             <ColumnDefinition Width="253*"/>
             <ColumnDefinition Width="28*"/>
             <ColumnDefinition Width="281*"/>
-        </Grid.ColumnDefinitions>
+        </Grid.ColumnDefinitions> 
         <Image x:Name="mainImage" Margin="0,31,0,115" Grid.ColumnSpan="3" 
                RenderOptions.BitmapScalingMode="HighQuality" PreviewMouseDown="PreviewImageClick" >
             <Image.ContextMenu>

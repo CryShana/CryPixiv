@@ -7,6 +7,7 @@
         xmlns:cmd="clr-namespace:CryPixivClient.Commands"
         xmlns:local="clr-namespace:CryPixivClient"
         xmlns:virt="clr-namespace:CryPixivClient.VirtualizingTilePanel"
+        xmlns:wnd="clr-namespace:CryPixivClient.Windows"
         xmlns:scm="clr-namespace:System.ComponentModel;assembly=WindowsBase"
         mc:Ignorable="d" MinHeight="350" MinWidth="740" Height="430" Width="745" 
         Icon="Images/pixiv.ico" Closing="Window_Closing" SizeChanged="Window_SizeChanged" StateChanged="Window_StateChanged">
@@ -281,12 +282,14 @@
     <Window.Title>
         <Binding Mode="OneWay" Path="Title" Source="{StaticResource mainViewModel}"/>
     </Window.Title>
-    <Grid>
+    <Grid x:Name="mainGrid">
+
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="15*"/>
             <ColumnDefinition Width="32*"/>
         </Grid.ColumnDefinitions>
 
+        <wnd:PopUp x:Name="popupTags" Panel.ZIndex="10" Margin="10,52,0,0" Grid.ColumnSpan="2" Height="297" VerticalAlignment="Top" HorizontalAlignment="Left" Width="351"/>
         <!-- LIST VIEWS START HERE-->
         <ListView x:Name="mainListSorted" Margin="{Binding ListMargin}" ItemsSource="{Binding Mode=OneWay, Source={StaticResource ItemListViewSourceSorted}}" DataContext="{StaticResource mainViewModel}" 
                   Grid.ColumnSpan="2" ScrollViewer.ScrollChanged="mainList_ScrollChanged" HorizontalContentAlignment="Center"
@@ -318,13 +321,14 @@
                   ItemTemplate="{StaticResource mainItemTemplate}"  ItemsPanel="{StaticResource mainItemsPanel}" MouseDoubleClick="list_DoubleClick"
                   ItemContainerStyle="{StaticResource itemContainerStyle}" BorderBrush="{x:Null}"/>
 
-        <ListView x:Name="mainListUser" Margin="{Binding ListMargin}"  ItemsSource="{Binding Mode=OneWay, Source={StaticResource ItemListViewSourceUser}}" DataContext="{StaticResource mainViewModel}" 
-                  Grid.ColumnSpan="2" ScrollViewer.ScrollChanged="mainList_ScrollChanged" HorizontalContentAlignment="Center"
-                  ItemTemplate="{StaticResource mainItemTemplate}"  ItemsPanel="{StaticResource mainItemsPanel}" MouseDoubleClick="list_DoubleClick"
-                  ItemContainerStyle="{StaticResource itemContainerStyle}" BorderBrush="{x:Null}"/>
+        <ListView x:Name="mainListUser" Margin="{Binding ListMargin}" DataContext="{StaticResource mainViewModel}" 
+                  Grid.ColumnSpan="2" ScrollViewer.ScrollChanged="mainList_ScrollChanged" HorizontalContentAlignment="Center"  ItemsPanel="{StaticResource mainItemsPanel}" MouseDoubleClick="list_DoubleClick"
+                  ItemContainerStyle="{StaticResource itemContainerStyle}" BorderBrush="{x:Null}">
+        </ListView>
         <!-- LIST VIEWS END HERE-->
 
-        <TextBox x:Name="txtSearchQuery" Height="24" Margin="10,28,65,0" TextWrapping="Wrap" VerticalAlignment="Top" FontSize="14" MaxLength="300" MaxLines="1" TabIndex="1"/>
+        <TextBox x:Name="txtSearchQuery" TextChanged="txtSearchQuery_TextChanged" Height="24" Margin="10,28,65,0" TextWrapping="Wrap" VerticalAlignment="Top" FontSize="14" MaxLength="300" 
+                 MaxLines="1" TabIndex="1" LostFocus="txtSearchQuery_LostFocus" GotFocus="txtSearchQuery_GotFocus"/>
         <Button x:Name="btnSearch" Content="Search" Margin="0,28,10,0" VerticalAlignment="Top" Height="24" BorderBrush="#FFABADB3" HorizontalAlignment="Right" Width="56" IsDefault="True" TabIndex="2" Click="btnSearch_Click"/>
         <ProgressBar x:Name="mainProgessBar" Height="10" Margin="0,85,0,0" VerticalAlignment="Top" Foreground="#FF009CFF" Grid.ColumnSpan="2" IsTabStop="False" 
                      IsIndeterminate="{Binding IsWorking, Source={StaticResource mainViewModel}}"/>

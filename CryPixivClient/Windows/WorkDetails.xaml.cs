@@ -11,6 +11,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
 
 namespace CryPixivClient.Windows
@@ -44,7 +45,7 @@ namespace CryPixivClient.Windows
         }
 
         bool openedCache = false;
-        void LoadWork(PixivWork newWork)
+        void LoadWork(PixivWork newWork, bool doAnimation = false)
         {
             timestamp = DateTime.Now;
             LoadedWork = newWork;
@@ -58,7 +59,7 @@ namespace CryPixivClient.Windows
             var prevd = PreviousDownloads.Find(x => x.Item1 == newWork.Id.Value);
             if (prevd != null)
             {
-                DownloadedImages = new Dictionary<int, ImageSource>(prevd.Item2);                    
+                DownloadedImages = new Dictionary<int, ImageSource>(prevd.Item2);
                 openedCache = true;
 
                 // add at the beginning
@@ -79,8 +80,17 @@ namespace CryPixivClient.Windows
             // start downloading images
             DownloadImages();
 
-            if (LoadedWork.img != null) mainImage.Source = LoadedWork.ImageThumbnail;
-            if (DownloadedImages.Count >= 1) SetImage(1);
+            if (LoadedWork.img != null)
+            {
+                if (doAnimation) AnimateImageShift(() => mainImage.Source = LoadedWork.ImageThumbnail);
+                else mainImage.Source = LoadedWork.ImageThumbnail;
+
+            }
+            if (DownloadedImages.Count >= 1)
+            {
+                if (doAnimation) AnimateImageShift(() => SetImage(1));
+                else SetImage(1);
+            }
 
             // once first image is downloaded, show it
             ImageDownloaded += (a, b) =>
@@ -95,10 +105,10 @@ namespace CryPixivClient.Windows
             if (DownloadedImages.ContainsKey(currentPage))
             {
                 var img = (BitmapImage)DownloadedImages[currentPage];
-                
+
                 txtResolution.Text = $"{img.PixelWidth}x{img.PixelHeight}";
             }
-        }      
+        }
 
         async Task DownloadImages()
         {
@@ -137,7 +147,7 @@ namespace CryPixivClient.Windows
             {
                 mainImage.Source = DownloadedImages[page];
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 MessageBox.Show("Debug error: " + ex.Message);
             }
@@ -145,15 +155,9 @@ namespace CryPixivClient.Windows
 
         void btnNext_Click(object sender, RoutedEventArgs e)
         {
-            if (currentPage + 1 > DownloadedImages.Count)
+            if (currentPage + 1 > LoadedWork.PageCount.Value || currentPage + 1 > DownloadedImages.Count)
             {
-                if (currentPage + 1 > LoadedWork.PageCount.Value)
-                {
-                    var result = MainWindow.MainModel.OpenNextWork(LoadedWork);
-                    if (result == null) return;
-                    LoadWork(result);
-                }
-
+                NextPost();
                 return;
             }
             SetImage(currentPage + 1);
@@ -163,9 +167,7 @@ namespace CryPixivClient.Windows
         {
             if (currentPage - 1 <= 0)
             {
-                var result = MainWindow.MainModel.OpenPrevWork(LoadedWork);
-                if (result == null) return;
-                LoadWork(result);
+                PrevPost();
                 return;
             }
             SetImage(currentPage - 1);
@@ -205,16 +207,14 @@ namespace CryPixivClient.Windows
             // open next one
             var result = MainWindow.MainModel.OpenNextWork(LoadedWork);
             if (result == null) return;
-            LoadWork(result);
-
-            //if (result) Close();
+            LoadWork(result, true);
         }
         void PrevPost()
         {
             // open prev one
             var result = MainWindow.MainModel.OpenPrevWork(LoadedWork);
             if (result == null) return;
-            LoadWork(result);
+            LoadWork(result, true);
         }
 
         void SetProgressBar(bool show) => progressBar.Visibility = show ? Visibility.Visible : Visibility.Hidden;
@@ -233,7 +233,7 @@ namespace CryPixivClient.Windows
             }
             else timestamp = stampNow;
         }
-        
+
         void SetWindow()
         {
             if (Settings.Default.DetailWindowHeight == 0) return;
@@ -309,7 +309,7 @@ namespace CryPixivClient.Windows
                 MessageBox.Show("Image is not yet fully loaded!", "Not loaded yet!", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
-            
+
             var copyTd = new Thread(CopyImageToClipboard);
             copyTd.SetApartmentState(ApartmentState.STA);
             copyTd.Start();
@@ -357,8 +357,29 @@ namespace CryPixivClient.Windows
             var newTags = new List<Translation>();
 
             foreach (var t in tags) newTags.Add(new Translation(t));
-            
+
             return newTags;
+        }
+
+        async void AnimateImageShift(System.Action callback)
+        {
+            var original = new Thickness(0, 31, 0, 115);
+            var away = new Thickness(-155, 31, 155, 115);
+
+            var opacityhide = new DoubleAnimation(0.0, TimeSpan.FromSeconds(0.2));
+            var opacityshow = new DoubleAnimation(1.0, TimeSpan.FromSeconds(0.2));
+            var moveaway = new ThicknessAnimation(away, TimeSpan.FromSeconds(0.2));
+            var movein = new ThicknessAnimation(original, TimeSpan.FromSeconds(0.2));
+            movein.EasingFunction = new PowerEase() { Power = 2 };
+
+            mainImage.BeginAnimation(OpacityProperty, opacityhide);
+            mainImage.BeginAnimation(MarginProperty, moveaway);
+
+            await Task.Delay(300);
+            callback();
+
+            mainImage.BeginAnimation(OpacityProperty, opacityshow);
+            mainImage.BeginAnimation(MarginProperty, movein);
         }
     }
 
@@ -370,7 +391,7 @@ namespace CryPixivClient.Windows
         public event PropertyChangedEventHandler PropertyChanged;
 
         public Translation(string original) => this.Original = original;
-        
+
 
 
         string translated = null;
