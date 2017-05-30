@@ -321,10 +321,11 @@
                   ItemTemplate="{StaticResource mainItemTemplate}"  ItemsPanel="{StaticResource mainItemsPanel}" MouseDoubleClick="list_DoubleClick"
                   ItemContainerStyle="{StaticResource itemContainerStyle}" BorderBrush="{x:Null}"/>
 
-        <ListView x:Name="mainListUser" Margin="{Binding ListMargin}" DataContext="{StaticResource mainViewModel}" 
-                  Grid.ColumnSpan="2" ScrollViewer.ScrollChanged="mainList_ScrollChanged" HorizontalContentAlignment="Center"  ItemsPanel="{StaticResource mainItemsPanel}" MouseDoubleClick="list_DoubleClick"
-                  ItemContainerStyle="{StaticResource itemContainerStyle}" BorderBrush="{x:Null}">
-        </ListView>
+        <ListView x:Name="mainListUser" Margin="{Binding ListMargin}"  ItemsSource="{Binding Mode=OneWay, Source={StaticResource ItemListViewSourceUser}}" DataContext="{StaticResource mainViewModel}" 
+                  Grid.ColumnSpan="2" ScrollViewer.ScrollChanged="mainList_ScrollChanged" HorizontalContentAlignment="Center"
+                  ItemTemplate="{StaticResource mainItemTemplate}"  ItemsPanel="{StaticResource mainItemsPanel}" MouseDoubleClick="list_DoubleClick"
+                  ItemContainerStyle="{StaticResource itemContainerStyle}" BorderBrush="{x:Null}"/>
+        
         <!-- LIST VIEWS END HERE-->
 
         <TextBox x:Name="txtSearchQuery" TextChanged="txtSearchQuery_TextChanged" Height="24" Margin="10,28,65,0" TextWrapping="Wrap" VerticalAlignment="Top" FontSize="14" MaxLength="300" 

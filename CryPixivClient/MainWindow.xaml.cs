@@ -103,6 +103,7 @@ namespace CryPixivClient
             mainListBookmarksPrivate.Visibility = (mode == PixivAccount.WorkMode.BookmarksPrivate) ? Visibility.Visible : Visibility.Hidden;
 
             mainListUser.Visibility = (mode == PixivAccount.WorkMode.User) ? Visibility.Visible : Visibility.Hidden;
+
         }
 
         #region Saving/Loading
