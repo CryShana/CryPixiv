@@ -3,6 +3,8 @@ using CryPixivClient.Properties;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Drawing;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -302,18 +304,47 @@ namespace CryPixivClient.Windows
 
         async void CopyImage(object sender, RoutedEventArgs e)
         {
-            if (DownloadedImages.ContainsKey(currentPage) == false) return;
+            if (DownloadedImages.ContainsKey(currentPage) == false)
+            {
+                MessageBox.Show("Image is not yet fully loaded!", "Not loaded yet!", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
             
             var copyTd = new Thread(CopyImageToClipboard);
             copyTd.SetApartmentState(ApartmentState.STA);
             copyTd.Start();
         }
 
+        public static Queue<string> CreatedTemporaryFiles = new Queue<string>();
         void CopyImageToClipboard()
         {
-            var src = DownloadedImages[currentPage] as BitmapSource;
-            src.Freeze();
-            Clipboard.SetImage(src);            
+            var src = DownloadedImages[currentPage] as BitmapImage;
+
+            string filename = $"{LoadedWork.Id.Value}_p{currentPage}.png";
+            string path = Path.Combine(Path.GetTempPath(), filename);
+            CreatedTemporaryFiles.Enqueue(path);
+
+            //write the image to a temporary location (todo: purge it later)
+            using (var fileStream = new FileStream(path, FileMode.Create))
+            {
+                BitmapEncoder encoder = new PngBitmapEncoder();
+                encoder.Frames.Add(BitmapFrame.Create(src));
+                encoder.Save(fileStream);
+            }
+
+            //group image(s)
+            var imgCollection = new System.Collections.Specialized.StringCollection();
+            imgCollection.Add(path);
+
+            //set up our clipboard data
+            DataObject data = new DataObject();
+            data.SetFileDropList(imgCollection);
+            data.SetData("Bitmap", src);          // transparency is not preserved. STILL NEEDS A FIX
+            data.SetData("Preferred DropEffect", DragDropEffects.Move);
+
+            //push it all to the clipboard
+            Clipboard.Clear();
+            Clipboard.SetDataObject(data, true);
         }
 
         void CopyLink(object sender, RoutedEventArgs e)

@@ -6,6 +6,8 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Windows;
@@ -147,6 +149,13 @@ namespace CryPixivClient
             Settings.Default.WindowLeft = Left;
             Settings.Default.WindowTop = Top;
             Settings.Default.Save();
+
+            // clear temp directory if files exist
+            while (WorkDetails.CreatedTemporaryFiles.Count > 0)
+            {
+                var f = WorkDetails.CreatedTemporaryFiles.Dequeue();
+                if (File.Exists(f)) File.Delete(f);
+            }
 
             Environment.Exit(1);
         }
