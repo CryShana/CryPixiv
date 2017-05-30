@@ -82,7 +82,7 @@ namespace CryPixivClient.Windows
             // start downloading images
             DownloadImages();
 
-            if (LoadedWork.ImageThumbnail != null) mainImage.Source = LoadedWork.ImageThumbnail;
+            if (LoadedWork.img != null) mainImage.Source = LoadedWork.ImageThumbnail;
             if (DownloadedImages.Count >= 1) SetImage(1);
 
             // once first image is downloaded, show it

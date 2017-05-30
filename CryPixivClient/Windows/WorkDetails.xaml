@@ -45,6 +45,12 @@
                             <Image Source="../Images/download.png" RenderOptions.BitmapScalingMode="Fant"/>
                         </MenuItem.Icon>
                     </MenuItem>
+                    <Separator/>
+                    <MenuItem Header="Open in browser" Click="btnInternet_Click">
+                        <MenuItem.Icon>
+                            <Image Source="../Images/internet.png" RenderOptions.BitmapScalingMode="Fant"/>
+                        </MenuItem.Icon>
+                    </MenuItem>
                 </ContextMenu>
             </Image.ContextMenu>
         </Image>
