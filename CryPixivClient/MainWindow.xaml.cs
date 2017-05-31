@@ -86,7 +86,6 @@ namespace CryPixivClient
         }
 
         void AuthenticationFailed(object sender, string e) => UIContext.Send((a) => ShowLoginPrompt(true), null);
-        
 
         void ToggleLists(PixivAccount.WorkMode mode)
         {
@@ -185,6 +184,16 @@ namespace CryPixivClient
 
         void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
+            if (IsSearching)
+            {
+                if (MessageBox.Show("Are you sure you wish to terminate the search?", "Are you sure?", MessageBoxButton.YesNo, MessageBoxImage.Question)
+                    == MessageBoxResult.No)
+                {
+                    e.Cancel = true;                    
+                    return;
+                }
+            }
+
             IsClosing = true;
 
             // save window data
