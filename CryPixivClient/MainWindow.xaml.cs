@@ -150,14 +150,9 @@ namespace CryPixivClient
             {
                 string[] content = File.ReadAllLines(HistoryPath);
 
-                // check
-                bool isvalid = true;
-                foreach (var l in content)
-                    if (l.Length > 200) { isvalid = false; break; }
+                content.ToList().RemoveAll(x => x.Length == 0 || x == "\n" || x.Length > 200);
 
-                content.ToList().RemoveAll(x => x.Length == 0 || x == "\n");
-
-                if (isvalid) SearchHistory = new MyObservableCollection<string>(content);
+                SearchHistory = new MyObservableCollection<string>(content);
             }
             catch
             {
@@ -629,5 +624,8 @@ namespace CryPixivClient
         void txtSearchQuery_LostFocus(object sender, RoutedEventArgs e) => popupTags?.Hide();
 
         void txtSearchQuery_GotFocus(object sender, RoutedEventArgs e) => txtSearchQuery_TextChanged(this, null);
+
+        private void popupTags_MouseLeave(object sender, MouseEventArgs e) => popupTags?.Hide();
+        
     }
 }

@@ -289,7 +289,7 @@
             <ColumnDefinition Width="32*"/>
         </Grid.ColumnDefinitions>
 
-        <wnd:PopUp x:Name="popupTags" Panel.ZIndex="10" Margin="10,52,0,0" Grid.ColumnSpan="2" Height="297" VerticalAlignment="Top" HorizontalAlignment="Left" Width="351"/>
+        <wnd:PopUp x:Name="popupTags" Panel.ZIndex="10" Margin="10,52,0,0" Grid.ColumnSpan="2" Height="297" VerticalAlignment="Top" HorizontalAlignment="Left" Width="351" MouseLeave="popupTags_MouseLeave"/>
         <!-- LIST VIEWS START HERE-->
         <ListView x:Name="mainListSorted" Margin="{Binding ListMargin}" ItemsSource="{Binding Mode=OneWay, Source={StaticResource ItemListViewSourceSorted}}" DataContext="{StaticResource mainViewModel}" 
                   Grid.ColumnSpan="2" ScrollViewer.ScrollChanged="mainList_ScrollChanged" HorizontalContentAlignment="Center"
