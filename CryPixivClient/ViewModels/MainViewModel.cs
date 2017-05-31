@@ -2,6 +2,7 @@
 using CryPixivClient.Objects;
 using CryPixivClient.Properties;
 using CryPixivClient.Windows;
+using Ookii.Dialogs.Wpf;
 using Pixeez.Objects;
 using System;
 using System.Collections.Generic;
@@ -649,16 +650,17 @@ namespace CryPixivClient.ViewModels
                 else existing.Close();
             }
 
-            FolderBrowserDialog dialog = new FolderBrowserDialog();
+            var dialog = new VistaFolderBrowserDialog();
             if (string.IsNullOrEmpty(Settings.Default.LastDestination) == false)
             {
                 dialog.SelectedPath = Settings.Default.LastDestination;
             }
             dialog.ShowNewFolderButton = true;
             var result = dialog.ShowDialog();
-            if (result == DialogResult.Cancel) return;
+            if (result == false) return;
 
             string destination = dialog.SelectedPath;
+
             if (Directory.Exists(destination) == false) return;
 
             Settings.Default.LastDestination = destination;
