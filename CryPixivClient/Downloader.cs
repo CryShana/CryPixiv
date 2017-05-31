@@ -135,6 +135,7 @@ namespace CryPixivClient
                         }
 
                         File.WriteAllBytes(fullpath, buffer);
+                        GC.Collect();
                         DownloadedImagesCount++;
                         DownloadProgress?.Report(new DownloaderProgress(work, i, fullpath, 100.0, Percentage));
                         DownloadFinished?.Invoke(this, new Tuple<long, int>(work.Id.Value, i));
