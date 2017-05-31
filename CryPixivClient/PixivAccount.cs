@@ -113,18 +113,18 @@ namespace CryPixivClient
         public async Task<List<PixivWork>> GetUserWorks(long userId, int page = 1)
         {
             var result = await GetData(() => tokens.GetUsersWorksAsync(userId, page: page, perPage: MainViewModel.DefaultPerPage));
-            
+
             if (result == null || result.Item1 == null) return new List<PixivWork>();
             return result.Item1.ToPixivWork();
         }
 
-        void ShowError(string msg)
+        void ShowError(string msg, bool accessTokenExpired = false)
         {
             IsLoggedIn = false;
             if (MainWindow.IsClosing) return;
 
             MainWindow.ShowingError = true;
-            MessageBox.Show(msg, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            if (accessTokenExpired == false) MessageBox.Show(msg, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             AuthFailed?.Invoke(this, msg);
         }
         async Task<Tuple<T, string>> GetData<T>(Func<Task<Tuple<T, string>>> toDo)
@@ -135,8 +135,16 @@ namespace CryPixivClient
                 if (AuthDetails.IsExpired) throw new Exception("Expired session! Please login again!");
 
                 var result = await toDo();
-                if (result == null || string.IsNullOrEmpty(result.Item2) == false) ShowError((result == null) ? "Unknown error." : result.Item2);
-           
+                if (result == null || string.IsNullOrEmpty(result.Item2) == false)
+                {
+                    if (result.Item2 == Tokens.AccessTokenErrorMessage)
+                    {
+                        // access token expired, just relogin without error message and automatically continue the search if user was searching
+                        ShowError(result.Item2, true);
+                    }
+                    else ShowError((result == null) ? "Unknown error." : result.Item2);
+                }
+
                 return result;
             }
             catch (Exception ex)

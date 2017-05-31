@@ -10,6 +10,7 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -85,7 +86,17 @@ namespace CryPixivClient
             if (MainModel.DisplayedWorks_Ranking.Count > 0) MainModel.ForceRefreshImages();
         }
 
-        void AuthenticationFailed(object sender, string e) => UIContext.Send((a) => ShowLoginPrompt(true), null);
+        void AuthenticationFailed(object sender, string e)
+        {
+            UIContext.Send(async (a) => {
+                ShowLoginPrompt(true);
+
+                // needs to be pressed twice, because first time only stops existing searches that got stuck
+                btnSearch_Click(this, null);
+                await Task.Delay(500);
+                btnSearch_Click(this, null);
+            }, null);
+        }
 
         void ToggleLists(PixivAccount.WorkMode mode)
         {
