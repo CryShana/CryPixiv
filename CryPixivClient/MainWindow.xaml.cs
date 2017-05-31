@@ -92,10 +92,13 @@ namespace CryPixivClient
             UIContext.Send(async (a) => {
                 ShowLoginPrompt(true);
 
-                // needs to be pressed twice, because first time only stops existing searches that got stuck
-                btnSearch_Click(this, null);
-                await Task.Delay(500);
-                btnSearch_Click(this, null);
+                if (CurrentWorkMode == PixivAccount.WorkMode.Search)
+                {
+                    // needs to be pressed twice, because first time only stops existing searches that got stuck
+                    btnSearch_Click(this, null);
+                    await Task.Delay(500);
+                    btnSearch_Click(this, null);
+                }
             }, null);
         }
 

@@ -155,11 +155,11 @@ namespace CryPixivClient
         }
         #endregion
 
-        public async Task<Tuple<bool, long?>> AddToBookmarks(long workId)
+        public async Task<Tuple<bool, long?>> AddToBookmarks(long workId, bool isPublic = true)
         {
             try
             {
-                var result = await tokens.AddMyFavoriteWorksAsync(workId);
+                var result = await tokens.AddMyFavoriteWorksAsync(workId, publicity: ((isPublic) ? "public" : "private"));
                 if (result == null || string.IsNullOrEmpty(result.Item2) == false) ShowError((result == null) ? "Unknown error." : result.Item2);
                 return new Tuple<bool, long?>(true, result.Item1.First().Id);
             }
