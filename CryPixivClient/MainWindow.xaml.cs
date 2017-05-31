@@ -665,13 +665,13 @@ namespace CryPixivClient
         void Daily18Click(object sender, RoutedEventArgs e)
         {
             MainModel.SwitchRankingType(RankingType.Day_R18);
-            btnDailyRankings.Content = "Daily R-18 Ranking";
+            btnDailyRankings.Content = "Daily R-18";
         }
 
         void Weekly18Click(object sender, RoutedEventArgs e)
         {
             MainModel.SwitchRankingType(RankingType.Week_R18);
-            btnDailyRankings.Content = "Weekly R-18 Ranking";
+            btnDailyRankings.Content = "Weekly R-18";
         }
         #endregion
     }

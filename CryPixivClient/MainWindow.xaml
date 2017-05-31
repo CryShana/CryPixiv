@@ -9,7 +9,7 @@
         xmlns:virt="clr-namespace:CryPixivClient.VirtualizingTilePanel"
         xmlns:wnd="clr-namespace:CryPixivClient.Windows"
         xmlns:scm="clr-namespace:System.ComponentModel;assembly=WindowsBase"
-        mc:Ignorable="d" MinHeight="350" MinWidth="740" Height="430" Width="745" 
+        mc:Ignorable="d" MinHeight="350" MinWidth="746" Height="430" Width="746" 
         Icon="Images/pixiv.ico" Closing="Window_Closing" SizeChanged="Window_SizeChanged" StateChanged="Window_StateChanged">
     <Window.Resources>
         <vm:MainViewModel x:Key="mainViewModel"/>
@@ -345,16 +345,36 @@
         <Button x:Name="btnBookmarks" Content="Public" Grid.Column="1" HorizontalAlignment="Right" Margin="0,28,28,0" VerticalAlignment="Top" Width="91" Height="23" TabIndex="6" Click="btnBookmarks_Click" Background="#FFFFEAEA"/>
 
         <Grid Grid.Column="1">
-            <Button x:Name="btnDailyRankings" Content="Daily Ranking" Grid.Column="1" HorizontalAlignment="Left" Margin="108,28,0,0" 
-                VerticalAlignment="Top" Width="94" Height="45" Click="btnDailyRankings_Click" TabIndex="3" Background="#FFFFFEEE" HorizontalContentAlignment="Center"/>
+            <Button x:Name="btnDailyRankings" Content="Daily Ranking" HorizontalAlignment="Left" Margin="108,28,0,0" 
+                VerticalAlignment="Top" Width="104" Height="45" Click="btnDailyRankings_Click" TabIndex="3" Background="#FFFFFEEE" HorizontalContentAlignment="Center"/>
             <Grid.ContextMenu>
                 <ContextMenu>
-                    <MenuItem Header="Daily" Click="DailyClick" />
-                    <MenuItem Header="Weekly" Click="WeeklyClick" />
-                    <MenuItem Header="Monthly" Click="MonthlyClick" />
+                    <MenuItem Header="Daily" Click="DailyClick">
+                        <MenuItem.Icon>
+                            <Image Source="Images/one.png" RenderOptions.BitmapScalingMode="Fant"/>
+                        </MenuItem.Icon>
+                    </MenuItem>
+                    <MenuItem Header="Weekly" Click="WeeklyClick" >
+                        <MenuItem.Icon>
+                            <Image Source="Images/seven.png" RenderOptions.BitmapScalingMode="Fant"/>
+                        </MenuItem.Icon>
+                    </MenuItem>
+                    <MenuItem Header="Monthly" Click="MonthlyClick" >
+                        <MenuItem.Icon>
+                            <Image Source="Images/calendar.png" RenderOptions.BitmapScalingMode="Fant"/>
+                        </MenuItem.Icon>
+                    </MenuItem>
                     <Separator />
-                    <MenuItem Header="For Males" Click="ForMalesClick" />
-                    <MenuItem Header="For Females" Click="ForFemalesClick" />
+                    <MenuItem Header="Male Ranking" Click="ForMalesClick" >
+                        <MenuItem.Icon>
+                            <Image Source="Images/male.png" RenderOptions.BitmapScalingMode="Fant"/>
+                        </MenuItem.Icon>
+                    </MenuItem>
+                    <MenuItem Header="Female Ranking" Click="ForFemalesClick" >
+                        <MenuItem.Icon>
+                            <Image Source="Images/female.png" RenderOptions.BitmapScalingMode="Fant"/>
+                        </MenuItem.Icon>
+                    </MenuItem>
                     <Separator />
                     <MenuItem Header="Daily R-18" Click="Daily18Click" />
                     <MenuItem Header="Weekly R-18" Click="Weekly18Click" />
@@ -379,13 +399,13 @@
                 <TextBlock x:Name="txtStatus2" Text="{Binding CollectionStatus, Source={StaticResource mainViewModel}}"></TextBlock>
             </StatusBarItem>
         </StatusBar>
-        <Button x:Name="btnFollowing" Content="Following" Grid.Column="1" HorizontalAlignment="Left" Margin="201,28,0,0" VerticalAlignment="Top" Width="74" Height="45" Background="White" Click="btnFollowing_Click" TabIndex="4"/>
+        <Button x:Name="btnFollowing" Content="Following" Grid.Column="1" HorizontalAlignment="Left" Margin="211,28,0,0" VerticalAlignment="Top" Width="74" Height="45" Background="White" Click="btnFollowing_Click" TabIndex="4"/>
         <CheckBox x:Name="checkPopular" Content="Autosort by Popularity" HorizontalAlignment="Left" Margin="10,57,0,0" VerticalAlignment="Top" IsChecked="True" Click="checkPopular_Click"/>
         <Button x:Name="btnResults" Content="Results" Grid.Column="1" HorizontalAlignment="Left" Margin="13,28,0,0" VerticalAlignment="Top" Width="80" Height="44" TabIndex="5" Click="btnResults_Click" Background="#FFB9B9B9"/>
         <Image Grid.Column="1" HorizontalAlignment="Right" Height="21" Margin="0,21,20,0" VerticalAlignment="Top" Width="21" Source="Images/like.png"/>
         <Image Grid.Column="1" HorizontalAlignment="Left" Height="28" Margin="98,21,0,0" VerticalAlignment="Top" Width="28" Source="Images/rank.png"/>
         <Grid Grid.Column="1">
-            <Button x:Name="btnRecommended" Content="Recommended"  HorizontalAlignment="Left" Margin="274,28,0,0" VerticalAlignment="Top"
+            <Button x:Name="btnRecommended" Content="Recommended"  HorizontalAlignment="Left" Margin="284,28,0,0" VerticalAlignment="Top"
                 Width="95" Height="45" Background="White" Click="btnRecommended_Click" TabIndex="5"/>
             <Grid.ContextMenu>
                 <ContextMenu>
@@ -401,6 +421,6 @@
         <TextBlock Grid.Column="1" HorizontalAlignment="Right" Margin="0,8,60,0" TextWrapping="Wrap" Text="Bookmarks" VerticalAlignment="Top"/>
         <TextBlock HorizontalAlignment="Left" Margin="10,7,0,0" TextWrapping="Wrap" Text="Search by tag:" VerticalAlignment="Top"/>
         <CheckBox x:Name="checkNSFW" Content="NSFW" HorizontalAlignment="Right" Margin="0,57,10,0" VerticalAlignment="Top" IsChecked="True" Click="checkNSFW_Click"/>
-        <TextBlock HorizontalAlignment="Left" TextWrapping="Wrap" Text="Right-click on elements for more options" VerticalAlignment="Top" Grid.Column="1" Margin="108,8,0,0" Foreground="#FFBBBBBB" TextAlignment="Right" Width="259"/>
+        <TextBlock HorizontalAlignment="Left" TextWrapping="Wrap" Text="Right-click on elements for more options" VerticalAlignment="Top" Grid.Column="1" Margin="119,8,0,0" Foreground="#FFBBBBBB" TextAlignment="Right" Width="259"/>
     </Grid>
 </Window>
