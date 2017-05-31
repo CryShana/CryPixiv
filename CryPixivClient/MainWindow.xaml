@@ -283,7 +283,7 @@
 
         <!-- ITEMS PANEL TEMPLATE IS HERE -->
         <ItemsPanelTemplate x:Key="mainItemsPanel">
-            <virt:VirtualizingTilePanel VirtualizingPanel.VirtualizationMode="Recycling" />
+            <virt:VirtualizingTilePanel VirtualizingPanel.VirtualizationMode="Recycling"/>
         </ItemsPanelTemplate>
 
     </Window.Resources>

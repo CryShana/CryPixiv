@@ -31,6 +31,7 @@ namespace CryPixivClient
         public static bool LimitReached = false;
         public static int DynamicWorksLimit = 100;
         public const int DefaultWorksLimit = 100;
+        public const int SearchHistoryLimit = 25;
         public const string HistoryPath = "searchhistory.txt";
         public static PixivAccount.WorkMode CurrentWorkMode;
         public static CollectionViewSource MainCollectionViewSorted;
@@ -162,6 +163,7 @@ namespace CryPixivClient
                 string[] content = File.ReadAllLines(HistoryPath);
 
                 content.ToList().RemoveAll(x => x.Length == 0 || x == "\n" || x.Length > 200);
+                if (content.Length > SearchHistoryLimit) content = content.Reverse().Skip(content.Length - SearchHistoryLimit).Reverse().ToArray();
 
                 SearchHistory = new MyObservableCollection<string>(content);
             }
@@ -178,7 +180,7 @@ namespace CryPixivClient
 
             try
             {
-                while (SearchHistory.Count > 50) SearchHistory.RemoveAt(SearchHistory.Count - 1);
+                while (SearchHistory.Count > SearchHistoryLimit) SearchHistory.RemoveAt(SearchHistory.Count - 1);
 
                 File.WriteAllLines(HistoryPath, SearchHistory);
             }
