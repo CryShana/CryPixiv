@@ -184,7 +184,7 @@ namespace CryPixivClient
                 if (MessageBox.Show("Are you sure you wish to terminate the search?", "Are you sure?", MessageBoxButton.YesNo, MessageBoxImage.Question)
                     == MessageBoxResult.No)
                 {
-                    e.Cancel = true;                    
+                    e.Cancel = true;
                     return;
                 }
             }
@@ -227,7 +227,7 @@ namespace CryPixivClient
         {
             ToggleButtons(PixivAccount.WorkMode.Ranking);
             ToggleLists(PixivAccount.WorkMode.Ranking);
-            MainModel.ShowDailyRankings();
+            MainModel.ShowRanking();
         }
         void btnFollowing_Click(object sender, RoutedEventArgs e)
         {
@@ -256,7 +256,7 @@ namespace CryPixivClient
         void btnSearch_Click(object sender, RoutedEventArgs e)
         {
             popupTags?.Hide();
-            
+
             if (IsSearching)
             {
                 MainModel.CancelRunningSearches();
@@ -488,7 +488,7 @@ namespace CryPixivClient
         {
             if (userId <= 0 || userId == currentUserId) return;
             else await MainModel.ResetUsers();
-            
+
             currentUserId = userId;
             currentWindow.Dispatcher.Invoke(() =>
             {
@@ -529,7 +529,7 @@ namespace CryPixivClient
 
             MainModel.OpenCmd.Execute(selected);
         }
-        public void SchedulerJobFinished(Scheduler<PixivWork> sender, Tuple<PixivWork, Action> job, 
+        public void SchedulerJobFinished(Scheduler<PixivWork> sender, Tuple<PixivWork, Action> job,
             MyObservableCollection<PixivWork> associatedCollection)
         {
             if (sender.AssociatedWorkMode != CurrentWorkMode) return;
@@ -542,10 +542,10 @@ namespace CryPixivClient
             var toBeAdded = sender.ToAddCount;
             if (MainModel.Finished)
             {
-                MainModel.Status = "Done. " + ((toBeAdded > 0) ? $"({toBeAdded} to be added)" : "");               
+                MainModel.Status = "Done. " + ((toBeAdded > 0) ? $"({toBeAdded} to be added)" : "");
             }
             else if (MainModel.IsWorking)
-            {          
+            {
                 MainModel.Status = $"Searching... {associatedCollection.Count}" + ((isSearch) ? $"{((MainModel.MaxResults == -1) ? "" : $"/{MainModel.MaxResults}")}" : "") + $" ({toBeAdded} to be added)";
             }
             else if (LimitReached)
@@ -558,7 +558,7 @@ namespace CryPixivClient
             }
 
             MainModel.CollectionStatus = $"Found {cache.Count} items.";
-        }       
+        }
 
         private void btnPause_Click(object sender, RoutedEventArgs e)
         {
@@ -581,8 +581,7 @@ namespace CryPixivClient
 
         void SetupPopups()
         {
-            // add list and shit
-
+            // Sets up the History Search pop up
             var history = new List<string>();
 
             TextBlock txt = new TextBlock()
@@ -612,6 +611,8 @@ namespace CryPixivClient
 
             popupTags.AddContent(txt, lstBox);
 
+            // Will also need to set up the "Follow User" popup here... (maybe even a NSFW checkbox popup for further customization)
+
         }
 
 
@@ -628,6 +629,50 @@ namespace CryPixivClient
         void txtSearchQuery_GotFocus(object sender, RoutedEventArgs e) => txtSearchQuery_TextChanged(this, null);
 
         private void popupTags_MouseLeave(object sender, MouseEventArgs e) => popupTags?.Hide();
-        
+
+
+        #region DailyRanking Context Menu
+        void DailyClick(object sender, RoutedEventArgs e)
+        {
+            MainModel.SwitchRankingType(RankingType.Day);
+            btnDailyRankings.Content = "Daily Ranking";
+        }
+
+        void WeeklyClick(object sender, RoutedEventArgs e)
+        {
+            MainModel.SwitchRankingType(RankingType.Week);
+            btnDailyRankings.Content = "Weekly Ranking";
+        }
+
+        void MonthlyClick(object sender, RoutedEventArgs e)
+        {
+            MainModel.SwitchRankingType(RankingType.Month);
+            btnDailyRankings.Content = "Monthly Ranking";
+        }
+
+        void ForMalesClick(object sender, RoutedEventArgs e)
+        {
+            MainModel.SwitchRankingType(RankingType.Day_Male);
+            btnDailyRankings.Content = "Male Ranking";
+        }
+
+        void ForFemalesClick(object sender, RoutedEventArgs e)
+        {
+            MainModel.SwitchRankingType(RankingType.Day_Female);
+            btnDailyRankings.Content = "Female Ranking";
+        }
+
+        void Daily18Click(object sender, RoutedEventArgs e)
+        {
+            MainModel.SwitchRankingType(RankingType.Day_R18);
+            btnDailyRankings.Content = "Daily R-18 Ranking";
+        }
+
+        void Weekly18Click(object sender, RoutedEventArgs e)
+        {
+            MainModel.SwitchRankingType(RankingType.Week_R18);
+            btnDailyRankings.Content = "Weekly R-18 Ranking";
+        }
+        #endregion
     }
 }

@@ -343,7 +343,24 @@
         <ProgressBar x:Name="mainProgessBar" Height="10" Margin="0,85,0,0" VerticalAlignment="Top" Foreground="#FF009CFF" Grid.ColumnSpan="2" IsTabStop="False" 
                      IsIndeterminate="{Binding IsWorking, Source={StaticResource mainViewModel}}"/>
         <Button x:Name="btnBookmarks" Content="Public" Grid.Column="1" HorizontalAlignment="Right" Margin="0,28,28,0" VerticalAlignment="Top" Width="91" Height="23" TabIndex="6" Click="btnBookmarks_Click" Background="#FFFFEAEA"/>
-        <Button x:Name="btnDailyRankings" Content="Daily Ranking" Grid.Column="1" HorizontalAlignment="Left" Margin="108,28,0,0" VerticalAlignment="Top" Width="94" Height="45" Click="btnDailyRankings_Click" TabIndex="3" Background="#FFFFFEEE" HorizontalContentAlignment="Center"/>
+
+        <Grid Grid.Column="1">
+            <Button x:Name="btnDailyRankings" Content="Daily Ranking" Grid.Column="1" HorizontalAlignment="Left" Margin="108,28,0,0" 
+                VerticalAlignment="Top" Width="94" Height="45" Click="btnDailyRankings_Click" TabIndex="3" Background="#FFFFFEEE" HorizontalContentAlignment="Center"/>
+            <Grid.ContextMenu>
+                <ContextMenu>
+                    <MenuItem Header="Daily" Click="DailyClick" />
+                    <MenuItem Header="Weekly" Click="WeeklyClick" />
+                    <MenuItem Header="Monthly" Click="MonthlyClick" />
+                    <Separator />
+                    <MenuItem Header="For Males" Click="ForMalesClick" />
+                    <MenuItem Header="For Females" Click="ForFemalesClick" />
+                    <Separator />
+                    <MenuItem Header="Daily R-18" Click="Daily18Click" />
+                    <MenuItem Header="Weekly R-18" Click="Weekly18Click" />
+                </ContextMenu>
+            </Grid.ContextMenu>
+        </Grid>
         <StatusBar Height="22" VerticalAlignment="Bottom" Grid.ColumnSpan="2">
             <StatusBar.ItemsPanel>
                 <ItemsPanelTemplate>
@@ -384,5 +401,6 @@
         <TextBlock Grid.Column="1" HorizontalAlignment="Right" Margin="0,8,60,0" TextWrapping="Wrap" Text="Bookmarks" VerticalAlignment="Top"/>
         <TextBlock HorizontalAlignment="Left" Margin="10,7,0,0" TextWrapping="Wrap" Text="Search by tag:" VerticalAlignment="Top"/>
         <CheckBox x:Name="checkNSFW" Content="NSFW" HorizontalAlignment="Right" Margin="0,57,10,0" VerticalAlignment="Top" IsChecked="True" Click="checkNSFW_Click"/>
+        <TextBlock HorizontalAlignment="Left" TextWrapping="Wrap" Text="Right-click on elements for more options" VerticalAlignment="Top" Grid.Column="1" Margin="108,8,0,0" Foreground="#FFBBBBBB" TextAlignment="Right" Width="259"/>
     </Grid>
 </Window>

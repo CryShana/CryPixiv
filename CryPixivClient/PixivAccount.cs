@@ -84,9 +84,9 @@ namespace CryPixivClient
             if (result == null || result.Item1 == null) return new Paginated<Work>();
             return result.Item1;
         }
-        public async Task<List<PixivWork>> GetDailyRanking(int page = 1)
+        public async Task<List<PixivWork>> GetRanking(int page = 1, string rtype = "day")
         {
-            var result = await GetData(() => tokens.GetRankingAllAsync(page: page, perPage: MainViewModel.DefaultPerPage));
+            var result = await GetData(() => tokens.GetRankingAllAsync(page: page, perPage: MainViewModel.DefaultPerPage, mode: rtype));
 
             if (result == null || result.Item1 == null) return new List<PixivWork>();
             return result.Item1.ToPixivWork();
