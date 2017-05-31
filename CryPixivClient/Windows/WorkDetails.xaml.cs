@@ -352,7 +352,7 @@ namespace CryPixivClient.Windows
             Clipboard.SetText($"https://www.pixiv.net/member_illust.php?mode=medium&illust_id={LoadedWork.Id}");
         }
 
-        List<Translation> GetTranslatedTags(List<string> tags)
+        public static List<Translation> GetTranslatedTags(List<string> tags)
         {
             var newTags = new List<Translation>();
 
@@ -399,6 +399,7 @@ namespace CryPixivClient.Windows
         {
             get
             {
+                if (Original.Length > 150) return "";
                 if (string.IsNullOrEmpty(translated)) translated = GetTranslation();
                 return translated;
             }

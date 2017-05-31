@@ -15,6 +15,15 @@
         <vm:MainViewModel x:Key="mainViewModel"/>
         <BitmapImage x:Key="missingImage" UriSource="Images/missingImage.jpg" />
 
+        <!-- SERACH HISTORY DATATEMPLATE -->
+        <DataTemplate x:Key="searchHistoryTemplate">
+            <StackPanel x:Name="stackpanel" Orientation="Horizontal">
+                <TextBlock Text="{Binding Original}" />
+                <TextBlock Text="  " />
+                <TextBlock Text="{Binding Translated, IsAsync=True}" Foreground="#FFB9B9B9" />
+            </StackPanel>
+        </DataTemplate>
+
         <!-- COLLECTION VIEW SOURCES START HERE -->
         <CollectionViewSource x:Key="ItemListViewSourceSorted" Source="{Binding DisplayedWorks_Results, Source={StaticResource mainViewModel}}">
             <CollectionViewSource.SortDescriptions>
@@ -325,7 +334,7 @@
                   Grid.ColumnSpan="2" ScrollViewer.ScrollChanged="mainList_ScrollChanged" HorizontalContentAlignment="Center"
                   ItemTemplate="{StaticResource mainItemTemplate}"  ItemsPanel="{StaticResource mainItemsPanel}" MouseDoubleClick="list_DoubleClick"
                   ItemContainerStyle="{StaticResource itemContainerStyle}" BorderBrush="{x:Null}"/>
-        
+
         <!-- LIST VIEWS END HERE-->
 
         <TextBox x:Name="txtSearchQuery" TextChanged="txtSearchQuery_TextChanged" Height="24" Margin="10,28,65,0" TextWrapping="Wrap" VerticalAlignment="Top" FontSize="14" MaxLength="300" 

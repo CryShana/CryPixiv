@@ -601,11 +601,13 @@ namespace CryPixivClient
                 BorderBrush = null,
             };
 
-            lstBox.ItemsSource = SearchHistory;
+            lstBox.ItemTemplate = (DataTemplate)FindResource("searchHistoryTemplate");
+            SearchHistory.CollectionChanged += (a, b) => { lstBox.ItemsSource = WorkDetails.GetTranslatedTags(SearchHistory.ToList()); };
+            lstBox.ItemsSource = WorkDetails.GetTranslatedTags(SearchHistory.ToList());
             lstBox.SelectionChanged += (a, b) =>
             {
-                var tt = lstBox.SelectedItem as string;
-                if (tt != null) txtSearchQuery.Text = tt;
+                var tt = lstBox.SelectedItem as Translation;
+                if (tt != null) txtSearchQuery.Text = tt.Original;
             };
 
             popupTags.AddContent(txt, lstBox);
