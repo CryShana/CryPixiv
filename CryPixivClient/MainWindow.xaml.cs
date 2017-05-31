@@ -590,7 +590,7 @@ namespace CryPixivClient
                 HorizontalAlignment = HorizontalAlignment.Left,
                 Margin = new Thickness(20, 18, 0, 0),
                 TextWrapping = TextWrapping.Wrap,
-                Text = "Your search history will be displayed here",
+                Text = "Search History",
                 VerticalAlignment = VerticalAlignment.Top,
                 Foreground = System.Windows.Media.Brushes.Gray
             };
