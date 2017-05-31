@@ -3,7 +3,7 @@ Unofficial Pixiv client
 
 ## Features
 - View your Public/Private Bookmarks
-- View Daily Ranking
+- View Daily/Weekly/Monthly/... Ranking
 - View Following feed
 - View Recommended feed
 - View User's other works from selected work
@@ -12,10 +12,12 @@ Unofficial Pixiv client
 - Hide NSFW works
 - Bookmark works
 - Download selected works
+- Tags are auto-translated
+- Tag search history
 
 ## Some screenshots
 
-[Screenshot 1](http://i.imgur.com/sQHVM5L.png)
+[Screenshot 1](http://i.imgur.com/kzjy7cs.png)
 
 [Screenshot 2](http://i.imgur.com/LqfqS5n.png)
 
