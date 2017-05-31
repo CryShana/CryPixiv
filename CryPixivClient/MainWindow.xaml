@@ -365,19 +365,27 @@
                         </MenuItem.Icon>
                     </MenuItem>
                     <Separator />
-                    <MenuItem Header="Male Ranking" Click="ForMalesClick" >
+                    <MenuItem Header="Male Ranking" Click="ForMalesClick">
                         <MenuItem.Icon>
-                            <Image Source="Images/male.png" RenderOptions.BitmapScalingMode="Fant"/>
+                            <Image Source="Images/male.png" RenderOptions.BitmapScalingMode="Fant" Width="14"/>
                         </MenuItem.Icon>
                     </MenuItem>
-                    <MenuItem Header="Female Ranking" Click="ForFemalesClick" >
+                    <MenuItem Header="Female Ranking" Click="ForFemalesClick">
                         <MenuItem.Icon>
                             <Image Source="Images/female.png" RenderOptions.BitmapScalingMode="Fant"/>
                         </MenuItem.Icon>
                     </MenuItem>
                     <Separator />
-                    <MenuItem Header="Daily R-18" Click="Daily18Click" />
-                    <MenuItem Header="Weekly R-18" Click="Weekly18Click" />
+                    <MenuItem Header="Daily R-18" Click="Daily18Click">
+                        <MenuItem.Icon>
+                            <Image Source="Images/onered.png" RenderOptions.BitmapScalingMode="Fant"/>
+                        </MenuItem.Icon>
+                    </MenuItem>
+                    <MenuItem Header="Weekly R-18" Click="Weekly18Click">
+                        <MenuItem.Icon>
+                            <Image Source="Images/sevenred.png" RenderOptions.BitmapScalingMode="Fant"/>
+                        </MenuItem.Icon>
+                    </MenuItem>
                 </ContextMenu>
             </Grid.ContextMenu>
         </Grid>
