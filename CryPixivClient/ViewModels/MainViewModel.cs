@@ -384,7 +384,7 @@ namespace CryPixivClient.ViewModels
 
         #region Show Method Callers
         public async void ShowRanking() =>
-            await Show(ranking, DisplayedWorks_Ranking, PixivAccount.WorkMode.Ranking, "Daily Ranking",
+            await Show(ranking, DisplayedWorks_Ranking, PixivAccount.WorkMode.Ranking, "Ranking",
                 (page) => MainWindow.Account.GetRanking(page, CurrentRankingType.ToString().ToLower()), Scheduler_DisplayedWorks_Ranking);
 
         public async void ShowFollowing() =>

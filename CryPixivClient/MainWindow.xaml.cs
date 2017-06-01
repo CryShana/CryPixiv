@@ -234,7 +234,7 @@ namespace CryPixivClient
         #region Main Buttons
         void ToggleButtons(PixivAccount.WorkMode mode)
         {
-            btnDailyRankings.IsEnabled = mode != PixivAccount.WorkMode.Ranking;
+            btnRankings.IsEnabled = mode != PixivAccount.WorkMode.Ranking;
             btnBookmarks.IsEnabled = mode != PixivAccount.WorkMode.BookmarksPublic;
             btnBookmarksPrivate.IsEnabled = mode != PixivAccount.WorkMode.BookmarksPrivate;
             btnFollowing.IsEnabled = mode != PixivAccount.WorkMode.Following;
@@ -672,48 +672,47 @@ namespace CryPixivClient
             MainModel.SelectedStatus = $"{list.SelectedItems.Count} selected";
         }
 
-
         #region DailyRanking Context Menu
         void DailyClick(object sender, RoutedEventArgs e)
         {
             MainModel.SwitchRankingType(RankingType.Day);
-            btnDailyRankings.Content = "Daily Ranking";
+            btnRankings.Content = "Daily Ranking";            
         }
 
         void WeeklyClick(object sender, RoutedEventArgs e)
         {
             MainModel.SwitchRankingType(RankingType.Week);
-            btnDailyRankings.Content = "Weekly Ranking";
+            btnRankings.Content = "Weekly Ranking";
         }
 
         void MonthlyClick(object sender, RoutedEventArgs e)
         {
             MainModel.SwitchRankingType(RankingType.Month);
-            btnDailyRankings.Content = "Monthly Ranking";
+            btnRankings.Content = "Monthly Ranking";
         }
 
         void ForMalesClick(object sender, RoutedEventArgs e)
         {
             MainModel.SwitchRankingType(RankingType.Day_Male);
-            btnDailyRankings.Content = "Male Ranking";
+            btnRankings.Content = "Male Ranking";
         }
 
         void ForFemalesClick(object sender, RoutedEventArgs e)
         {
             MainModel.SwitchRankingType(RankingType.Day_Female);
-            btnDailyRankings.Content = "Female Ranking";
+            btnRankings.Content = "Female Ranking";
         }
 
         void Daily18Click(object sender, RoutedEventArgs e)
         {
             MainModel.SwitchRankingType(RankingType.Day_R18);
-            btnDailyRankings.Content = "Daily R-18";
+            btnRankings.Content = "Daily R-18";
         }
 
         void Weekly18Click(object sender, RoutedEventArgs e)
         {
             MainModel.SwitchRankingType(RankingType.Week_R18);
-            btnDailyRankings.Content = "Weekly R-18";
+            btnRankings.Content = "Weekly R-18";
         }
         #endregion
     }

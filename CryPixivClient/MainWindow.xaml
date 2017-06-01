@@ -346,7 +346,7 @@
         <Button x:Name="btnBookmarks" Content="Public" Grid.Column="1" HorizontalAlignment="Right" Margin="0,28,28,0" VerticalAlignment="Top" Width="91" Height="23" TabIndex="6" Click="btnBookmarks_Click" Background="#FFFFEAEA"/>
 
         <Grid Grid.Column="1">
-            <Button x:Name="btnDailyRankings" Content="Daily Ranking" HorizontalAlignment="Left" Margin="108,28,0,0" 
+            <Button x:Name="btnRankings" Content="Daily Ranking" HorizontalAlignment="Left" Margin="108,28,0,0" 
                 VerticalAlignment="Top" Width="104" Height="45" Click="btnDailyRankings_Click" TabIndex="3" Background="#FFFFFEEE" HorizontalContentAlignment="Center"/>
             <Grid.ContextMenu>
                 <ContextMenu>
