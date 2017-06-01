@@ -118,6 +118,9 @@ namespace CryPixivClient
 
             mainListUser.Visibility = (mode == PixivAccount.WorkMode.User) ? Visibility.Visible : Visibility.Hidden;
 
+            if (mode != PixivAccount.WorkMode.User) followUserPopup.Hide(PopUp.TransitionType.ZoomIn);
+            else followUserPopup.Show(PopUp.TransitionType.ZoomIn);
+
         }
 
         #region Saving/Loading
@@ -628,7 +631,7 @@ namespace CryPixivClient
             popupTags.AddContent(txt, lstBox);
 
             // Will also need to set up the "Follow User" popup here... (maybe even a NSFW checkbox popup for further customization)
-
+            followUserPopup.SetArrow(PopUp.ArrowPosition.None);
         }
 
 

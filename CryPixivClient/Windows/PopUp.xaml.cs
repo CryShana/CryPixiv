@@ -29,6 +29,12 @@ namespace CryPixivClient.Windows
             None
         }
 
+        public enum TransitionType
+        {
+            UpDown,
+            ZoomIn
+        }
+
         public bool IsHidden { get; private set; }
 
         public PopUp() : this(ArrowPosition.UpLeft) { }
@@ -45,7 +51,7 @@ namespace CryPixivClient.Windows
             foreach (var e in elements) _contentGrid.Children.Add(e);
         }
         
-        void SetArrow(ArrowPosition position)
+        public void SetArrow(ArrowPosition position)
         {
             // default settings
             _arrow.Points = new PointCollection(new Point[] { new Point(0, 0), new Point(40, 0), new Point(20, -25) });
@@ -91,7 +97,7 @@ namespace CryPixivClient.Windows
             _contentGrid.Margin = new Thickness(10, 26, 10, 211);
         }
 
-        public void Show()
+        public void Show(TransitionType transition = TransitionType.UpDown)
         {
             if (IsHidden == false) return;
 
@@ -99,13 +105,29 @@ namespace CryPixivClient.Windows
             _arrow.BeginAnimation(OpacityProperty, dan);
             _contentGrid.BeginAnimation(OpacityProperty, dan);
 
-            ThicknessAnimation tan = new ThicknessAnimation(new Thickness(10, 26, 10, 34), TimeSpan.FromSeconds(0.6));
-            tan.EasingFunction = new PowerEase() { Power = 2 };
-            _contentGrid.BeginAnimation(MarginProperty, tan);
+            if (transition == TransitionType.UpDown)
+            {
+                ThicknessAnimation tan = new ThicknessAnimation(new Thickness(10, 26, 10, 34), TimeSpan.FromSeconds(0.6));
+                tan.EasingFunction = new PowerEase() { Power = 2 };
+                _contentGrid.BeginAnimation(MarginProperty, tan);
+            }
+            else
+            {
+                _contentGrid.Margin = new Thickness(10, 26, 10, 34);
+
+                _mainGrid.RenderTransformOrigin = new Point(0.5, 0.5);
+                scaleTransform.ScaleX = 0.6;
+                scaleTransform.ScaleY = 0.6;
+
+                DoubleAnimation dan2 = new DoubleAnimation(1.0, TimeSpan.FromSeconds(0.6));
+                dan2.EasingFunction = new PowerEase() { Power = 2 };
+                scaleTransform.BeginAnimation(ScaleTransform.ScaleXProperty, dan2);
+                scaleTransform.BeginAnimation(ScaleTransform.ScaleYProperty, dan2);
+            }
 
             IsHidden = false;
         }
-        public void Hide()
+        public void Hide(TransitionType transition = TransitionType.UpDown)
         {
             if (IsHidden) return;
 
@@ -113,9 +135,19 @@ namespace CryPixivClient.Windows
             _arrow.BeginAnimation(OpacityProperty, dan);
             _contentGrid.BeginAnimation(OpacityProperty, dan);
 
-            ThicknessAnimation tan = new ThicknessAnimation(new Thickness(10, 26, 10, 211), TimeSpan.FromSeconds(0.6));
-            tan.EasingFunction = new PowerEase() { Power = 2 };
-            _contentGrid.BeginAnimation(MarginProperty, tan);
+            if (transition == TransitionType.UpDown)
+            {
+                ThicknessAnimation tan = new ThicknessAnimation(new Thickness(10, 26, 10, 211), TimeSpan.FromSeconds(0.6));
+                tan.EasingFunction = new PowerEase() { Power = 2 };
+                _contentGrid.BeginAnimation(MarginProperty, tan);
+            }
+            else
+            {
+                DoubleAnimation dan2 = new DoubleAnimation(0.6, TimeSpan.FromSeconds(0.6));
+                dan2.EasingFunction = new PowerEase() { Power = 2 };
+                scaleTransform.BeginAnimation(ScaleTransform.ScaleXProperty, dan2);
+                scaleTransform.BeginAnimation(ScaleTransform.ScaleYProperty, dan2);
+            }
 
             IsHidden = true;
         }

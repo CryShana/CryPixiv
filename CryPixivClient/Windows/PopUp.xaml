@@ -7,6 +7,11 @@
              mc:Ignorable="d" Height="237.342" Width="354.006">
     <Grid>
         <Grid x:Name="_mainGrid">
+            <Grid.RenderTransform>
+                <TransformGroup>
+                    <ScaleTransform x:Name="scaleTransform" />
+                </TransformGroup>
+            </Grid.RenderTransform>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="33*"/>
                 <ColumnDefinition Width="26*"/>
