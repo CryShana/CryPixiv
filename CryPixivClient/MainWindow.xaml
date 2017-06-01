@@ -436,7 +436,7 @@
         <CheckBox x:Name="checkNSFW" Content="NSFW" HorizontalAlignment="Right" Margin="0,82,10,0" VerticalAlignment="Top" IsChecked="True" Click="checkNSFW_Click"/>
         <TextBlock HorizontalAlignment="Left" TextWrapping="Wrap" Text="Right-click on elements for more options" VerticalAlignment="Top" Grid.Column="1" Margin="119,33,0,0" Foreground="#FFBBBBBB" TextAlignment="Right" Width="259"/>
         <Menu VerticalAlignment="Top" Grid.ColumnSpan="2" Height="21">
-            <MenuItem Header="Settings" Height="21"></MenuItem>
+            <MenuItem Header="Settings" Height="21" Click="Settings_Click"></MenuItem>
             <MenuItem Header="Help" Height="21">
                 <MenuItem x:Name="AboutMenu" Header="About" Click="AboutMenu_Click">
                     <MenuItem.Icon>

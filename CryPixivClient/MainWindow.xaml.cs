@@ -613,6 +613,7 @@ namespace CryPixivClient
         }
         #endregion
 
+        #region Events and Other methods
         void list_DoubleClick(object sender, MouseButtonEventArgs e)
         {
             if (((ListView)sender).SelectedItems.Count == 0) return;
@@ -797,6 +798,7 @@ namespace CryPixivClient
                 userFollowBtn.BorderBrush = System.Windows.Media.Brushes.CornflowerBlue;
             }
         }
+        #endregion
 
         #region Ranking Context Menu
         void DailyClick(object sender, RoutedEventArgs e)
@@ -843,10 +845,13 @@ namespace CryPixivClient
         #endregion
 
         #region Main Menu
-        void AboutMenu_Click(object sender, RoutedEventArgs e) => 
+        void AboutMenu_Click(object sender, RoutedEventArgs e) =>
             MessageBox.Show($"CryPixiv - {GetVersion()}\n\nMade by Adam Veselič (CryShana)", "About", MessageBoxButton.OK, MessageBoxImage.Information);
-        
-        void GotoGitMenu_Click(object sender, RoutedEventArgs e) => Process.Start("https://github.com/CryADsisAM/CryPixiv");      
+        void GotoGitMenu_Click(object sender, RoutedEventArgs e) => Process.Start("https://github.com/CryADsisAM/CryPixiv");
+        void Settings_Click(object sender, RoutedEventArgs e)
+        {
+            MessageBox.Show("Not yet implemented.");
+        }
         #endregion
     }
 }
