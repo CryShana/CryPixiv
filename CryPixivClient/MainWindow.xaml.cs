@@ -121,7 +121,6 @@ namespace CryPixivClient
 
             if (mode != PixivAccount.WorkMode.User) followUserPopup.Hide(PopUp.TransitionType.ZoomIn);
             else followUserPopup.Show(PopUp.TransitionType.ZoomIn);
-
         }
 
         #region Saving/Loading
@@ -665,7 +664,13 @@ namespace CryPixivClient
 
         void txtSearchQuery_GotFocus(object sender, RoutedEventArgs e) => txtSearchQuery_TextChanged(this, null);
 
-        private void popupTags_MouseLeave(object sender, MouseEventArgs e) => popupTags?.Hide();
+        void popupTags_MouseLeave(object sender, MouseEventArgs e) => popupTags?.Hide();
+
+        void list_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            var list = GetCurrentListView();
+            MainModel.SelectedStatus = $"{list.SelectedItems.Count} selected";
+        }
 
 
         #region DailyRanking Context Menu

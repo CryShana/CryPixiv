@@ -43,6 +43,7 @@ namespace CryPixivClient.ViewModels
         Thickness margin = new Thickness(0, 94, 0, 22);
         bool isWorking = false;
         string titleSuffix = "";
+        string selectedStatus = "0 selected";
         List<PixivWork> ranking = new List<PixivWork>();
         List<PixivWork> bookmarks = new List<PixivWork>();
         List<PixivWork> bookmarksprivate = new List<PixivWork>();
@@ -143,6 +144,15 @@ namespace CryPixivClient.ViewModels
 
         public string Title => title + (string.IsNullOrEmpty(titleSuffix) ? "" : " - " + titleSuffix);
 
+        public string SelectedStatus
+        {
+            get => selectedStatus;
+            set
+            {
+                selectedStatus = value;
+                Changed();
+            }
+        }
         public string LastSearchQuery { get; set; }
         public int MaxResults { get; private set; }
         public bool Finished { get; private set; }

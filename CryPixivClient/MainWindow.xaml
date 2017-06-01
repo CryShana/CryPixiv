@@ -304,37 +304,37 @@
         <ListView x:Name="mainListSorted" Margin="{Binding ListMargin}" ItemsSource="{Binding Mode=OneWay, Source={StaticResource ItemListViewSourceSorted}}" DataContext="{StaticResource mainViewModel}" 
                   Grid.ColumnSpan="2" ScrollViewer.ScrollChanged="mainList_ScrollChanged" HorizontalContentAlignment="Center"
                   ItemTemplate="{StaticResource mainItemTemplate}" ItemsPanel="{StaticResource mainItemsPanel}" MouseDoubleClick="list_DoubleClick"
-                  ItemContainerStyle="{StaticResource itemContainerStyle}" BorderBrush="{x:Null}"/>
+                  ItemContainerStyle="{StaticResource itemContainerStyle}" BorderBrush="{x:Null}" SelectionChanged="list_SelectionChanged"/>
 
         <ListView x:Name="mainListRecommended" Margin="{Binding ListMargin}"  ItemsSource="{Binding Mode=OneWay, Source={StaticResource ItemListViewSourceRecommended}}" DataContext="{StaticResource mainViewModel}" 
                   Grid.ColumnSpan="2" ScrollViewer.ScrollChanged="mainList_ScrollChanged" HorizontalContentAlignment="Center"
                   ItemTemplate="{StaticResource mainItemTemplate}" ItemsPanel="{StaticResource mainItemsPanel}" MouseDoubleClick="list_DoubleClick"
-                  ItemContainerStyle="{StaticResource itemContainerStyle}" BorderBrush="{x:Null}"/>
+                  ItemContainerStyle="{StaticResource itemContainerStyle}" BorderBrush="{x:Null}" SelectionChanged="list_SelectionChanged"/>
 
         <ListView x:Name="mainListRanking" Margin="{Binding ListMargin}"  ItemsSource="{Binding Mode=OneWay, Source={StaticResource ItemListViewSourceRanking}}" DataContext="{StaticResource mainViewModel}" 
                   Grid.ColumnSpan="2" ScrollViewer.ScrollChanged="mainList_ScrollChanged" HorizontalContentAlignment="Center"
                   ItemTemplate="{StaticResource mainItemTemplate}" ItemsPanel="{StaticResource mainItemsPanel}" MouseDoubleClick="list_DoubleClick"
-                  ItemContainerStyle="{StaticResource itemContainerStyle}" BorderBrush="{x:Null}"/>
+                  ItemContainerStyle="{StaticResource itemContainerStyle}" BorderBrush="{x:Null}" SelectionChanged="list_SelectionChanged"/>
 
         <ListView x:Name="mainListFollowing" Margin="{Binding ListMargin}"  ItemsSource="{Binding Mode=OneWay, Source={StaticResource ItemListViewSourceFollowing}}" DataContext="{StaticResource mainViewModel}" 
                   Grid.ColumnSpan="2" ScrollViewer.ScrollChanged="mainList_ScrollChanged" HorizontalContentAlignment="Center"
                   ItemTemplate="{StaticResource mainItemTemplate}" ItemsPanel="{StaticResource mainItemsPanel}" MouseDoubleClick="list_DoubleClick"
-                  ItemContainerStyle="{StaticResource itemContainerStyle}" BorderBrush="{x:Null}"/>
+                  ItemContainerStyle="{StaticResource itemContainerStyle}" BorderBrush="{x:Null}" SelectionChanged="list_SelectionChanged"/>
 
         <ListView x:Name="mainListBookmarks" Margin="{Binding ListMargin}"  ItemsSource="{Binding Mode=OneWay, Source={StaticResource ItemListViewSourceBookmarks}}" DataContext="{StaticResource mainViewModel}" 
                   Grid.ColumnSpan="2" ScrollViewer.ScrollChanged="mainList_ScrollChanged" HorizontalContentAlignment="Center"
                   ItemTemplate="{StaticResource mainItemTemplate}"  ItemsPanel="{StaticResource mainItemsPanel}" MouseDoubleClick="list_DoubleClick"
-                  ItemContainerStyle="{StaticResource itemContainerStyle}" BorderBrush="{x:Null}"/>
+                  ItemContainerStyle="{StaticResource itemContainerStyle}" BorderBrush="{x:Null}" SelectionChanged="list_SelectionChanged"/>
 
         <ListView x:Name="mainListBookmarksPrivate" Margin="{Binding ListMargin}"  ItemsSource="{Binding Mode=OneWay, Source={StaticResource ItemListViewSourceBookmarksPrivate}}" DataContext="{StaticResource mainViewModel}" 
                   Grid.ColumnSpan="2" ScrollViewer.ScrollChanged="mainList_ScrollChanged" HorizontalContentAlignment="Center"
                   ItemTemplate="{StaticResource mainItemTemplate}"  ItemsPanel="{StaticResource mainItemsPanel}" MouseDoubleClick="list_DoubleClick"
-                  ItemContainerStyle="{StaticResource itemContainerStyle}" BorderBrush="{x:Null}"/>
+                  ItemContainerStyle="{StaticResource itemContainerStyle}" BorderBrush="{x:Null}" SelectionChanged="list_SelectionChanged"/>
 
         <ListView x:Name="mainListUser" Margin="{Binding ListMargin}"  ItemsSource="{Binding Mode=OneWay, Source={StaticResource ItemListViewSourceUser}}" DataContext="{StaticResource mainViewModel}" 
                   Grid.ColumnSpan="2" ScrollViewer.ScrollChanged="mainList_ScrollChanged" HorizontalContentAlignment="Center"
                   ItemTemplate="{StaticResource mainItemTemplate}"  ItemsPanel="{StaticResource mainItemsPanel}" MouseDoubleClick="list_DoubleClick"
-                  ItemContainerStyle="{StaticResource itemContainerStyle}" BorderBrush="{x:Null}"/>
+                  ItemContainerStyle="{StaticResource itemContainerStyle}" BorderBrush="{x:Null}" SelectionChanged="list_SelectionChanged"/>
 
         <!-- LIST VIEWS END HERE-->
 
@@ -395,17 +395,21 @@
                 <ItemsPanelTemplate>
                     <Grid>
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="0.5*" />
+                            <ColumnDefinition Width="0.6*" />
+                            <ColumnDefinition Width="0.7*" />
                             <ColumnDefinition Width="*" />
                         </Grid.ColumnDefinitions>
                     </Grid>
                 </ItemsPanelTemplate>
             </StatusBar.ItemsPanel>
-            <StatusBarItem>
+            <StatusBarItem Grid.Column="0">
                 <TextBlock x:Name="txtStatus" Text="{Binding Status, Source={StaticResource mainViewModel}}"></TextBlock>
             </StatusBarItem>
-            <StatusBarItem Grid.Column="2">
+            <StatusBarItem Grid.Column="1">
                 <TextBlock x:Name="txtStatus2" Text="{Binding CollectionStatus, Source={StaticResource mainViewModel}}"></TextBlock>
+            </StatusBarItem>
+            <StatusBarItem Grid.Column="2">
+                <TextBlock x:Name="txtSelected" Text="{Binding SelectedStatus, Source={StaticResource mainViewModel}}"></TextBlock>
             </StatusBarItem>
         </StatusBar>
         <Button x:Name="btnFollowing" Content="Following" Grid.Column="1" HorizontalAlignment="Left" Margin="211,28,0,0" VerticalAlignment="Top" Width="74" Height="45" Background="White" Click="btnFollowing_Click" TabIndex="4"/>
