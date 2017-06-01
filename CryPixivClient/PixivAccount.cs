@@ -28,6 +28,19 @@ namespace CryPixivClient
             Username = username;
         }
 
+        public async Task<User> GetUser(long userId)
+        {
+            try
+            {
+                var result = await tokens.GetUsersAsync(userId);
+                return result.Item1.First();
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
         public Tuple<bool, string> LoginWithAccessToken(string accesstoken, string refreshtoken, int expiresin, DateTime issued)
         {
             try

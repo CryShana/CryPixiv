@@ -2,6 +2,7 @@
 using CryPixivClient.Properties;
 using CryPixivClient.ViewModels;
 using CryPixivClient.Windows;
+using Pixeez.Objects;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -90,7 +91,8 @@ namespace CryPixivClient
 
         void AuthenticationFailed(object sender, string e)
         {
-            UIContext.Send(async (a) => {
+            UIContext.Send(async (a) =>
+            {
                 ShowLoginPrompt(true);
 
                 if (CurrentWorkMode == PixivAccount.WorkMode.Search)
@@ -120,7 +122,34 @@ namespace CryPixivClient
             mainListUser.Visibility = (mode == PixivAccount.WorkMode.User) ? Visibility.Visible : Visibility.Hidden;
 
             if (mode != PixivAccount.WorkMode.User) followUserPopup.Hide(PopUp.TransitionType.ZoomIn);
-            else followUserPopup.Show(PopUp.TransitionType.ZoomIn);
+            else
+            {
+                userNameText.Text = currentUser.Name;
+                Task.Run(async () =>
+                {
+                    // Follow pop up settings
+                    if (currentUser.Id == null) return;
+                    var user = await Account.GetUser(currentUser.Id.Value); // get more user info
+                    currentUser = user;
+                    UIContext.Post(a =>
+                    {
+                        if (currentUser.IsFollowed == true)
+                        {
+                            userFollowBtn.Content = "Unfollow";
+                            userFollowBtn.Background = System.Windows.Media.Brushes.Red;
+                            userFollowBtn.BorderBrush = System.Windows.Media.Brushes.Red;
+                        }
+                        else
+                        {
+                            userFollowBtn.Content = "Follow";
+                            userFollowBtn.Background = System.Windows.Media.Brushes.CornflowerBlue;
+                            userFollowBtn.BorderBrush = System.Windows.Media.Brushes.CornflowerBlue;
+                        }
+
+                        followUserPopup.Show(PopUp.TransitionType.ZoomIn);
+                    }, null);
+                });
+            }
         }
 
         #region Saving/Loading
@@ -272,6 +301,11 @@ namespace CryPixivClient
             ToggleLists(PixivAccount.WorkMode.Recommended);
             MainModel.ShowRecommended();
         }
+        void btnFollowUser_Click(object sender, RoutedEventArgs e)
+        {
+            var getUser = currentUserId;
+        }
+
         void btnSearch_Click(object sender, RoutedEventArgs e)
         {
             popupTags?.Hide();
@@ -502,18 +536,22 @@ namespace CryPixivClient
 
         public static bool IsNSFWAllowed() => currentWindow.checkNSFW.IsChecked == true;
 
+        static User currentUser = null;
         static long currentUserId = -1;
-        public async static void ShowUserWork(long userId, string username)
+        public async static void ShowUserWork(User user)
         {
+            var userId = user?.Id ?? -1;
+
             if (userId <= 0 || userId == currentUserId) return;
             else await MainModel.ResetUsers();
 
+            currentUser = user;
             currentUserId = userId;
             currentWindow.Dispatcher.Invoke(() =>
             {
                 currentWindow.ToggleButtons(PixivAccount.WorkMode.User);
                 currentWindow.ToggleLists(PixivAccount.WorkMode.User);
-                MainModel.ShowUserWork(userId, username);
+                MainModel.ShowUserWork(userId, user.Name);
             });
         }
 
@@ -615,12 +653,17 @@ namespace CryPixivClient
             }
         }
 
+        TextBlock userNameText = null;
+        Button userFollowBtn = null;
+        bool setupcomplete = false;
         void SetupPopups()
         {
+            if (setupcomplete) throw new InvalidOperationException("Pop ups were already set up!");
+
             // Sets up the History Search pop up
             var history = new List<string>();
 
-            TextBlock txt = new TextBlock()
+            var txt = new TextBlock()
             {
                 HorizontalAlignment = HorizontalAlignment.Left,
                 Margin = new Thickness(20, 18, 0, 0),
@@ -630,7 +673,7 @@ namespace CryPixivClient
                 Foreground = System.Windows.Media.Brushes.Gray
             };
 
-            ListBox lstBox = new ListBox()
+            var lstBox = new ListBox()
             {
                 Margin = new Thickness(20, 39, 18, 19),
                 BorderBrush = null,
@@ -647,8 +690,44 @@ namespace CryPixivClient
 
             popupTags.AddContent(txt, lstBox);
 
-            // Will also need to set up the "Follow User" popup here... (maybe even a NSFW checkbox popup for further customization)
+            // Follow user pop up is here...
             followUserPopup.SetArrow(PopUp.ArrowPosition.None);
+            var txt1 = new TextBlock()
+            {
+                HorizontalAlignment = HorizontalAlignment.Left,
+                Margin = new Thickness(33, 31, 0, 0),
+                TextWrapping = TextWrapping.Wrap,
+                Text = "Viewing works from:",
+                VerticalAlignment = VerticalAlignment.Top,
+                Foreground = System.Windows.Media.Brushes.Gray
+            };
+            userNameText = new TextBlock()
+            {
+                HorizontalAlignment = HorizontalAlignment.Left,
+                Margin = new Thickness(33, 52, 0, 0),
+                TextWrapping = TextWrapping.Wrap,
+                Text = "[InsertUsernameHere]",
+                VerticalAlignment = VerticalAlignment.Top,
+                Foreground = System.Windows.Media.Brushes.Black,
+                FontSize = 16
+            };
+            userFollowBtn = new Button()
+            {
+                HorizontalAlignment = HorizontalAlignment.Left,
+                VerticalAlignment = VerticalAlignment.Bottom,
+                Margin = new Thickness(33, 0, 0, 26),
+                Width = 129,
+                Height = 31,
+                BorderBrush = System.Windows.Media.Brushes.CornflowerBlue,
+                Background = System.Windows.Media.Brushes.CornflowerBlue,
+                Foreground = System.Windows.Media.Brushes.White,
+                Content = "Follow"
+            };
+            userFollowBtn.Click += btnFollowUser_Click;
+
+            followUserPopup.AddContent(txt1, userNameText, userFollowBtn);
+
+            setupcomplete = true;
         }
 
 
@@ -676,7 +755,7 @@ namespace CryPixivClient
         void DailyClick(object sender, RoutedEventArgs e)
         {
             MainModel.SwitchRankingType(RankingType.Day);
-            btnRankings.Content = "Daily Ranking";            
+            btnRankings.Content = "Daily Ranking";
         }
 
         void WeeklyClick(object sender, RoutedEventArgs e)

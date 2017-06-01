@@ -100,6 +100,7 @@ namespace CryPixivClient.Windows
         public void Show(TransitionType transition = TransitionType.UpDown)
         {
             if (IsHidden == false) return;
+            this.IsEnabled = true;
 
             DoubleAnimation dan = new DoubleAnimation(1.0, TimeSpan.FromSeconds(0.3));
             _arrow.BeginAnimation(OpacityProperty, dan);
@@ -130,6 +131,7 @@ namespace CryPixivClient.Windows
         public void Hide(TransitionType transition = TransitionType.UpDown)
         {
             if (IsHidden) return;
+            this.IsEnabled = false;
 
             DoubleAnimation dan = new DoubleAnimation(0.0, TimeSpan.FromSeconds(0.4));
             _arrow.BeginAnimation(OpacityProperty, dan);

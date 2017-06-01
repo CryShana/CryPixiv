@@ -125,7 +125,7 @@ namespace Pixeez.Objects
         [JsonProperty("profile_image_urls")]
         public ProfileImageUrls ProfileImageUrls { get; set; }
 
-        [JsonProperty("is_followed")]
+        [JsonProperty("is_following")]
         public bool? IsFollowed { get; set; }
     }
 }
