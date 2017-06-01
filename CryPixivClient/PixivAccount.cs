@@ -41,6 +41,31 @@ namespace CryPixivClient
             }
         }
 
+        public async Task<Tuple<bool, string>> FollowUser(long userId, bool isPublic = true)
+        {
+            try
+            {
+                var result = await tokens.FollowUnfollowUser(true, userId, isPublic);
+                return result;
+            }
+            catch (Exception ex)
+            {
+                return new Tuple<bool, string>(false, ex.Message);
+            }
+        }
+        public async Task<Tuple<bool, string>> UnfollowUser(long userId, bool isPublic = true)
+        {
+            try
+            {
+                var result = await tokens.FollowUnfollowUser(false, userId, isPublic);
+                return result;
+            }
+            catch (Exception ex)
+            {
+                return new Tuple<bool, string>(false, ex.Message);
+            }
+        }
+
         public Tuple<bool, string> LoginWithAccessToken(string accesstoken, string refreshtoken, int expiresin, DateTime issued)
         {
             try

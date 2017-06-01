@@ -133,18 +133,7 @@ namespace CryPixivClient
                     currentUser = user;
                     UIContext.Post(a =>
                     {
-                        if (currentUser.IsFollowed == true)
-                        {
-                            userFollowBtn.Content = "Unfollow";
-                            userFollowBtn.Background = System.Windows.Media.Brushes.Red;
-                            userFollowBtn.BorderBrush = System.Windows.Media.Brushes.Red;
-                        }
-                        else
-                        {
-                            userFollowBtn.Content = "Follow";
-                            userFollowBtn.Background = System.Windows.Media.Brushes.CornflowerBlue;
-                            userFollowBtn.BorderBrush = System.Windows.Media.Brushes.CornflowerBlue;
-                        }
+                        UpdateFollowButton();
 
                         followUserPopup.Show(PopUp.TransitionType.ZoomIn);
                     }, null);
@@ -301,9 +290,31 @@ namespace CryPixivClient
             ToggleLists(PixivAccount.WorkMode.Recommended);
             MainModel.ShowRecommended();
         }
-        void btnFollowUser_Click(object sender, RoutedEventArgs e)
+        async void btnFollowUser_Click(object sender, RoutedEventArgs e)
         {
-            var getUser = currentUser;
+            if (currentUser?.IsFollowed == null) return;
+
+            userFollowBtn.IsEnabled = false;
+            userFollowBtn.Background = System.Windows.Media.Brushes.Gray;
+            userFollowBtn.BorderBrush = System.Windows.Media.Brushes.Gray;
+
+            Tuple<bool,string> result = null;
+            if (currentUser.IsFollowed == true) result = await Account.UnfollowUser(currentUser.Id.Value);
+            else result = await Account.FollowUser(currentUser.Id.Value);
+
+            if (result.Item1)
+            {
+                // update it
+                currentUser.IsFollowed = !currentUser.IsFollowed;
+                UpdateFollowButton();
+            }
+            else
+            {
+                MessageBox.Show("Failed to do request!\n\n" +result.Item2, "Error!", MessageBoxButton.OK, MessageBoxImage.Error); 
+            }
+
+
+            userFollowBtn.IsEnabled = true;
         }
 
         void btnSearch_Click(object sender, RoutedEventArgs e)
@@ -750,6 +761,22 @@ namespace CryPixivClient
         {
             var list = GetCurrentListView();
             MainModel.SelectedStatus = $"{list.SelectedItems.Count} selected";
+        }
+        void UpdateFollowButton()
+        {
+            if (currentUser == null) return;
+            if (currentUser.IsFollowed == true)
+            {
+                userFollowBtn.Content = "Unfollow";
+                userFollowBtn.Background = System.Windows.Media.Brushes.Red;
+                userFollowBtn.BorderBrush = System.Windows.Media.Brushes.Red;
+            }
+            else
+            {
+                userFollowBtn.Content = "Follow";
+                userFollowBtn.Background = System.Windows.Media.Brushes.CornflowerBlue;
+                userFollowBtn.BorderBrush = System.Windows.Media.Brushes.CornflowerBlue;
+            }
         }
 
         #region DailyRanking Context Menu

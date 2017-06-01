@@ -190,7 +190,7 @@ namespace Pixeez
         }
 
         public const string AccessTokenErrorMessage = "Access token expired.";
-        private async Task<Tuple<T, string>> AccessApiAsync<T>(MethodType type, string url, IDictionary<string, string> param, IDictionary<string, string> headers = null) where T : class
+        private async Task<Tuple<T, string>> AccessApiAsync<T>(MethodType type, string url, IDictionary<string, string> param, IDictionary<string, string> headers = null)
         {
             using (var response = await this.SendRequestAsync(type, url, param, headers))
             {
@@ -202,13 +202,17 @@ namespace Pixeez
                 {
                     return new Tuple<T, string>(obj, null);
                 }
-                   
+
 
                 json = json.Replace("created_time", "create_date"); // to make it compatible with newer JSON entries
                 json = json.Replace("tags", "tags_old");
                 try
                 {
-                    obj = JToken.Parse(json).SelectToken("response").ToObject<T>();
+                    if (typeof(T) == typeof(bool))
+                    {
+                        if (json.Contains("success")) obj = (dynamic)true;
+                    }
+                    else obj = JToken.Parse(json).SelectToken("response").ToObject<T>();
                 }
                 catch (NullReferenceException nex)
                 {
@@ -468,6 +472,30 @@ namespace Pixeez
 
             return await this.AccessApiAsync<Paginated<Work>>(MethodType.GET, url, param);
         }
+
+        public async Task<Tuple<bool, string>> FollowUnfollowUser(bool follow, long authorId, bool isPublic = true)
+        {
+            var url = "https://public-api.secure.pixiv.net/v1/me/favorite-users.json";
+
+            var param = (follow) ?
+                new Dictionary<string, string>
+                {
+                    { "target_user_id", authorId.ToString() } ,
+                    { "publicity", (isPublic) ? "public" : "private" }
+                } :
+                new Dictionary<string, string>
+                {
+                    { "delete_ids", authorId.ToString() } ,
+                    { "publicity", (isPublic) ? "public" : "private" }
+                };
+
+            Tuple<bool, string> res = (follow) ?
+                await this.AccessApiAsync<bool>(MethodType.POST, url, param) :
+                await this.AccessApiAsync<bool>(MethodType.DELETE, url, param);
+
+            return new Tuple<bool, string>(res.Item1, res?.Item2);
+        }
+
 
         /// <summary>
         /// <para>Available parameters:</para>
