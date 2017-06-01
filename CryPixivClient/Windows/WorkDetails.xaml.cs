@@ -29,7 +29,7 @@ namespace CryPixivClient.Windows
                 {
                     try
                     {
-                        var url = LoadedWork?.User?.ProfileImageUrls?.Medium;
+                        var url = LoadedWork?.User?.ProfileImageUrls?.MainImage;
                         if (url == null) return null;
                         img = PixivWork.GetImage(url);
                     }

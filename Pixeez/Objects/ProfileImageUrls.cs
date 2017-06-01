@@ -12,5 +12,11 @@ namespace Pixeez.Objects
 
         [JsonProperty("medium")]
         public string Medium { get; set; }
+
+        [JsonProperty("px_50x50")]
+        public string MediumOld { get; set; }
+
+
+        public string MainImage => Medium ?? MediumOld;
     }
 }

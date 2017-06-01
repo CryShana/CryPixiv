@@ -96,11 +96,7 @@ namespace CryPixivClient.Objects
         public void UpdateFavorite() => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("IsFavorited"));
         public void UpdateThumbnail() => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("ImageThumbnail"));
         public void UpdateNSFW() => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("ShouldBlur"));
-        public void ResetThumbnail()
-        {
-            img = null;
-            shouldSkipFirst = true;
-        }
+
 
         public static ImageSource GetImage(string url)
         {

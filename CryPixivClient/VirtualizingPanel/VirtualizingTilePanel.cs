@@ -6,6 +6,7 @@ using System;
 using System.Diagnostics;
 using System.Collections.Specialized;
 using CryPixivClient.ViewModels;
+using CryPixivClient.Objects;
 
 namespace CryPixivClient.VirtualizingTilePanel
 {
@@ -117,6 +118,9 @@ namespace CryPixivClient.VirtualizingTilePanel
             return finalSize;
         }
 
+        public event EventHandler<PixivWork> CleanedUpItem;
+        public int ItemsCached { get; set; } = 0;
+
         /// <summary>
         /// Revirtualize items that are no longer visible
         /// </summary>
@@ -127,12 +131,21 @@ namespace CryPixivClient.VirtualizingTilePanel
             UIElementCollection children = this.InternalChildren;
             IItemContainerGenerator generator = this.ItemContainerGenerator;
 
+            // apply cache setting
+            minDesiredGenerated -= ItemsCached;
+            maxDesiredGenerated += ItemsCached;
+            if (minDesiredGenerated < 0) minDesiredGenerated = 0;
+
             for (int i = children.Count - 1; i >= 0; i--)
             {
                 GeneratorPosition childGeneratorPos = new GeneratorPosition(i, 0);
                 int itemIndex = generator.IndexFromGeneratorPosition(childGeneratorPos);
                 if (itemIndex < minDesiredGenerated || itemIndex > maxDesiredGenerated)
                 {
+                    var listviewitem = children[i] as ListViewItem;
+                    var work = listviewitem.Content as PixivWork;
+                    CleanedUpItem?.Invoke(this, work);
+
                     generator.Remove(childGeneratorPos, 1);
                     RemoveInternalChildRange(i, 1);
                 }

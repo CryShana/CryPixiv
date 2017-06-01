@@ -853,5 +853,11 @@ namespace CryPixivClient
             MessageBox.Show("Not yet implemented.");
         }
         #endregion
+
+        void VirtualizingTilePanel_CleanedUpItem(object sender, PixivWork e)
+        {
+            e.img = null;
+            GC.Collect();
+        }
     }
 }
