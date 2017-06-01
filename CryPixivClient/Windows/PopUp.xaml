@@ -21,6 +21,36 @@
             </Grid.Effect>
             <Polygon x:Name="_arrow" Panel.ZIndex="5" Points="0, 0, 40, 0, 20, -25" Fill="White" Margin="0,26,120,0" HorizontalAlignment="Right" Width="40" Height="0" VerticalAlignment="Top"/>
             <Grid x:Name="_contentGrid" Margin="10,26,10,34" Background="White" Grid.ColumnSpan="2">
+                <Canvas x:Name="_minimizeArea" HorizontalAlignment="Left" Width="27" IsEnabled="False" MouseDown="_minimizeArea_MouseDown">
+                    <Canvas.Style>
+                        <Style TargetType="Canvas">
+                            <Setter Property="Background" Value="White"/>
+                            <Style.Triggers>
+                                <EventTrigger RoutedEvent="MouseEnter">
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <ColorAnimation To="LightGray" Duration="0:00:00.2"     
+                                                            Storyboard.TargetProperty="Background.Color">
+
+                                            </ColorAnimation>
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </EventTrigger>
+                                <EventTrigger RoutedEvent="MouseLeave">
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <ColorAnimation To="White" Duration="0:00:00.2"       
+                                                            Storyboard.TargetProperty="Background.Color">
+
+                                            </ColorAnimation>
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </EventTrigger>
+
+                            </Style.Triggers>
+                        </Style>
+                    </Canvas.Style>
+                </Canvas>
 
             </Grid>
         </Grid>

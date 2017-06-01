@@ -299,7 +299,8 @@
         </Grid.ColumnDefinitions>
 
         <wnd:PopUp x:Name="popupTags" Panel.ZIndex="10" Margin="10,77,0,0" Grid.ColumnSpan="2" Height="297" VerticalAlignment="Top" HorizontalAlignment="Left" Width="351" MouseLeave="popupTags_MouseLeave"/>
-        <wnd:PopUp x:Name="followUserPopup" Panel.ZIndex="10" Grid.Column="1" Margin="0,0,20,10" HorizontalAlignment="Right" Width="262" Height="227" VerticalAlignment="Bottom"/>
+        <wnd:PopUp x:Name="followUserPopup" Panel.ZIndex="10" Grid.Column="1" Margin="0,0,20,10" HorizontalAlignment="Right" Width="262" Height="227" VerticalAlignment="Bottom" ClickedOnMinimizedArea="followUserPopup_ClickedOnMinimizedArea"/>
+        
         <!-- LIST VIEWS START HERE-->
         <ListView x:Name="mainListSorted" Margin="{Binding ListMargin}" ItemsSource="{Binding Mode=OneWay, Source={StaticResource ItemListViewSourceSorted}}" DataContext="{StaticResource mainViewModel}" 
                   Grid.ColumnSpan="2" ScrollViewer.ScrollChanged="mainList_ScrollChanged" HorizontalContentAlignment="Center"

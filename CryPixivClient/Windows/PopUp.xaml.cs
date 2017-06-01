@@ -36,6 +36,7 @@ namespace CryPixivClient.Windows
         }
 
         public bool IsHidden { get; private set; }
+        public event EventHandler<MouseEventArgs> ClickedOnMinimizedArea;
 
         public PopUp() : this(ArrowPosition.UpLeft) { }
         public PopUp(ArrowPosition position)
@@ -87,6 +88,11 @@ namespace CryPixivClient.Windows
                     _arrow.Visibility = Visibility.Hidden;
                     break;
             }
+        }
+
+        public void SetMinimizeArea(bool isEnabled)
+        {
+            _minimizeArea.IsEnabled = IsEnabled;
         }
 
         void SetControls()
@@ -152,6 +158,11 @@ namespace CryPixivClient.Windows
             }
 
             IsHidden = true;
+        }
+
+        private void _minimizeArea_MouseDown(object sender, MouseEventArgs e)
+        {
+            ClickedOnMinimizedArea?.Invoke(this, e);
         }
     }
 }

@@ -18,6 +18,7 @@ using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Media.Animation;
 using System.Windows.Threading;
 
 namespace CryPixivClient
@@ -722,6 +723,7 @@ namespace CryPixivClient
 
             // Follow user pop up is here...
             followUserPopup.SetArrow(PopUp.ArrowPosition.None);
+            followUserPopup.SetMinimizeArea(true);
             var txt1 = new TextBlock()
             {
                 HorizontalAlignment = HorizontalAlignment.Left,
@@ -798,8 +800,10 @@ namespace CryPixivClient
             if (currentUser.IsFollowed == true)
             {
                 userFollowBtn.Content = "Unfollow";
-                userFollowBtn.Background = System.Windows.Media.Brushes.Red;
-                userFollowBtn.BorderBrush = System.Windows.Media.Brushes.Red;
+                var red = (SolidColorBrush)new BrushConverter().ConvertFromString("#FFEE8181");
+
+                userFollowBtn.Background = red;
+                userFollowBtn.BorderBrush = red;
             }
             else
             {
@@ -807,6 +811,29 @@ namespace CryPixivClient
                 userFollowBtn.Background = System.Windows.Media.Brushes.CornflowerBlue;
                 userFollowBtn.BorderBrush = System.Windows.Media.Brushes.CornflowerBlue;
             }
+        }
+
+        bool followpopupMinimized = false;
+        void MinimizeFollowButton()
+        {
+            // -> 0,0,-231,10
+            followpopupMinimized = true;
+            var tan = new ThicknessAnimation(new Thickness(0, 0, -231, 10), TimeSpan.FromSeconds(0.5));
+            tan.EasingFunction = new PowerEase() { Power = 2 };
+            followUserPopup.BeginAnimation(MarginProperty, tan);
+        }
+        void MaximizeFollowButton()
+        {
+            // -> 0,0,20,10
+            followpopupMinimized = false;
+            var tan = new ThicknessAnimation(new Thickness(0, 0, 20, 10), TimeSpan.FromSeconds(0.5));
+            tan.EasingFunction = new PowerEase() { Power = 2 };
+            followUserPopup.BeginAnimation(MarginProperty, tan);
+        }
+        void followUserPopup_ClickedOnMinimizedArea(object sender, MouseEventArgs e)
+        {
+            if (followpopupMinimized) MaximizeFollowButton();
+            else MinimizeFollowButton();
         }
         #endregion
 
@@ -849,5 +876,6 @@ namespace CryPixivClient
 
             GC.Collect();
         }
+
     }
 }
