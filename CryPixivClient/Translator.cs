@@ -1,9 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace CryPixivClient
 {
@@ -14,8 +11,9 @@ namespace CryPixivClient
             string source = "ja";
             string target = "en";
 
-            string url = "https://translate.googleapis.com/translate_a/single?client=gtx&sl=" + source + "&tl=" + target + "&dt=t&q=" + System.Web.HttpUtility.UrlEncode(text);
+            string url = "https://translate.googleapis.com/translate_a/single?client=gtx&sl=" + source + "&tl=" + target + "&hl=en&dt=at&dt=bd&dt=ex&dt=ld&dt=md&dt=qca&dt=rw&dt=rm&dt=ss&dt=t&ie=UTF-8&oe=UTF-8&source=bh&ssel=0&tsel=0&kc=1&q=" + System.Web.HttpUtility.UrlEncode(text);
 
+            // "https://translate.googleapis.com/translate_a/single?client=gtx&sl=" + source + "&tl=" + target + "&dt=t&q=" + System.Web.HttpUtility.UrlEncode(text);
             using (var client = new WebClient())
             {
                 client.Encoding = Encoding.UTF8;

@@ -189,6 +189,7 @@ namespace Pixeez
             return asyncResponse;
         }
 
+        public const string AccessTokenErrorMessage = "Access token expired.";
         private async Task<Tuple<T, string>> AccessApiAsync<T>(MethodType type, string url, IDictionary<string, string> param, IDictionary<string, string> headers = null) where T : class
         {
             using (var response = await this.SendRequestAsync(type, url, param, headers))
@@ -212,6 +213,7 @@ namespace Pixeez
                 catch (NullReferenceException nex)
                 {
                     if (json.Contains("1000ページまでしか取得できませ")) return new Tuple<T, string>(obj, "Can only get up to 1000 pages of works!");
+                    if (json.ToLower().Contains("access token")) return new Tuple<T, string>(obj, AccessTokenErrorMessage);
                     if (json.Contains("has_error")) return new Tuple<T, string>(obj, "Known Error: " + "Invalid response from server received!" + "\n\nResponse: " + json ?? "-");
                     else return new Tuple<T, string>(obj, "Error: " + nex.Message + "\n\nResponse: " + json ?? "-");
                 }

@@ -33,7 +33,7 @@
             <ColumnDefinition Width="253*"/>
             <ColumnDefinition Width="28*"/>
             <ColumnDefinition Width="281*"/>
-        </Grid.ColumnDefinitions>
+        </Grid.ColumnDefinitions> 
         <Image x:Name="mainImage" Margin="0,31,0,115" Grid.ColumnSpan="3" 
                RenderOptions.BitmapScalingMode="HighQuality" PreviewMouseDown="PreviewImageClick" >
             <Image.ContextMenu>
@@ -43,6 +43,12 @@
                     <MenuItem Header="Download Image" Click="DownloadSelected">
                         <MenuItem.Icon>
                             <Image Source="../Images/download.png" RenderOptions.BitmapScalingMode="Fant"/>
+                        </MenuItem.Icon>
+                    </MenuItem>
+                    <Separator/>
+                    <MenuItem Header="Open in browser" Click="btnInternet_Click">
+                        <MenuItem.Icon>
+                            <Image Source="../Images/internet.png" RenderOptions.BitmapScalingMode="Fant"/>
                         </MenuItem.Icon>
                     </MenuItem>
                 </ContextMenu>
@@ -89,6 +95,6 @@
         <TextBlock HorizontalAlignment="Left" Margin="10,6,0,0" TextWrapping="Wrap" Text="Tags: " VerticalAlignment="Top"/>
         <TextBlock x:Name="txtClipboard" Margin="3,6,0,0" TextWrapping="Wrap" Text="Click on tag to copy it!" VerticalAlignment="Top" Foreground="#FFAEAEAE" Height="18" 
                    HorizontalAlignment="Left" Width="130" Grid.ColumnSpan="2" Grid.Column="1"/>
-        <TextBlock x:Name="sometEXT" HorizontalAlignment="Right" Margin="0,8,9,0" TextWrapping="Wrap" Text="Try using A/D, Q/E, Arrow keys" VerticalAlignment="Top" Foreground="#FFD4D4D4" Grid.Column="2"/>
+        <TextBlock x:Name="sometEXT" HorizontalAlignment="Right" Margin="0,6,9,0" TextWrapping="Wrap" Text="Try using A/D, Q/E, Arrow keys" VerticalAlignment="Top" Foreground="#FFD4D4D4" Grid.Column="2"/>
     </Grid>
 </Window>

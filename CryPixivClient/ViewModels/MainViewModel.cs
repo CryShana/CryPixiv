@@ -2,6 +2,7 @@
 using CryPixivClient.Objects;
 using CryPixivClient.Properties;
 using CryPixivClient.Windows;
+using Ookii.Dialogs.Wpf;
 using Pixeez.Objects;
 using System;
 using System.Collections.Generic;
@@ -42,7 +43,7 @@ namespace CryPixivClient.ViewModels
         Thickness margin = new Thickness(0, 94, 0, 22);
         bool isWorking = false;
         string titleSuffix = "";
-        List<PixivWork> dailyRankings = new List<PixivWork>();
+        List<PixivWork> ranking = new List<PixivWork>();
         List<PixivWork> bookmarks = new List<PixivWork>();
         List<PixivWork> bookmarksprivate = new List<PixivWork>();
         List<PixivWork> following = new List<PixivWork>();
@@ -58,7 +59,8 @@ namespace CryPixivClient.ViewModels
         ICommand downloadselectedcmd;
         #endregion
 
-        #region Properties
+        #region Properties      
+        public RankingType CurrentRankingType { get; private set; }
         public Func<PixivWork, PixivWork, bool> PixivWorkEqualityComparer = (a, b) => a.Id.Value == b.Id.Value;
         public Func<PixivWork, long> PixivIdGetter = a => a.Id ?? -1;
         public Scheduler<PixivWork> Scheduler_DisplayedWorks_Results { get; private set; }
@@ -265,6 +267,8 @@ namespace CryPixivClient.ViewModels
             }
         }
 
+        const int InitialRetries = 4;
+        int retries = 4;
         public async void ShowSearch(string query, bool autosort = true, int continuePage = 1)
         {
             bool otherWasRunning = LastSearchQuery != query && query != null;
@@ -272,6 +276,7 @@ namespace CryPixivClient.ViewModels
             if (query == null) query = LastSearchQuery;
             MaxResults = -1;
             Finished = false;
+            retries = InitialRetries;
             LastSearchQuery = query;
 
             CancelRunningSearches();
@@ -296,7 +301,6 @@ namespace CryPixivClient.ViewModels
                 // start searching...
                 await Task.Run(async () =>
                 {
-                    int retries = 4;
                     int currentPage = continuePage - 1;
                     for (;;)
                     {
@@ -315,7 +319,7 @@ namespace CryPixivClient.ViewModels
                             if (MainWindow.CurrentWorkMode != mode || csrc.IsCancellationRequested) break;
                             if (works == null || works.Count == 0)
                             {
-                                if (DisplayedWorks_Results.Count < MaxResults)
+                                if (DisplayedWorks_Results.Count < MaxResults && MainWindow.ShowingError == false)
                                 {
                                     Status = "Retrying...";
                                     currentPage--;
@@ -369,9 +373,9 @@ namespace CryPixivClient.ViewModels
         #endregion
 
         #region Show Method Callers
-        public async void ShowDailyRankings() =>
-            await Show(dailyRankings, DisplayedWorks_Ranking, PixivAccount.WorkMode.Ranking, "Daily Ranking",
-                (page) => MainWindow.Account.GetDailyRanking(page), Scheduler_DisplayedWorks_Ranking);
+        public async void ShowRanking() =>
+            await Show(ranking, DisplayedWorks_Ranking, PixivAccount.WorkMode.Ranking, "Daily Ranking",
+                (page) => MainWindow.Account.GetRanking(page, CurrentRankingType.ToString().ToLower()), Scheduler_DisplayedWorks_Ranking);
 
         public async void ShowFollowing() =>
             await Show(following, DisplayedWorks_Following, PixivAccount.WorkMode.Following, "Following",
@@ -415,11 +419,31 @@ namespace CryPixivClient.ViewModels
                 else dq.Cancel();
             }
         }
+        public async Task SwitchRankingType(RankingType toType)
+        {
+            if (CurrentRankingType == toType) return;
+
+            CurrentRankingType = toType;
+            await ResetRankingResults();
+        }
+        public async Task ResetRankingResults(bool autoshow = true)
+        {
+            await semaphore.WaitAsync();
+            ranking = new List<PixivWork>();
+            DisplayedWorks_Ranking = new MyObservableCollection<PixivWork>();
+            Scheduler_DisplayedWorks_Ranking.Stop();
+            Scheduler_DisplayedWorks_Ranking = new Scheduler<PixivWork>(ref displayedWorks_Ranking, PixivWorkEqualityComparer, PixivIdGetter, PixivAccount.WorkMode.Ranking, UIContext);
+            semaphore.Release();
+
+            if (autoshow) ShowRanking();
+        }
+
         public async Task ResetSearchResults()
         {
             await semaphore.WaitAsync();
             await Task.Run(() => results.Clear());
 
+            Finished = false;
             MainWindow.LimitReached = false;
             DisplayedWorks_Results = new MyObservableCollection<PixivWork>();
             Scheduler_DisplayedWorks_Results.Stop();
@@ -435,8 +459,7 @@ namespace CryPixivClient.ViewModels
             recommended = new List<PixivWork>();
             DisplayedWorks_Recommended = new MyObservableCollection<PixivWork>();
             Scheduler_DisplayedWorks_Recommended.Stop();
-            Scheduler_DisplayedWorks_Recommended = new Scheduler<PixivWork>(ref displayedWorks_Recommended,
-                PixivWorkEqualityComparer, PixivIdGetter, PixivAccount.WorkMode.Recommended, UIContext);
+            Scheduler_DisplayedWorks_Recommended = new Scheduler<PixivWork>(ref displayedWorks_Recommended, PixivWorkEqualityComparer, PixivIdGetter, PixivAccount.WorkMode.Recommended, UIContext);
             semaphore.Release();
 
             if (wasRecommended && autoshow) ShowRecommended();
@@ -491,7 +514,7 @@ namespace CryPixivClient.ViewModels
                     return results;
 
                 case PixivAccount.WorkMode.Ranking:
-                    return dailyRankings;
+                    return ranking;
 
                 case PixivAccount.WorkMode.Following:
                     return following;
@@ -627,16 +650,17 @@ namespace CryPixivClient.ViewModels
                 else existing.Close();
             }
 
-            FolderBrowserDialog dialog = new FolderBrowserDialog();
+            var dialog = new VistaFolderBrowserDialog();
             if (string.IsNullOrEmpty(Settings.Default.LastDestination) == false)
             {
                 dialog.SelectedPath = Settings.Default.LastDestination;
             }
             dialog.ShowNewFolderButton = true;
             var result = dialog.ShowDialog();
-            if (result == DialogResult.Cancel) return;
+            if (result == false) return;
 
             string destination = dialog.SelectedPath;
+
             if (Directory.Exists(destination) == false) return;
 
             Settings.Default.LastDestination = destination;
@@ -737,5 +761,16 @@ namespace CryPixivClient.ViewModels
             foreach (var i in view) count++;
             return count;
         }
+    }
+
+    public enum RankingType
+    {
+        Day,
+        Week,
+        Month,
+        Day_Male,
+        Day_Female,
+        Day_R18,
+        Week_R18
     }
 }

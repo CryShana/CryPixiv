@@ -6,8 +6,11 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -22,11 +25,14 @@ namespace CryPixivClient
         public static MainViewModel MainModel;
         public static PixivAccount Account = null;
         public static SynchronizationContext UIContext;
+        public static bool ShowingError = false;
 
         public static bool Paused = false;
         public static bool LimitReached = false;
         public static int DynamicWorksLimit = 100;
         public const int DefaultWorksLimit = 100;
+        public const int SearchHistoryLimit = 25;
+        public const string HistoryPath = "searchhistory.txt";
         public static PixivAccount.WorkMode CurrentWorkMode;
         public static CollectionViewSource MainCollectionViewSorted;
         public static CollectionViewSource MainCollectionViewRecommended;
@@ -35,6 +41,7 @@ namespace CryPixivClient
         public static CollectionViewSource MainCollectionViewBookmarks;
         public static CollectionViewSource MainCollectionViewBookmarksPrivate;
         public static CollectionViewSource MainCollectionViewUser;
+        public static MyObservableCollection<string> SearchHistory = new MyObservableCollection<string>();
         public static bool IsClosing = false;
 
         public MainWindow()
@@ -52,8 +59,10 @@ namespace CryPixivClient
             MainCollectionViewBookmarksPrivate = (CollectionViewSource)FindResource("ItemListViewSourceBookmarksPrivate");
             MainCollectionViewUser = (CollectionViewSource)FindResource("ItemListViewSourceUser");
             UIContext = SynchronizationContext.Current;
+            LoadSearchHistory();
             LoadWindowData();
             LoadAccount();
+            SetupPopups();
 
             // events
             PixivAccount.AuthFailed += AuthenticationFailed;
@@ -78,8 +87,20 @@ namespace CryPixivClient
             if (MainModel.DisplayedWorks_Ranking.Count > 0) MainModel.ForceRefreshImages();
         }
 
-        void AuthenticationFailed(object sender, string e) => UIContext.Send((a) => ShowLoginPrompt(true), null);
-        
+        void AuthenticationFailed(object sender, string e)
+        {
+            UIContext.Send(async (a) => {
+                ShowLoginPrompt(true);
+
+                if (CurrentWorkMode == PixivAccount.WorkMode.Search)
+                {
+                    // needs to be pressed twice, because first time only stops existing searches that got stuck
+                    btnSearch_Click(this, null);
+                    await Task.Delay(500);
+                    btnSearch_Click(this, null);
+                }
+            }, null);
+        }
 
         void ToggleLists(PixivAccount.WorkMode mode)
         {
@@ -96,6 +117,10 @@ namespace CryPixivClient
             mainListBookmarksPrivate.Visibility = (mode == PixivAccount.WorkMode.BookmarksPrivate) ? Visibility.Visible : Visibility.Hidden;
 
             mainListUser.Visibility = (mode == PixivAccount.WorkMode.User) ? Visibility.Visible : Visibility.Hidden;
+
+            if (mode != PixivAccount.WorkMode.User) followUserPopup.Hide(PopUp.TransitionType.ZoomIn);
+            else followUserPopup.Show(PopUp.TransitionType.ZoomIn);
+
         }
 
         #region Saving/Loading
@@ -135,8 +160,54 @@ namespace CryPixivClient
             Settings.Default.Save();
         }
 
+        void LoadSearchHistory()
+        {
+            if (File.Exists(HistoryPath) == false) { SearchHistory = new MyObservableCollection<string>(); return; }
+
+            try
+            {
+                string[] content = File.ReadAllLines(HistoryPath);
+
+                content.ToList().RemoveAll(x => x.Length == 0 || x == "\n" || x.Length > 200);
+                if (content.Length > SearchHistoryLimit) content = content.Reverse().Skip(content.Length - SearchHistoryLimit).Reverse().ToArray();
+
+                SearchHistory = new MyObservableCollection<string>(content);
+            }
+            catch
+            {
+                MessageBox.Show("Invalid history search file. Will be deleted after closing this message.", "Invalid History Search File", MessageBoxButton.OK, MessageBoxImage.Error);
+                File.Delete(HistoryPath);
+            }
+        }
+
+        void SaveSearchHistory()
+        {
+            if (File.Exists(HistoryPath)) File.Delete(HistoryPath);
+
+            try
+            {
+                while (SearchHistory.Count > SearchHistoryLimit) SearchHistory.RemoveAt(SearchHistory.Count - 1);
+
+                File.WriteAllLines(HistoryPath, SearchHistory);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Failed to save search history!\n\n" + ex.Message, "Failed to save!", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
         void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
+            if (IsSearching)
+            {
+                if (MessageBox.Show("Are you sure you wish to terminate the search?", "Are you sure?", MessageBoxButton.YesNo, MessageBoxImage.Question)
+                    == MessageBoxResult.No)
+                {
+                    e.Cancel = true;
+                    return;
+                }
+            }
+
             IsClosing = true;
 
             // save window data
@@ -146,6 +217,15 @@ namespace CryPixivClient
             Settings.Default.WindowLeft = Left;
             Settings.Default.WindowTop = Top;
             Settings.Default.Save();
+
+            SaveSearchHistory();
+
+            // clear temp directory if files exist
+            while (WorkDetails.CreatedTemporaryFiles.Count > 0)
+            {
+                var f = WorkDetails.CreatedTemporaryFiles.Dequeue();
+                if (File.Exists(f)) File.Delete(f);
+            }
 
             Environment.Exit(1);
         }
@@ -166,7 +246,7 @@ namespace CryPixivClient
         {
             ToggleButtons(PixivAccount.WorkMode.Ranking);
             ToggleLists(PixivAccount.WorkMode.Ranking);
-            MainModel.ShowDailyRankings();
+            MainModel.ShowRanking();
         }
         void btnFollowing_Click(object sender, RoutedEventArgs e)
         {
@@ -194,6 +274,8 @@ namespace CryPixivClient
         }
         void btnSearch_Click(object sender, RoutedEventArgs e)
         {
+            popupTags?.Hide();
+
             if (IsSearching)
             {
                 MainModel.CancelRunningSearches();
@@ -209,6 +291,7 @@ namespace CryPixivClient
 
             IsSearching = true;
             SetSearchButtonState(true);
+            SearchHistory.Insert(0, txtSearchQuery.Text);
             MainModel.ShowSearch(txtSearchQuery.Text, checkPopular.IsChecked == true, MainModel.CurrentPageResults);
         }
         void btnResults_Click(object sender, RoutedEventArgs e)
@@ -424,7 +507,7 @@ namespace CryPixivClient
         {
             if (userId <= 0 || userId == currentUserId) return;
             else await MainModel.ResetUsers();
-            
+
             currentUserId = userId;
             currentWindow.Dispatcher.Invoke(() =>
             {
@@ -443,6 +526,7 @@ namespace CryPixivClient
                 {
                     IsSearching = true;
                     Paused = false;
+                    currentWindow.btnPause.Content = "Pause";
                     currentWindow.btnSearch.Content = "Stop";
                     currentWindow.btnSearch.Background = (SolidColorBrush)new BrushConverter().ConvertFromString("#FFFFA5A5");
                 }
@@ -464,7 +548,7 @@ namespace CryPixivClient
 
             MainModel.OpenCmd.Execute(selected);
         }
-        public void SchedulerJobFinished(Scheduler<PixivWork> sender, Tuple<PixivWork, Action> job, 
+        public void SchedulerJobFinished(Scheduler<PixivWork> sender, Tuple<PixivWork, Action> job,
             MyObservableCollection<PixivWork> associatedCollection)
         {
             if (sender.AssociatedWorkMode != CurrentWorkMode) return;
@@ -477,10 +561,10 @@ namespace CryPixivClient
             var toBeAdded = sender.ToAddCount;
             if (MainModel.Finished)
             {
-                MainModel.Status = "Done. " + ((toBeAdded > 0) ? $"({toBeAdded} to be added)" : "");               
+                MainModel.Status = "Done. " + ((toBeAdded > 0) ? $"({toBeAdded} to be added)" : "");
             }
             else if (MainModel.IsWorking)
-            {          
+            {
                 MainModel.Status = $"Searching... {associatedCollection.Count}" + ((isSearch) ? $"{((MainModel.MaxResults == -1) ? "" : $"/{MainModel.MaxResults}")}" : "") + $" ({toBeAdded} to be added)";
             }
             else if (LimitReached)
@@ -493,7 +577,7 @@ namespace CryPixivClient
             }
 
             MainModel.CollectionStatus = $"Found {cache.Count} items.";
-        }       
+        }
 
         private void btnPause_Click(object sender, RoutedEventArgs e)
         {
@@ -502,10 +586,112 @@ namespace CryPixivClient
             if (Paused == false)
             {
                 Paused = true;
+                btnPause.Content = "Continue";
                 MainModel.Status = "Paused.";
                 MainModel.CancelRunningSearches();
                 SetSearchButtonState(false);
             }
+            else
+            {
+                SetSearchButtonState(true);
+                btnSearch_Click(this, null);
+            }
         }
+
+        void SetupPopups()
+        {
+            // Sets up the History Search pop up
+            var history = new List<string>();
+
+            TextBlock txt = new TextBlock()
+            {
+                HorizontalAlignment = HorizontalAlignment.Left,
+                Margin = new Thickness(20, 18, 0, 0),
+                TextWrapping = TextWrapping.Wrap,
+                Text = "Search History",
+                VerticalAlignment = VerticalAlignment.Top,
+                Foreground = System.Windows.Media.Brushes.Gray
+            };
+
+            ListBox lstBox = new ListBox()
+            {
+                Margin = new Thickness(20, 39, 18, 19),
+                BorderBrush = null,
+            };
+
+            lstBox.ItemTemplate = (DataTemplate)FindResource("searchHistoryTemplate");
+            SearchHistory.CollectionChanged += (a, b) => { lstBox.ItemsSource = WorkDetails.GetTranslatedTags(SearchHistory.ToList()); };
+            lstBox.ItemsSource = WorkDetails.GetTranslatedTags(SearchHistory.ToList());
+            lstBox.SelectionChanged += (a, b) =>
+            {
+                var tt = lstBox.SelectedItem as Translation;
+                if (tt != null) txtSearchQuery.Text = tt.Original;
+            };
+
+            popupTags.AddContent(txt, lstBox);
+
+            // Will also need to set up the "Follow User" popup here... (maybe even a NSFW checkbox popup for further customization)
+            followUserPopup.SetArrow(PopUp.ArrowPosition.None);
+        }
+
+
+        void txtSearchQuery_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            var text = txtSearchQuery.Text;
+
+            if (text.Length == 0) popupTags?.Hide();
+            else popupTags?.Show();
+        }
+
+        void txtSearchQuery_LostFocus(object sender, RoutedEventArgs e) => popupTags?.Hide();
+
+        void txtSearchQuery_GotFocus(object sender, RoutedEventArgs e) => txtSearchQuery_TextChanged(this, null);
+
+        private void popupTags_MouseLeave(object sender, MouseEventArgs e) => popupTags?.Hide();
+
+
+        #region DailyRanking Context Menu
+        void DailyClick(object sender, RoutedEventArgs e)
+        {
+            MainModel.SwitchRankingType(RankingType.Day);
+            btnDailyRankings.Content = "Daily Ranking";
+        }
+
+        void WeeklyClick(object sender, RoutedEventArgs e)
+        {
+            MainModel.SwitchRankingType(RankingType.Week);
+            btnDailyRankings.Content = "Weekly Ranking";
+        }
+
+        void MonthlyClick(object sender, RoutedEventArgs e)
+        {
+            MainModel.SwitchRankingType(RankingType.Month);
+            btnDailyRankings.Content = "Monthly Ranking";
+        }
+
+        void ForMalesClick(object sender, RoutedEventArgs e)
+        {
+            MainModel.SwitchRankingType(RankingType.Day_Male);
+            btnDailyRankings.Content = "Male Ranking";
+        }
+
+        void ForFemalesClick(object sender, RoutedEventArgs e)
+        {
+            MainModel.SwitchRankingType(RankingType.Day_Female);
+            btnDailyRankings.Content = "Female Ranking";
+        }
+
+        void Daily18Click(object sender, RoutedEventArgs e)
+        {
+            MainModel.SwitchRankingType(RankingType.Day_R18);
+            btnDailyRankings.Content = "Daily R-18";
+        }
+
+        void Weekly18Click(object sender, RoutedEventArgs e)
+        {
+            MainModel.SwitchRankingType(RankingType.Week_R18);
+            btnDailyRankings.Content = "Weekly R-18";
+        }
+        #endregion
     }
 }

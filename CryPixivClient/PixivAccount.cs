@@ -84,9 +84,9 @@ namespace CryPixivClient
             if (result == null || result.Item1 == null) return new Paginated<Work>();
             return result.Item1;
         }
-        public async Task<List<PixivWork>> GetDailyRanking(int page = 1)
+        public async Task<List<PixivWork>> GetRanking(int page = 1, string rtype = "day")
         {
-            var result = await GetData(() => tokens.GetRankingAllAsync(page: page, perPage: MainViewModel.DefaultPerPage));
+            var result = await GetData(() => tokens.GetRankingAllAsync(page: page, perPage: MainViewModel.DefaultPerPage, mode: rtype));
 
             if (result == null || result.Item1 == null) return new List<PixivWork>();
             return result.Item1.ToPixivWork();
@@ -113,28 +113,38 @@ namespace CryPixivClient
         public async Task<List<PixivWork>> GetUserWorks(long userId, int page = 1)
         {
             var result = await GetData(() => tokens.GetUsersWorksAsync(userId, page: page, perPage: MainViewModel.DefaultPerPage));
-            
+
             if (result == null || result.Item1 == null) return new List<PixivWork>();
             return result.Item1.ToPixivWork();
         }
 
-        void ShowError(string msg)
+        void ShowError(string msg, bool accessTokenExpired = false)
         {
             IsLoggedIn = false;
             if (MainWindow.IsClosing) return;
 
-            MessageBox.Show(msg, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            MainWindow.ShowingError = true;
+            if (accessTokenExpired == false) MessageBox.Show(msg, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             AuthFailed?.Invoke(this, msg);
         }
         async Task<Tuple<T, string>> GetData<T>(Func<Task<Tuple<T, string>>> toDo)
         {
             try
             {
+                MainWindow.ShowingError = false;
                 if (AuthDetails.IsExpired) throw new Exception("Expired session! Please login again!");
 
                 var result = await toDo();
-                if (result == null || string.IsNullOrEmpty(result.Item2) == false) ShowError((result == null) ? "Unknown error." : result.Item2);
-           
+                if (result == null || string.IsNullOrEmpty(result.Item2) == false)
+                {
+                    if (result.Item2 == Tokens.AccessTokenErrorMessage)
+                    {
+                        // access token expired, just relogin without error message and automatically continue the search if user was searching
+                        ShowError(result.Item2, true);
+                    }
+                    else ShowError((result == null) ? "Unknown error." : result.Item2);
+                }
+
                 return result;
             }
             catch (Exception ex)
@@ -145,11 +155,11 @@ namespace CryPixivClient
         }
         #endregion
 
-        public async Task<Tuple<bool, long?>> AddToBookmarks(long workId)
+        public async Task<Tuple<bool, long?>> AddToBookmarks(long workId, bool isPublic = true)
         {
             try
             {
-                var result = await tokens.AddMyFavoriteWorksAsync(workId);
+                var result = await tokens.AddMyFavoriteWorksAsync(workId, publicity: ((isPublic) ? "public" : "private"));
                 if (result == null || string.IsNullOrEmpty(result.Item2) == false) ShowError((result == null) ? "Unknown error." : result.Item2);
                 return new Tuple<bool, long?>(true, result.Item1.First().Id);
             }
