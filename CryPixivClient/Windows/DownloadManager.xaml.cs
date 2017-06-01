@@ -69,10 +69,36 @@ namespace CryPixivClient.Windows
             progress = new Progress<Downloader.DownloaderProgress>(ProgressChanged);
             downloader = new Downloader(toDownload, destination, progress);
             downloader.Finished += Downloader_Finished;
+            downloader.DownloadFinished += Downloader_DownloadFinished;
             downloader.ErrorEncountered += Downloader_ErrorEncountered;
             downloader.Start();
         }
 
+        private void Downloader_DownloadFinished(object sender, Tuple<long, int> e)
+        {
+            var workId = e.Item1;
+            var pageNum = e.Item2;
+
+            int index = -1;
+            DownloadObject wrk = null;
+            foreach (var w in DownloadObjects)
+            {
+                index++;
+                if (w.Work.Id.Value == workId)
+                {
+                    wrk = w;
+                    break;
+                }
+            }
+
+            if (wrk == null) return;
+
+            if (wrk.Work.PageCount == pageNum + 1 && index != DownloadObjects.Count - 1)
+                Dispatcher.Invoke(() =>
+                {
+                    mainlist.ScrollIntoView(mainlist.Items[index + 1]);
+                });
+        }
 
         void Downloader_Finished(object sender, EventArgs e)
         {
@@ -86,7 +112,7 @@ namespace CryPixivClient.Windows
         }
         void Downloader_ErrorEncountered(object sender, Tuple<long, int, string> e)
         {
-            foreach(var d in downloadObjects) 
+            foreach (var d in downloadObjects)
                 if (d.Work.Id.Value == e.Item1)
                 {
                     d.IsError = true;

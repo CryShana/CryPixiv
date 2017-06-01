@@ -77,6 +77,6 @@
         <Button x:Name="btnPause" Content="Pause" HorizontalAlignment="Left" Margin="8,0,0,7" Width="77" Height="26" VerticalAlignment="Bottom" Background="#FFFBFFD7" Click="btnPause_Click" IsTabStop="False"/>
         <Button x:Name="btnOpenFolder" Content="Open Containing Folder" HorizontalAlignment="Right" Margin="0,0,10,7" Width="147" Height="26" VerticalAlignment="Bottom" IsTabStop="False" Click="btnOpenFolder_Click"/>
         <TextBlock x:Name="txtTotalProgress" HorizontalAlignment="Left" Margin="91,0,0,12" TextWrapping="Wrap" Text="{Binding TotalProgressText}" VerticalAlignment="Bottom" />
-        <TextBlock x:Name="txtTotalProgressCount" HorizontalAlignment="Right"  Margin="0,0,160,12" TextWrapping="Wrap" Text="{Binding TotalProgressCountText}" VerticalAlignment="Bottom"/>
+        <TextBlock x:Name="txtTotalProgressCount" HorizontalAlignment="Right"  Margin="0,0,166,12" TextWrapping="Wrap" Text="{Binding TotalProgressCountText}" VerticalAlignment="Bottom"/>
     </Grid>
 </Window>
