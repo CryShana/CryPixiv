@@ -297,6 +297,7 @@ namespace CryPixivClient
             userFollowBtn.IsEnabled = false;
             userFollowBtn.Background = System.Windows.Media.Brushes.Gray;
             userFollowBtn.BorderBrush = System.Windows.Media.Brushes.Gray;
+            userFollowProgressBar.Visibility = Visibility.Visible;
 
             Tuple<bool,string> result = null;
             if (currentUser.IsFollowed == true) result = await Account.UnfollowUser(currentUser.Id.Value);
@@ -310,10 +311,10 @@ namespace CryPixivClient
             }
             else
             {
-                MessageBox.Show("Failed to do request!\n\n" +result.Item2, "Error!", MessageBoxButton.OK, MessageBoxImage.Error); 
+                MessageBox.Show("Failed to do request!\n\n" + result.Item2, "Error!", MessageBoxButton.OK, MessageBoxImage.Error); 
             }
 
-
+            userFollowProgressBar.Visibility = Visibility.Hidden;
             userFollowBtn.IsEnabled = true;
         }
 
@@ -666,6 +667,7 @@ namespace CryPixivClient
 
         TextBlock userNameText = null;
         Button userFollowBtn = null;
+        ProgressBar userFollowProgressBar = null;
         bool setupcomplete = false;
         void SetupPopups()
         {
@@ -736,8 +738,19 @@ namespace CryPixivClient
                 Content = "Follow"
             };
             userFollowBtn.Click += btnFollowUser_Click;
+            userFollowProgressBar = new ProgressBar()
+            {
+                HorizontalAlignment = HorizontalAlignment.Left,
+                VerticalAlignment = VerticalAlignment.Bottom,
+                IsIndeterminate = true,
+                Visibility = Visibility.Hidden,
+                Margin = new Thickness(33, 0, 0, 16),
+                Width = 129,
+                Height = 10,
+                Foreground = (SolidColorBrush)new BrushConverter().ConvertFromString("#FF009CFF")
+            };
 
-            followUserPopup.AddContent(txt1, userNameText, userFollowBtn);
+            followUserPopup.AddContent(txt1, userNameText, userFollowBtn, userFollowProgressBar);
 
             setupcomplete = true;
         }
