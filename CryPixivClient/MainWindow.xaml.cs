@@ -18,6 +18,7 @@ using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Threading;
 
 namespace CryPixivClient
 {
@@ -70,11 +71,18 @@ namespace CryPixivClient
             PixivAccount.AuthFailed += AuthenticationFailed;
             Scheduler<PixivWork>.JobFinished += this.SchedulerJobFinished;
 
+            // GC Timer
+            DispatcherTimer timer = new DispatcherTimer(DispatcherPriority.ApplicationIdle);
+            timer.Tick += GC_Check;
+            timer.Interval = TimeSpan.FromSeconds(1);
+            timer.Start();
+
             // start
             ShowLoginPrompt();
             btnDailyRankings_Click(this, null);
             this.Loaded += (a, b) => txtSearchQuery.Focus();
         }
+
 
         void ShowLoginPrompt(bool force = false)
         {
@@ -854,9 +862,17 @@ namespace CryPixivClient
         }
         #endregion
 
+        bool GCRequired = false;
         void VirtualizingTilePanel_CleanedUpItem(object sender, PixivWork e)
         {
             e.img = null;
+            GCRequired = true;
+        }
+
+        void GC_Check(object sender, EventArgs e)
+        {
+            if (GCRequired == false) return;
+
             GC.Collect();
         }
     }

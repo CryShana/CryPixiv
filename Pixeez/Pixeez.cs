@@ -203,7 +203,6 @@ namespace Pixeez
                     return new Tuple<T, string>(obj, null);
                 }
 
-
                 json = json.Replace("created_time", "create_date"); // to make it compatible with newer JSON entries
                 json = json.Replace("tags", "tags_old");
                 try
