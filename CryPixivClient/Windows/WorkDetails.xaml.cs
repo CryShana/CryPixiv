@@ -314,6 +314,7 @@ namespace CryPixivClient.Windows
         void txtArtist_MouseDown(object sender, MouseButtonEventArgs e)
         {
             // search artist
+            MainWindow.currentWindow.Focus();
             MainWindow.ShowUserWork(LoadedWork.User);
         }
 

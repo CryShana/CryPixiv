@@ -97,7 +97,7 @@
         <TextBlock x:Name="txtClipboard" Margin="3,6,0,0" TextWrapping="Wrap" Text="Click on tag to copy it!" VerticalAlignment="Top" Foreground="#FFAEAEAE" Height="18" 
                    HorizontalAlignment="Left" Width="130" Grid.ColumnSpan="2" Grid.Column="1"/>
         <TextBlock x:Name="sometEXT" HorizontalAlignment="Right" Margin="0,6,9,0" TextWrapping="Wrap" Text="Try using A/D, Q/E, Arrow keys" VerticalAlignment="Top" Foreground="#FFD4D4D4" Grid.Column="2"/>
-        <Image x:Name="profileimg" HorizontalAlignment="Left" Height="66" Margin="10,0,0,40" VerticalAlignment="Bottom" Width="66" RenderOptions.BitmapScalingMode="Fant">
+        <Image x:Name="profileimg" HorizontalAlignment="Left" Height="66" Margin="10,0,0,40" VerticalAlignment="Bottom" Width="66" RenderOptions.BitmapScalingMode="Fant" MouseDown="txtArtist_MouseDown" >
             <Image.Source>
                 <PriorityBinding FallbackValue="{StaticResource missingImage}">
                     <Binding Path="ProfileImage" IsAsync="True"/>
