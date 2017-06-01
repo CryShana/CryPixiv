@@ -412,11 +412,11 @@ namespace CryPixivClient.ViewModels
         public void UpdateListMargins(double actualWidth)
         {
             // MANUAL VIRTUALIZINGTILEPANEL CENTERING
-            // (0, 94, 0, 22) is the default margin
+            // (0, 94, 0, 22) is the default margin   --> new default margin is (0, 122, 0, 22)
             actualWidth -= 30;
             int itemsPerRow = (int)(actualWidth / ListViewItemWidth);
             double toAdd = actualWidth - ListViewItemWidth * itemsPerRow;
-            ListMargin = new Thickness((toAdd / 2.0) - 7, 94, 0, 22);
+            ListMargin = new Thickness((toAdd / 2.0) - 7, 122, 0, 22);
         }
         Queue<CancellationTokenSource> queuedSearches = new Queue<CancellationTokenSource>();
         public void CancelRunningSearches()

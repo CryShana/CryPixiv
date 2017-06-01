@@ -298,7 +298,7 @@
             <ColumnDefinition Width="32*"/>
         </Grid.ColumnDefinitions>
 
-        <wnd:PopUp x:Name="popupTags" Panel.ZIndex="10" Margin="10,52,0,0" Grid.ColumnSpan="2" Height="297" VerticalAlignment="Top" HorizontalAlignment="Left" Width="351" MouseLeave="popupTags_MouseLeave"/>
+        <wnd:PopUp x:Name="popupTags" Panel.ZIndex="10" Margin="10,77,0,0" Grid.ColumnSpan="2" Height="297" VerticalAlignment="Top" HorizontalAlignment="Left" Width="351" MouseLeave="popupTags_MouseLeave"/>
         <wnd:PopUp x:Name="followUserPopup" Panel.ZIndex="10" Grid.Column="1" Margin="0,0,20,10" HorizontalAlignment="Right" Width="262" Height="227" VerticalAlignment="Bottom"/>
         <!-- LIST VIEWS START HERE-->
         <ListView x:Name="mainListSorted" Margin="{Binding ListMargin}" ItemsSource="{Binding Mode=OneWay, Source={StaticResource ItemListViewSourceSorted}}" DataContext="{StaticResource mainViewModel}" 
@@ -338,15 +338,15 @@
 
         <!-- LIST VIEWS END HERE-->
 
-        <TextBox x:Name="txtSearchQuery" TextChanged="txtSearchQuery_TextChanged" Height="24" Margin="10,28,65,0" TextWrapping="Wrap" VerticalAlignment="Top" FontSize="14" MaxLength="300" 
+        <TextBox x:Name="txtSearchQuery" TextChanged="txtSearchQuery_TextChanged" Height="24" Margin="10,53,65,0" TextWrapping="Wrap" VerticalAlignment="Top" FontSize="14" MaxLength="300" 
                  MaxLines="1" TabIndex="1" LostFocus="txtSearchQuery_LostFocus" GotFocus="txtSearchQuery_GotFocus"/>
-        <Button x:Name="btnSearch" Content="Search" Margin="0,28,10,0" VerticalAlignment="Top" Height="24" BorderBrush="#FFABADB3" HorizontalAlignment="Right" Width="56" IsDefault="True" TabIndex="2" Click="btnSearch_Click"/>
-        <ProgressBar x:Name="mainProgessBar" Height="10" Margin="0,85,0,0" VerticalAlignment="Top" Foreground="#FF009CFF" Grid.ColumnSpan="2" IsTabStop="False" 
+        <Button x:Name="btnSearch" Content="Search" Margin="0,53,10,0" VerticalAlignment="Top" Height="24" BorderBrush="#FFABADB3" HorizontalAlignment="Right" Width="56" IsDefault="True" TabIndex="2" Click="btnSearch_Click"/>
+        <ProgressBar x:Name="mainProgessBar" Height="10" Margin="0,112,0,0" VerticalAlignment="Top" Foreground="#FF009CFF" Grid.ColumnSpan="2" IsTabStop="False" 
                      IsIndeterminate="{Binding IsWorking, Source={StaticResource mainViewModel}}"/>
-        <Button x:Name="btnBookmarks" Content="Public" Grid.Column="1" HorizontalAlignment="Right" Margin="0,28,28,0" VerticalAlignment="Top" Width="91" Height="23" TabIndex="6" Click="btnBookmarks_Click" Background="#FFFFEAEA"/>
+        <Button x:Name="btnBookmarks" Content="Public" Grid.Column="1" HorizontalAlignment="Right" Margin="0,53,28,0" VerticalAlignment="Top" Width="91" Height="23" TabIndex="6" Click="btnBookmarks_Click" Background="#FFFFEAEA"/>
 
         <Grid Grid.Column="1">
-            <Button x:Name="btnRankings" Content="Daily Ranking" HorizontalAlignment="Left" Margin="108,28,0,0" 
+            <Button x:Name="btnRankings" Content="Daily Ranking" HorizontalAlignment="Left" Margin="108,53,0,0" 
                 VerticalAlignment="Top" Width="104" Height="45" Click="btnDailyRankings_Click" TabIndex="3" Background="#FFFFFEEE" HorizontalContentAlignment="Center"/>
             <Grid.ContextMenu>
                 <ContextMenu>
@@ -412,13 +412,13 @@
                 <TextBlock x:Name="txtSelected" Text="{Binding SelectedStatus, Source={StaticResource mainViewModel}}"></TextBlock>
             </StatusBarItem>
         </StatusBar>
-        <Button x:Name="btnFollowing" Content="Following" Grid.Column="1" HorizontalAlignment="Left" Margin="211,28,0,0" VerticalAlignment="Top" Width="74" Height="45" Background="White" Click="btnFollowing_Click" TabIndex="4"/>
-        <CheckBox x:Name="checkPopular" Content="Autosort by Popularity" HorizontalAlignment="Left" Margin="10,57,0,0" VerticalAlignment="Top" IsChecked="True" Click="checkPopular_Click"/>
-        <Button x:Name="btnResults" Content="Results" Grid.Column="1" HorizontalAlignment="Left" Margin="13,28,0,0" VerticalAlignment="Top" Width="80" Height="44" TabIndex="5" Click="btnResults_Click" Background="#FFB9B9B9"/>
-        <Image Grid.Column="1" HorizontalAlignment="Right" Height="21" Margin="0,21,20,0" VerticalAlignment="Top" Width="21" Source="Images/like.png"/>
-        <Image Grid.Column="1" HorizontalAlignment="Left" Height="28" Margin="98,21,0,0" VerticalAlignment="Top" Width="28" Source="Images/rank.png"/>
+        <Button x:Name="btnFollowing" Content="Following" Grid.Column="1" HorizontalAlignment="Left" Margin="211,53,0,0" VerticalAlignment="Top" Width="74" Height="45" Background="White" Click="btnFollowing_Click" TabIndex="4"/>
+        <CheckBox x:Name="checkPopular" Content="Autosort by Popularity" HorizontalAlignment="Left" Margin="10,82,0,0" VerticalAlignment="Top" IsChecked="True" Click="checkPopular_Click"/>
+        <Button x:Name="btnResults" Content="Results" Grid.Column="1" HorizontalAlignment="Left" Margin="10,53,0,0" VerticalAlignment="Top" Width="80" Height="44" TabIndex="5" Click="btnResults_Click" Background="#FFB9B9B9"/>
+        <Image Grid.Column="1" HorizontalAlignment="Right" Height="21" Margin="0,46,20,0" VerticalAlignment="Top" Width="21" Source="Images/like.png"/>
+        <Image Grid.Column="1" HorizontalAlignment="Left" Height="28" Margin="98,45,0,0" VerticalAlignment="Top" Width="28" Source="Images/rank.png"/>
         <Grid Grid.Column="1">
-            <Button x:Name="btnRecommended" Content="Recommended"  HorizontalAlignment="Left" Margin="284,28,0,0" VerticalAlignment="Top"
+            <Button x:Name="btnRecommended" Content="Recommended"  HorizontalAlignment="Left" Margin="284,53,0,0" VerticalAlignment="Top"
                 Width="95" Height="45" Background="White" Click="btnRecommended_Click" TabIndex="5"/>
             <Grid.ContextMenu>
                 <ContextMenu>
@@ -430,10 +430,26 @@
                     Height="23" Background="#FFFFA3A3" Margin="0,0,51,0" Click="btnLogout_Click" IsTabStop="False" Grid.Column="1"/>
         <Button x:Name="btnPause" Content="Pause" HorizontalAlignment="Right" VerticalAlignment="Bottom" Width="78" 
                     Height="23" Background="#FFFFFCBC" Margin="0,0,127,0" Click="btnPause_Click" IsTabStop="False" Grid.Column="1"/>
-        <Button x:Name="btnBookmarksPrivate" Content="Private" Grid.Column="1" HorizontalAlignment="Right" Margin="0,50,28,0" VerticalAlignment="Top" Width="91" Height="23" TabIndex="6" Click="btnBookmarksPrivate_Click" Background="#FFFFEAEA"/>
-        <TextBlock Grid.Column="1" HorizontalAlignment="Right" Margin="0,8,60,0" TextWrapping="Wrap" Text="Bookmarks" VerticalAlignment="Top"/>
-        <TextBlock HorizontalAlignment="Left" Margin="10,7,0,0" TextWrapping="Wrap" Text="Search by tag:" VerticalAlignment="Top"/>
-        <CheckBox x:Name="checkNSFW" Content="NSFW" HorizontalAlignment="Right" Margin="0,57,10,0" VerticalAlignment="Top" IsChecked="True" Click="checkNSFW_Click"/>
-        <TextBlock HorizontalAlignment="Left" TextWrapping="Wrap" Text="Right-click on elements for more options" VerticalAlignment="Top" Grid.Column="1" Margin="119,8,0,0" Foreground="#FFBBBBBB" TextAlignment="Right" Width="259"/>
+        <Button x:Name="btnBookmarksPrivate" Content="Private" Grid.Column="1" HorizontalAlignment="Right" Margin="0,75,28,0" VerticalAlignment="Top" Width="91" Height="23" TabIndex="6" Click="btnBookmarksPrivate_Click" Background="#FFFFEAEA"/>
+        <TextBlock Grid.Column="1" HorizontalAlignment="Right" Margin="0,33,60,0" TextWrapping="Wrap" Text="Bookmarks" VerticalAlignment="Top"/>
+        <TextBlock HorizontalAlignment="Left" Margin="10,32,0,0" TextWrapping="Wrap" Text="Search by tag:" VerticalAlignment="Top"/>
+        <CheckBox x:Name="checkNSFW" Content="NSFW" HorizontalAlignment="Right" Margin="0,82,10,0" VerticalAlignment="Top" IsChecked="True" Click="checkNSFW_Click"/>
+        <TextBlock HorizontalAlignment="Left" TextWrapping="Wrap" Text="Right-click on elements for more options" VerticalAlignment="Top" Grid.Column="1" Margin="119,33,0,0" Foreground="#FFBBBBBB" TextAlignment="Right" Width="259"/>
+        <Menu VerticalAlignment="Top" Grid.ColumnSpan="2" Height="21">
+            <MenuItem Header="Settings" Height="21"></MenuItem>
+            <MenuItem Header="Help" Height="21">
+                <MenuItem x:Name="AboutMenu" Header="About" Click="AboutMenu_Click">
+                    <MenuItem.Icon>
+                        <Image Source="Images/question-mark.png" RenderOptions.BitmapScalingMode="Fant" />
+                    </MenuItem.Icon>
+                </MenuItem>
+                <Separator />
+                <MenuItem x:Name="GotoGitMenu" Header="Go to Github page" Click="GotoGitMenu_Click">
+                    <MenuItem.Icon>
+                        <Image Source="Images/github-logo.png" RenderOptions.BitmapScalingMode="Fant" />
+                    </MenuItem.Icon>
+                </MenuItem>
+            </MenuItem>
+        </Menu>
     </Grid>
 </Window>

@@ -299,7 +299,7 @@ namespace CryPixivClient
             userFollowBtn.BorderBrush = System.Windows.Media.Brushes.Gray;
             userFollowProgressBar.Visibility = Visibility.Visible;
 
-            Tuple<bool,string> result = null;
+            Tuple<bool, string> result = null;
             if (currentUser.IsFollowed == true) result = await Account.UnfollowUser(currentUser.Id.Value);
             else result = await Account.FollowUser(currentUser.Id.Value);
 
@@ -311,7 +311,7 @@ namespace CryPixivClient
             }
             else
             {
-                MessageBox.Show("Failed to do request!\n\n" + result.Item2, "Error!", MessageBoxButton.OK, MessageBoxImage.Error); 
+                MessageBox.Show("Failed to do request!\n\n" + result.Item2, "Error!", MessageBoxButton.OK, MessageBoxImage.Error);
             }
 
             userFollowProgressBar.Visibility = Visibility.Hidden;
@@ -605,6 +605,12 @@ namespace CryPixivClient
                 return false;
             }
         }
+
+        public static string GetVersion()
+        {
+            var v = System.Reflection.Assembly.GetEntryAssembly().GetName().Version;
+            return $"v{v.Major}.{v.Minor}.{v.Revision}";
+        }
         #endregion
 
         void list_DoubleClick(object sender, MouseButtonEventArgs e)
@@ -792,7 +798,7 @@ namespace CryPixivClient
             }
         }
 
-        #region DailyRanking Context Menu
+        #region Ranking Context Menu
         void DailyClick(object sender, RoutedEventArgs e)
         {
             MainModel.SwitchRankingType(RankingType.Day);
@@ -834,6 +840,13 @@ namespace CryPixivClient
             MainModel.SwitchRankingType(RankingType.Week_R18);
             btnRankings.Content = "Weekly R-18";
         }
+        #endregion
+
+        #region Main Menu
+        void AboutMenu_Click(object sender, RoutedEventArgs e) => 
+            MessageBox.Show($"CryPixiv - {GetVersion()}\n\nMade by Adam Veselič (CryShana)", "About", MessageBoxButton.OK, MessageBoxImage.Information);
+        
+        void GotoGitMenu_Click(object sender, RoutedEventArgs e) => Process.Start("https://github.com/CryADsisAM/CryPixiv");      
         #endregion
     }
 }
