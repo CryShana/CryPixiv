@@ -96,6 +96,7 @@ namespace CryPixivClient
                 // go through each page
                 for(int i = 0; i < work.PageCount; i++)
                 {
+                    start:
                     try
                     {
                         if (IsStarted == false || IsStopped)
@@ -112,33 +113,54 @@ namespace CryPixivClient
 
                         var uri = work.GetImageUri(work.OriginalImageUrl, i);
 
+                        // determine extension
                         var extension = uri.Substring(uri.LastIndexOf('.') + 1).ToLower();
                         if (extension != "png" && extension != "gif") extension = "jpg";
 
-                        var filename = GetValidFilename(work.Id.Value.ToString(), i, extension);
+                        // determine download path
+                        //var filename = GetValidFilename(work.Id.Value.ToString(), i, extension);  // <--- this method get's a new filename - ignoring existing ones
+                        var filename = $"{work.Id.Value.ToString()}_p{i}.{extension}"; 
                         var fullpath = Path.Combine(Destination, filename);
-                        DownloadProgress?.Report(new DownloaderProgress(work, i, fullpath, 0.0, Percentage));
+                        DownloadProgress?.Report(new DownloaderProgress(work, i, fullpath, 0.0, Percentage)); // report progress
 
-                        byte[] buffer = null;
-                        using (var client = new WebClient())
+                        // only download if image doesn't exist already
+                        if (File.Exists(fullpath) == false)
                         {
-                            client.Headers.Add("Referer", "http://spapi.pixiv.net/");
-                            client.Headers.Add("User-Agent", "PixivIOSApp/5.8.0");
-                            client.UseDefaultCredentials = true;
-
-                            client.DownloadProgressChanged += (a, b) =>
+                            // download image
+                            byte[] buffer = null;
+                            using (var client = new WebClient())
                             {
-                                DownloadProgress?.Report(new DownloaderProgress(work, i, fullpath, b.ProgressPercentage, Percentage));
-                            };
+                                client.Headers.Add("Referer", "http://spapi.pixiv.net/");
+                                client.Headers.Add("User-Agent", "PixivIOSApp/5.8.0");
+                                client.UseDefaultCredentials = true;
 
-                            buffer = await client.DownloadDataTaskAsync(uri);
+                                client.DownloadProgressChanged += (a, b) =>
+                                {
+                                    DownloadProgress?.Report(new DownloaderProgress(work, i, fullpath, b.ProgressPercentage, Percentage));
+                                };
+
+                                buffer = await client.DownloadDataTaskAsync(uri);
+                            }
+
+                            // write image
+                            File.WriteAllBytes(fullpath, buffer);
+                            GC.Collect();
                         }
 
-                        File.WriteAllBytes(fullpath, buffer);
-                        GC.Collect();
                         DownloadedImagesCount++;
                         DownloadProgress?.Report(new DownloaderProgress(work, i, fullpath, 100.0, Percentage));
                         DownloadFinished?.Invoke(this, new Tuple<long, int>(work.Id.Value, i));
+                    }
+                    catch (WebException)
+                    {
+                        while (true)
+                        {
+                            // just wait and check if there is internet connection
+                            await Task.Delay(2000);
+                            if (MainWindow.CheckForInternetConnection()) break;
+                            continue;
+                        }
+                        goto start;  // oh boi, never thought I would be using this :D
                     }
                     catch(Exception ex)
                     {

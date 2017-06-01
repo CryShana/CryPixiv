@@ -11,7 +11,13 @@
         <local:DesignModel x:Key="designMld"/>
     </Window.Resources>
     <Grid>
-        <ListView x:Name="mainlist" Margin="0,0,0,42" ItemsSource="{Binding DownloadObjects}" d:DataContext="{DynamicResource designMld}" >
+        <ListView x:Name="mainlist" Margin="0,0,0,42" ItemsSource="{Binding DownloadObjects}" d:DataContext="{DynamicResource designMld}"
+                  ScrollViewer.HorizontalScrollBarVisibility="Disabled" >
+            <ListView.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <VirtualizingStackPanel />
+                </ItemsPanelTemplate>
+            </ListView.ItemsPanel>
             <ListView.ItemTemplate>
                 <DataTemplate>
                     <Grid Height="34" HorizontalAlignment="Left">
@@ -33,6 +39,9 @@
                                             <Setter Property="IsIndeterminate" Value="False"/>
                                             <Setter Property="Value" Value="0" />
                                             <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsError}" Value="True">
+                                                    <Setter Property="IsIndeterminate" Value="False"/>
+                                                </DataTrigger>
                                                 <DataTrigger Binding="{Binding IsWorking}" Value="True">
                                                     <Setter Property="IsIndeterminate" Value="True"/>
                                                 </DataTrigger>
@@ -49,6 +58,9 @@
                             <Style TargetType="Grid">
                                 <Setter Property="Background" Value="White"/>
                                 <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsError}" Value="True">
+                                        <Setter Property="Background" Value="#FFFF7B7B"/>
+                                    </DataTrigger>
                                     <DataTrigger Binding="{Binding IsWorking}" Value="True">
                                         <Setter Property="Background" Value="#FFFFFFA5"/>
                                     </DataTrigger>
@@ -62,9 +74,9 @@
                 </DataTemplate>
             </ListView.ItemTemplate>
         </ListView>
-        <Button x:Name="btnPause" Content="Pause" HorizontalAlignment="Left" Margin="8,0,0,7" Width="98" Height="26" VerticalAlignment="Bottom" Background="#FFFBFFD7" Click="btnPause_Click" IsTabStop="False"/>
+        <Button x:Name="btnPause" Content="Pause" HorizontalAlignment="Left" Margin="8,0,0,7" Width="77" Height="26" VerticalAlignment="Bottom" Background="#FFFBFFD7" Click="btnPause_Click" IsTabStop="False"/>
         <Button x:Name="btnOpenFolder" Content="Open Containing Folder" HorizontalAlignment="Right" Margin="0,0,10,7" Width="147" Height="26" VerticalAlignment="Bottom" IsTabStop="False" Click="btnOpenFolder_Click"/>
-        <TextBlock x:Name="txtTotalProgress" HorizontalAlignment="Left" Margin="114,0,0,12" TextWrapping="Wrap" Text="{Binding TotalProgressText}" VerticalAlignment="Bottom"/>
-
+        <TextBlock x:Name="txtTotalProgress" HorizontalAlignment="Left" Margin="91,0,0,12" TextWrapping="Wrap" Text="{Binding TotalProgressText}" VerticalAlignment="Bottom" />
+        <TextBlock x:Name="txtTotalProgressCount" HorizontalAlignment="Right"  Margin="0,0,160,12" TextWrapping="Wrap" Text="{Binding TotalProgressCountText}" VerticalAlignment="Bottom"/>
     </Grid>
 </Window>

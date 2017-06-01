@@ -26,6 +26,7 @@ namespace CryPixivClient.Windows
         public List<PixivWork> ToDownload { get; }
         public bool IsFinished { get; private set; }
         public string TotalProgressText => Math.Round(downloader.Percentage, 2).ToString("0.00") + "%";
+        public string TotalProgressCountText => downloader.DownloadedImagesCount + " / " + downloader.TotalImagesCount;
 
 
         Downloader downloader;
@@ -80,6 +81,7 @@ namespace CryPixivClient.Windows
                 IsFinished = true;
                 btnPause.IsEnabled = false;
                 PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("TotalProgressText"));
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("TotalProgressCountText"));
             }
         }
         void Downloader_ErrorEncountered(object sender, Tuple<long, int, string> e)
@@ -104,6 +106,7 @@ namespace CryPixivClient.Windows
 
                     if (d.Percentage > 98.0) d.Percentage = 100.0;
                     PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("TotalProgressText"));
+                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("TotalProgressCountText"));
                     break;
                 }
         }
