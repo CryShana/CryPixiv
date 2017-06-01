@@ -7,6 +7,7 @@ Unofficial Pixiv client
 - View Following feed
 - View Recommended feed
 - View User's other works from selected work
+- Follow/Unfollow users
 - Search by tag
 - Autosort search results by popularity
 - Hide NSFW works
