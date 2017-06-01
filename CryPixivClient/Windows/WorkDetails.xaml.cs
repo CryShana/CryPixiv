@@ -101,9 +101,7 @@ namespace CryPixivClient.Windows
             Title = $"Work Details - ({LoadedWork.Id}) {LoadedWork.Title}";
             SetPageStatus();
 
-            // start downloading images
-            DownloadImages();
-
+            // set thumbnail
             if (LoadedWork.img != null)
             {
                 if (doAnimation) AnimateImageShift(() => mainImage.Source = LoadedWork.ImageThumbnail);
@@ -115,6 +113,9 @@ namespace CryPixivClient.Windows
                 if (doAnimation) AnimateImageShift(() => SetImage(1));
                 else SetImage(1);
             }
+
+            // start downloading images
+            DownloadImages();
 
             // once first image is downloaded, show it
             ImageDownloaded += (a, b) =>
@@ -138,11 +139,14 @@ namespace CryPixivClient.Windows
         {
             if (DownloadedImages.Count >= LoadedWork.PageCount) return;
 
-            await semaphore.WaitAsync();
-            SetProgressBar(true);
+            var lworkid = LoadedWork.Id;
+            await semaphore.WaitAsync();           
+          
             try
             {
-                var lworkid = LoadedWork.Id;
+                if (lworkid != LoadedWork.Id) throw new Exception("Work changed!");
+                SetProgressBar(true);
+
                 for (int i = DownloadedImages.Count; i < LoadedWork.PageCount; i++)
                 {
                     if (isClosing || lworkid != LoadedWork.Id) break;
@@ -165,11 +169,12 @@ namespace CryPixivClient.Windows
 
         public void SetImage(int page)
         {
+            if (DownloadedImages.Count == 0 & page == 1) return;
             currentPage = page;
-            SetPageStatus();
             try
             {
                 mainImage.Source = DownloadedImages[page];
+                SetPageStatus();
             }
             catch (Exception ex)
             {
