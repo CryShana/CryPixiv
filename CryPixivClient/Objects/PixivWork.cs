@@ -102,7 +102,7 @@ namespace CryPixivClient.Objects
             shouldSkipFirst = true;
         }
 
-        public ImageSource GetImage(string url)
+        public static ImageSource GetImage(string url)
         {
             var image = new BitmapImage();
             var buffer = DownloadImage(url);
@@ -119,7 +119,7 @@ namespace CryPixivClient.Objects
             return image;
         }
 
-        byte[] DownloadImage(string url)
+        static byte[] DownloadImage(string url)
         {
             var buffer = new byte[0];
             using (var client = new WebClient())

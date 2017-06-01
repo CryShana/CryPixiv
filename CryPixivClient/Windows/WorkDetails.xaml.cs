@@ -20,6 +20,29 @@ namespace CryPixivClient.Windows
     {
         event EventHandler<ImageSource> ImageDownloaded;
 
+        ImageSource img = null;
+        public ImageSource ProfileImage
+        {
+            get
+            {
+                if (img == null)
+                {
+                    try
+                    {
+                        var url = LoadedWork?.User?.ProfileImageUrls?.Medium;
+                        if (url == null) return null;
+                        img = PixivWork.GetImage(url);
+                    }
+                    catch
+                    {
+                        // failed to load
+                        img = null;
+                    }
+                }
+
+                return img;
+            }
+        }
         static bool wasMaximized = false;
         static SemaphoreSlim semaphore = new SemaphoreSlim(1);
 
@@ -53,6 +76,7 @@ namespace CryPixivClient.Windows
 
             currentPage = 1;
             DownloadedImages.Clear();
+            img = null;
             DataContext = null; DataContext = this;
 
             // load cached results if available
@@ -122,7 +146,7 @@ namespace CryPixivClient.Windows
                 for (int i = DownloadedImages.Count; i < LoadedWork.PageCount; i++)
                 {
                     if (isClosing || lworkid != LoadedWork.Id) break;
-                    var img = await Task.Run(() => LoadedWork.GetImage(LoadedWork.GetImageUri(LoadedWork.OriginalImageUrl, i)));
+                    var img = await Task.Run(() => PixivWork.GetImage(LoadedWork.GetImageUri(LoadedWork.OriginalImageUrl, i)));
                     if (isClosing || lworkid != LoadedWork.Id) break;
 
                     DownloadedImages.Add(i + 1, img);

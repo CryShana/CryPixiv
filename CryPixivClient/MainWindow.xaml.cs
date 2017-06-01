@@ -303,7 +303,7 @@ namespace CryPixivClient
         }
         void btnFollowUser_Click(object sender, RoutedEventArgs e)
         {
-            var getUser = currentUserId;
+            var getUser = currentUser;
         }
 
         void btnSearch_Click(object sender, RoutedEventArgs e)
@@ -718,6 +718,7 @@ namespace CryPixivClient
                 Margin = new Thickness(33, 0, 0, 26),
                 Width = 129,
                 Height = 31,
+                Style = (Style)FindResource("buttonStyle"),
                 BorderBrush = System.Windows.Media.Brushes.CornflowerBlue,
                 Background = System.Windows.Media.Brushes.CornflowerBlue,
                 Foreground = System.Windows.Media.Brushes.White,

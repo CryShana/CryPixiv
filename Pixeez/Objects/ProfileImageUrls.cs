@@ -11,6 +11,6 @@ namespace Pixeez.Objects
     {
 
         [JsonProperty("medium")]
-        public string Meidum { get; set; }
+        public string Medium { get; set; }
     }
 }
