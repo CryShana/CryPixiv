@@ -53,14 +53,7 @@ namespace CryPixivClient
             currentWindow = this;
 
             // set up all data
-            MainModel = (MainViewModel)FindResource("mainViewModel");
-            MainCollectionViewSorted = (CollectionViewSource)FindResource("ItemListViewSourceSorted");
-            MainCollectionViewRecommended = (CollectionViewSource)FindResource("ItemListViewSourceRecommended");
-            MainCollectionViewRanking = (CollectionViewSource)FindResource("ItemListViewSourceRanking");
-            MainCollectionViewFollowing = (CollectionViewSource)FindResource("ItemListViewSourceFollowing");
-            MainCollectionViewBookmarks = (CollectionViewSource)FindResource("ItemListViewSourceBookmarks");
-            MainCollectionViewBookmarksPrivate = (CollectionViewSource)FindResource("ItemListViewSourceBookmarksPrivate");
-            MainCollectionViewUser = (CollectionViewSource)FindResource("ItemListViewSourceUser");
+            LoadResources();
             UIContext = SynchronizationContext.Current;
             LoadSearchHistory();
             LoadWindowData();
@@ -150,6 +143,17 @@ namespace CryPixivClient
         }
 
         #region Saving/Loading
+        void LoadResources()
+        {
+            MainModel = (MainViewModel)FindResource("mainViewModel");
+            MainCollectionViewSorted = (CollectionViewSource)FindResource("ItemListViewSourceSorted");
+            MainCollectionViewRecommended = (CollectionViewSource)FindResource("ItemListViewSourceRecommended");
+            MainCollectionViewRanking = (CollectionViewSource)FindResource("ItemListViewSourceRanking");
+            MainCollectionViewFollowing = (CollectionViewSource)FindResource("ItemListViewSourceFollowing");
+            MainCollectionViewBookmarks = (CollectionViewSource)FindResource("ItemListViewSourceBookmarks");
+            MainCollectionViewBookmarksPrivate = (CollectionViewSource)FindResource("ItemListViewSourceBookmarksPrivate");
+            MainCollectionViewUser = (CollectionViewSource)FindResource("ItemListViewSourceUser");
+        }
         void LoadWindowData()
         {
             if (Settings.Default.WindowHeight > 10)
@@ -268,34 +272,35 @@ namespace CryPixivClient
             btnRecommended.IsEnabled = mode != PixivAccount.WorkMode.Recommended;
         }
 
+        void SwitchWorkMode(PixivAccount.WorkMode toMode)
+        {
+            ToggleButtons(toMode);
+            ToggleLists(toMode);
+        }
+
         void btnDailyRankings_Click(object sender, RoutedEventArgs e)
         {
-            ToggleButtons(PixivAccount.WorkMode.Ranking);
-            ToggleLists(PixivAccount.WorkMode.Ranking);
+            SwitchWorkMode(PixivAccount.WorkMode.Ranking);
             MainModel.ShowRanking();
         }
         void btnFollowing_Click(object sender, RoutedEventArgs e)
         {
-            ToggleButtons(PixivAccount.WorkMode.Following);
-            ToggleLists(PixivAccount.WorkMode.Following);
+            SwitchWorkMode(PixivAccount.WorkMode.Following);
             MainModel.ShowFollowing();
         }
         void btnBookmarks_Click(object sender, RoutedEventArgs e)
         {
-            ToggleButtons(PixivAccount.WorkMode.BookmarksPublic);
-            ToggleLists(PixivAccount.WorkMode.BookmarksPublic);
+            SwitchWorkMode(PixivAccount.WorkMode.BookmarksPublic);
             MainModel.ShowBookmarksPublic();
         }
         void btnBookmarksPrivate_Click(object sender, RoutedEventArgs e)
         {
-            ToggleButtons(PixivAccount.WorkMode.BookmarksPrivate);
-            ToggleLists(PixivAccount.WorkMode.BookmarksPrivate);
+            SwitchWorkMode(PixivAccount.WorkMode.BookmarksPrivate);
             MainModel.ShowBookmarksPrivate();
         }
         void btnRecommended_Click(object sender, RoutedEventArgs e)
         {
-            ToggleButtons(PixivAccount.WorkMode.Recommended);
-            ToggleLists(PixivAccount.WorkMode.Recommended);
+            SwitchWorkMode(PixivAccount.WorkMode.Recommended);
             MainModel.ShowRecommended();
         }
         async void btnFollowUser_Click(object sender, RoutedEventArgs e)
@@ -339,8 +344,7 @@ namespace CryPixivClient
 
             if (txtSearchQuery.Text.Length < 2) return;
 
-            ToggleButtons(PixivAccount.WorkMode.Search);
-            ToggleLists(PixivAccount.WorkMode.Search);
+            SwitchWorkMode(PixivAccount.WorkMode.Search);
             if (MainModel?.LastSearchQuery != txtSearchQuery.Text) MainModel.CurrentPageResults = 1;
 
             IsSearching = true;
@@ -352,8 +356,7 @@ namespace CryPixivClient
         {
             txtSearchQuery.Text = MainModel.LastSearchQuery;
 
-            ToggleButtons(PixivAccount.WorkMode.Search);
-            ToggleLists(PixivAccount.WorkMode.Search);
+            SwitchWorkMode(PixivAccount.WorkMode.Search);
 
             SetSearchButtonState(true);
             MainModel.ShowSearch(null, checkPopular.IsChecked == true, MainModel.CurrentPageResults);  // "null" as search query will attempt to use the previous query
@@ -569,8 +572,7 @@ namespace CryPixivClient
             currentUserId = userId;
             currentWindow.Dispatcher.Invoke(() =>
             {
-                currentWindow.ToggleButtons(PixivAccount.WorkMode.User);
-                currentWindow.ToggleLists(PixivAccount.WorkMode.User);
+                currentWindow.SwitchWorkMode(PixivAccount.WorkMode.User);
                 MainModel.ShowUserWork(userId, user.Name);
             });
         }
@@ -809,47 +811,19 @@ namespace CryPixivClient
         #endregion
 
         #region Ranking Context Menu
-        void DailyClick(object sender, RoutedEventArgs e)
+        void RankingModeChange_Click(string title, RankingType rankingtype)
         {
-            MainModel.SwitchRankingType(RankingType.Day);
-            btnRankings.Content = "Daily Ranking";
+            SwitchWorkMode(PixivAccount.WorkMode.Ranking);
+            MainModel.SwitchRankingType(rankingtype);
+            btnRankings.Content = title;
         }
-
-        void WeeklyClick(object sender, RoutedEventArgs e)
-        {
-            MainModel.SwitchRankingType(RankingType.Week);
-            btnRankings.Content = "Weekly Ranking";
-        }
-
-        void MonthlyClick(object sender, RoutedEventArgs e)
-        {
-            MainModel.SwitchRankingType(RankingType.Month);
-            btnRankings.Content = "Monthly Ranking";
-        }
-
-        void ForMalesClick(object sender, RoutedEventArgs e)
-        {
-            MainModel.SwitchRankingType(RankingType.Day_Male);
-            btnRankings.Content = "Male Ranking";
-        }
-
-        void ForFemalesClick(object sender, RoutedEventArgs e)
-        {
-            MainModel.SwitchRankingType(RankingType.Day_Female);
-            btnRankings.Content = "Female Ranking";
-        }
-
-        void Daily18Click(object sender, RoutedEventArgs e)
-        {
-            MainModel.SwitchRankingType(RankingType.Day_R18);
-            btnRankings.Content = "Daily R-18";
-        }
-
-        void Weekly18Click(object sender, RoutedEventArgs e)
-        {
-            MainModel.SwitchRankingType(RankingType.Week_R18);
-            btnRankings.Content = "Weekly R-18";
-        }
+        void DailyClick(object sender, RoutedEventArgs e) => RankingModeChange_Click("Daily Ranking", RankingType.Day);
+        void WeeklyClick(object sender, RoutedEventArgs e) => RankingModeChange_Click("Weekly Ranking", RankingType.Week);
+        void MonthlyClick(object sender, RoutedEventArgs e) => RankingModeChange_Click("Monthly Ranking", RankingType.Month);
+        void ForMalesClick(object sender, RoutedEventArgs e) => RankingModeChange_Click("Male Ranking", RankingType.Day_Male);
+        void ForFemalesClick(object sender, RoutedEventArgs e) => RankingModeChange_Click("Female Ranking", RankingType.Day_Female);
+        void Daily18Click(object sender, RoutedEventArgs e) => RankingModeChange_Click("Daily R-18", RankingType.Day_R18);
+        void Weekly18Click(object sender, RoutedEventArgs e) => RankingModeChange_Click("Weekly R-18", RankingType.Week_R18);
         #endregion
 
         #region Main Menu
