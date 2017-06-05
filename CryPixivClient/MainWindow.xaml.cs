@@ -618,8 +618,13 @@ namespace CryPixivClient
             }
         }
         public static string GetVersion() => CryPixivUpdater.Program.GetVersionString(System.Reflection.Assembly.GetEntryAssembly().GetName().Version);
+
+        static bool IsCheckingVersion = false;
         public static async void CheckForUpdates(bool onlyIfAvailable = true)
         {
+            if (IsCheckingVersion) return;
+            IsCheckingVersion = true;
+
             string newerVersion = null;
             try
             {
@@ -629,6 +634,10 @@ namespace CryPixivClient
             {
                 MessageBox.Show("Error while trying to check for updates!\n\n" + ex.GetBaseException().Message, "Error!", MessageBoxButton.OK, MessageBoxImage.Error);
                 return;
+            }
+            finally
+            {
+                IsCheckingVersion = false;
             }
 
             if (newerVersion == null && onlyIfAvailable) return;

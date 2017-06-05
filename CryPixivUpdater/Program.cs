@@ -15,15 +15,16 @@ namespace CryPixivUpdater
 {
     public static class Program
     {
-        static string DownloadLink = null;
+        static List<ItemDownload> ItemsToDownload = null;
         const string UpdateFile = "http://www.mediafire.com/edit/xc77ll99xq4y11d/updatelist.txt";
 
         static string ExecutableVersion = null;
         static string ExecutablePath = "";
-        static string CurrentDirectory = ""; 
+        static string CurrentDirectory = "";
 
         static void Main(string[] args)
         {
+            ForegroundColor = ConsoleColor.Gray;
             CurrentDirectory = Directory.GetCurrentDirectory();
 
             // find executable file to be updated
@@ -46,7 +47,30 @@ namespace CryPixivUpdater
                 ReadLine();
                 return;
             }
+            ForegroundColor = ConsoleColor.Green;
             WriteLine("UPDATE FOUND");
+            ForegroundColor = ConsoleColor.Gray;
+            WriteLine("\nPress any button to continue...\n");
+            ReadLine();
+           
+
+            // download the update
+            Write("Downloading update...");
+            try
+            {
+                DownloadUpdate();
+            }
+            catch (Exception ex)
+            {
+                WriteLine("ERROR");
+                ForegroundColor = ConsoleColor.Red;
+                WriteLine(ex.Message);
+                ReadLine();
+                return;
+            }
+            ForegroundColor = ConsoleColor.Green;
+            WriteLine("OK");
+            ForegroundColor = ConsoleColor.Gray;
 
             // wait for process to exit
             Write("Waiting for any running processes to exit... ");
@@ -62,31 +86,16 @@ namespace CryPixivUpdater
                 ReadLine();
                 return;
             }
+            ForegroundColor = ConsoleColor.Green;
             WriteLine("OK");
-
-            // download the update
-            Write("Downloading update...");
-            var items = new List<ItemDownload>();
-            try
-            {
-                items = DownloadUpdate();
-            }
-            catch(Exception ex)
-            {
-                WriteLine("ERROR");
-                ForegroundColor = ConsoleColor.Red;
-                WriteLine(ex.Message);
-                ReadLine();
-                return;
-            }
-            WriteLine("OK");
+            ForegroundColor = ConsoleColor.Gray;
 
             // apply the update
             Write("Applying update...");
-            
+
             try
             {
-                ApplyUpdate(items);
+                ApplyUpdate(ItemsToDownload);
             }
             catch (Exception ex)
             {
@@ -96,7 +105,9 @@ namespace CryPixivUpdater
                 ReadLine();
                 return;
             }
+            ForegroundColor = ConsoleColor.Green;
             WriteLine("OK");
+            ForegroundColor = ConsoleColor.Gray;
 
             WriteLine("Done");
             ReadLine();
@@ -105,7 +116,7 @@ namespace CryPixivUpdater
         static string GetExecutablePath()
         {
             var files = Directory.GetFiles(CurrentDirectory, "*.exe");
-            foreach(var f in files)
+            foreach (var f in files)
             {
                 var info = new FileInfo(f);
                 var v = AssemblyName.GetAssemblyName(f);
@@ -131,16 +142,45 @@ namespace CryPixivUpdater
             } while (count != 0);
         }
 
-        static List<ItemDownload> DownloadUpdate()
+        static void DownloadUpdate()
         {
+            if (ItemsToDownload == null) throw new InvalidOperationException("Check for updates first!");
             List<ItemDownload> items = new List<ItemDownload>();
 
-            return items;
+            using (var client = new WebClient())
+            {
+                foreach(var i in ItemsToDownload)
+                {
+                    var link = GetActualDownloadLink(i.Url);
+                    var data = client.DownloadData(link);
+                    i.Data = data;
+                }
+            }
+        }
+
+        static string GetActualDownloadLink(string mediafireLink)
+        {
+            using (var client = new WebClient())
+            {
+                var src = client.DownloadString(mediafireLink);
+
+                HtmlDocument htmlDoc = new HtmlDocument();
+                htmlDoc.LoadHtml(src);
+
+                var inputs = from input in htmlDoc.DocumentNode.Descendants("a")
+                             where input.Attributes["class"] != null
+                             where input.Attributes["class"].Value.ToLower().Contains("downloadbuttonad-startdownload")
+                             select input;
+
+                // get actual download link
+                var dlink = inputs.First().Attributes["href"].Value;
+                return dlink;
+            }
         }
 
         static void ApplyUpdate(List<ItemDownload> itemsToBeApplied)
         {
-            foreach(var i in itemsToBeApplied)
+            foreach (var i in itemsToBeApplied)
             {
                 File.WriteAllBytes(Path.Combine(CurrentDirectory, i.Filename), i.Data);
             }
@@ -149,41 +189,39 @@ namespace CryPixivUpdater
         public static string GetVersionString(Version v) => $"v{v.Major}.{v.MajorRevision}.{v.Minor}.{v.MinorRevision}";
         public static string CheckForUpdate(string version = null)
         {
-            // get version
-            var client = new WebClient();
-            var src = client.DownloadString(UpdateFile);
-
-            // parse HTML
-            HtmlDocument htmlDoc = new HtmlDocument();
-            htmlDoc.LoadHtml(src);
-
-            var inputs = from input in htmlDoc.DocumentNode.Descendants("a")
-                         where input.Attributes["class"] != null
-                         where input.Attributes["class"].Value.ToLower().Contains("downloadbuttonad-startdownload")
-                         select input;
-
             // get actual download link
-            var dlink = inputs.First().Attributes["href"].Value;
+            var dlink = GetActualDownloadLink(UpdateFile);
 
             // get file contents
-            src = client.DownloadString(dlink);
-            var parameters = src.Split('\n');
+            var client = new WebClient();
+            var src = client.DownloadString(dlink);
+            var parameters = src.Split('\n').ToList();
+            client.Dispose();
 
             // parse contents
             var ver = parameters[0];
-            var url = parameters[1];
+            ItemsToDownload = new List<ItemDownload>();
 
-            DownloadLink = url; // cache it
+            for (int i = 1; i < parameters.Count; i += 2)
+            {
+                var filename = parameters[i];
+                var url = parameters[i + 1];
+                ItemsToDownload.Add(new ItemDownload()
+                {
+                    Filename = filename,
+                    Url = url
+                });
+            }
 
             // compare versions
-            if (IsVersionGreater(ver.Replace("v", ""), version.Replace("v", ""))) return ver;           
+            if (IsVersionGreater(ver.Replace("v", ""), version.Replace("v", ""))) return ver;
             else return null;
         }
 
         public static bool IsVersionGreater(string version, string thanThisVersion)
         {
             var ver1 = version.Split('.').Select(x => int.Parse(x)).ToList();
-            var ver2 = version.Split('.').Select(x => int.Parse(x)).ToList();
+            var ver2 = thanThisVersion.Split('.').Select(x => int.Parse(x)).ToList();
 
             if (ver1[0] > ver2[0]) return true;
             else if (ver1[0] < ver2[0]) return false;
@@ -207,6 +245,7 @@ namespace CryPixivUpdater
 
     internal class ItemDownload
     {
+        public string Url { get; set; }
         public string Filename { get; set; }
         public byte[] Data { get; set; }
     }
