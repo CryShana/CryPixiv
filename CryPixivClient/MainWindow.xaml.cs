@@ -664,7 +664,7 @@ namespace CryPixivClient
             MainModel.CollectionStatus = $"Found {cache.Count} items.";
         }
 
-        private void btnPause_Click(object sender, RoutedEventArgs e)
+        void btnPause_Click(object sender, RoutedEventArgs e)
         {
             if (CurrentWorkMode != PixivAccount.WorkMode.Search) return;
 

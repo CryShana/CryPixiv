@@ -4,3 +4,4 @@ Pixeez/bin/
 packages/
 Pixeez/obj/
 .vs/CryPixivClient/v15/.suo
+.vs/CryPixivClient.sqlite
