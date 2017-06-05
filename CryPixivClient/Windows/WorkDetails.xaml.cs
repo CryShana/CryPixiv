@@ -85,7 +85,6 @@ namespace CryPixivClient.Windows
             LoadWork(work);
         }
 
-        bool openedCache = false;
         void LoadWork(PixivWork newWork, bool doAnimation = false)
         {
             timestamp = DateTime.Now; // used for doubleclicking

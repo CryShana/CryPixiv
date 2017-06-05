@@ -86,9 +86,16 @@
 
         <!-- IMAGE ANIMATIONS ARE HERE -->
         <Storyboard x:Key="MouseOverStoryboard">
-            <DoubleAnimation To="40" Duration="0:00:00.4"
-                             Storyboard.TargetName="toolbar"
-                             Storyboard.TargetProperty="Height">
+            <DoubleAnimation To="1" Duration="0:00:00.4"
+                             Storyboard.TargetName="scaleTransform"
+                             Storyboard.TargetProperty="ScaleX">
+                <DoubleAnimation.EasingFunction>
+                    <PowerEase Power="2"/>
+                </DoubleAnimation.EasingFunction>
+            </DoubleAnimation>
+            <DoubleAnimation To="1" Duration="0:00:00.4"
+                             Storyboard.TargetName="scaleTransform"
+                             Storyboard.TargetProperty="ScaleY">
                 <DoubleAnimation.EasingFunction>
                     <PowerEase Power="2"/>
                 </DoubleAnimation.EasingFunction>
@@ -96,8 +103,15 @@
         </Storyboard>
         <Storyboard x:Key="MouseLeaveStoryboard">
             <DoubleAnimation To="0" Duration="0:00:00.4"
-                             Storyboard.TargetName="toolbar"
-                             Storyboard.TargetProperty="Height">
+                             Storyboard.TargetName="scaleTransform"
+                             Storyboard.TargetProperty="ScaleX">
+                <DoubleAnimation.EasingFunction>
+                    <PowerEase Power="2"/>
+                </DoubleAnimation.EasingFunction>
+            </DoubleAnimation>
+            <DoubleAnimation To="0" Duration="0:00:00.4"
+                             Storyboard.TargetName="scaleTransform"
+                             Storyboard.TargetProperty="ScaleY">
                 <DoubleAnimation.EasingFunction>
                     <PowerEase Power="2"/>
                 </DoubleAnimation.EasingFunction>
@@ -229,7 +243,10 @@
 
                     <!-- The toolbar -->
                     <StackPanel x:Name="toolbar" Orientation="Horizontal" VerticalAlignment="Bottom" HorizontalAlignment="Center" 
-                                Height="0" Panel.ZIndex="3" Background="White" MaxHeight="100" MaxWidth="150">
+                                Height="40" Panel.ZIndex="3" Background="White" MaxHeight="100" MaxWidth="150" RenderTransformOrigin="0.5,1.0">
+                        <StackPanel.RenderTransform>
+                            <ScaleTransform x:Name="scaleTransform" ScaleX="0" ScaleY="0"></ScaleTransform>
+                        </StackPanel.RenderTransform>
                         <!-- Height goes to 40 when mouse over -->
                         <Button CommandParameter="{Binding}" Command="{Binding OpenBrowserCmd, Source={StaticResource mainViewModel}}" Style="{DynamicResource buttonStyle}">
                             <Image x:Name="internetImage" RenderOptions.BitmapScalingMode="Fant" Width="35" Source="Images/internet.png" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="8, 6"/>
