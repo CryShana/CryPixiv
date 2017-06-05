@@ -76,11 +76,21 @@
                     </Style>
                 </Image.Style>
             </Image>
+            <Button.ContextMenu>
+                <ContextMenu>
+                    <MenuItem Header="Private Bookmark" Click="privateBookmark_Click">
+                        <MenuItem.Icon>
+                            <Image RenderOptions.BitmapScalingMode="Fant" Source="/CryPixivClient;component/Images/padlock.png"/>
+                        </MenuItem.Icon>
+                    </MenuItem>
+                </ContextMenu>
+            </Button.ContextMenu>
         </Button>
 
         <TextBlock x:Name="txtPage" Grid.Column="2" HorizontalAlignment="Right" Margin="0,0,13,40" TextWrapping="Wrap" Text="1/1" VerticalAlignment="Bottom" Width="103" TextAlignment="Center" FontSize="16"/>
         <ProgressBar x:Name="progressBar" Height="12" Margin="0,0,0,115" VerticalAlignment="Bottom" Grid.ColumnSpan="3" Foreground="#FF009CFF" IsIndeterminate="True"/>
-        <TextBlock x:Name="txtArtist" Margin="86,0,93,66" TextWrapping="Wrap" Text="Artist" VerticalAlignment="Bottom" Height="16" Foreground="#FF00B9FF" TextDecorations="Underline" MouseDown="txtArtist_MouseDown" Grid.ColumnSpan="3"/>
+        <TextBlock x:Name="txtArtist" Margin="86,0,93,66" TextWrapping="Wrap" Text="Artist" VerticalAlignment="Bottom" Height="16" Foreground="#FF00B9FF" 
+                   TextDecorations="Underline" MouseDown="txtArtist_MouseDown" Grid.ColumnSpan="3"/>
         <TextBlock x:Name="txtResolution" Margin="0,0,10,94" TextWrapping="Wrap" Text="1200x900" VerticalAlignment="Bottom" Height="16" TextAlignment="Right" Grid.Column="2" HorizontalAlignment="Right" Width="106"/>
         <ComboBox x:Name="comboTags" Margin="44,4,4,0" VerticalAlignment="Top" IsReadOnly="True" IsTabStop="False" BorderBrush="WhiteSmoke" SelectionChanged="comboTags_SelectionChanged" Background="White">
             <ComboBox.ItemTemplate>

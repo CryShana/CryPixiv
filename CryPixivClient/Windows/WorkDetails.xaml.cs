@@ -321,7 +321,8 @@ namespace CryPixivClient.Windows
 
         void CacheDownloads(long wrkId, DownloadedImageData img) => PreviousDownloadsCache.Add(new Tuple<long, DownloadedImageData>(wrkId, img), x => x.Item1 == wrkId && x.Item2.Page == img.Page);        
         void btnInternet_Click(object sender, RoutedEventArgs e) => MainWindow.MainModel.OpenInBrowser(LoadedWork);      
-        void btnBookmark_Click(object sender, RoutedEventArgs e) => MainWindow.MainModel.BookmarkWork(LoadedWork);       
+        void btnBookmark_Click(object sender, RoutedEventArgs e) => MainWindow.MainModel.BookmarkWork(LoadedWork, false);
+        void privateBookmark_Click(object sender, RoutedEventArgs e) => MainWindow.MainModel.BookmarkWork(LoadedWork, true);
         void DownloadSelected(object sender, RoutedEventArgs e) => MainWindow.MainModel.DownloadSelectedWorks(LoadedWork, true);       
 
         void txtArtist_MouseDown(object sender, MouseButtonEventArgs e)
