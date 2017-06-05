@@ -247,7 +247,7 @@
                         <StackPanel.RenderTransform>
                             <ScaleTransform x:Name="scaleTransform" ScaleX="0" ScaleY="0"></ScaleTransform>
                         </StackPanel.RenderTransform>
-                        <!-- Height goes to 40 when mouse over -->
+
                         <Button CommandParameter="{Binding}" Command="{Binding OpenBrowserCmd, Source={StaticResource mainViewModel}}" Style="{DynamicResource buttonStyle}">
                             <Image x:Name="internetImage" RenderOptions.BitmapScalingMode="Fant" Width="35" Source="Images/internet.png" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="8, 6"/>
                         </Button>
@@ -468,6 +468,11 @@
                 <MenuItem x:Name="AboutMenu" Header="About" Click="AboutMenu_Click">
                     <MenuItem.Icon>
                         <Image Source="Images/question-mark.png" RenderOptions.BitmapScalingMode="Fant" />
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem x:Name="checkUpdates" Header="Check for Updates" Click="checkUpdates_Click">
+                    <MenuItem.Icon>
+                        <Image Source="Images/refresh-button.png" RenderOptions.BitmapScalingMode="Fant" />
                     </MenuItem.Icon>
                 </MenuItem>
                 <Separator />

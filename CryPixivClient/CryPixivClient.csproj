@@ -168,6 +168,10 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\CryPixivUpdater\CryPixivUpdater.csproj">
+      <Project>{9eccc98d-4453-44f6-b9a8-4d2bf3104174}</Project>
+      <Name>CryPixivUpdater</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Pixeez\Pixeez.csproj">
       <Project>{06950fe8-5f63-4931-83df-b70002281cb5}</Project>
       <Name>Pixeez</Name>
@@ -228,6 +232,9 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Images\padlock.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\refresh-button.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
