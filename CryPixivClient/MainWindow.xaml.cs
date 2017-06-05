@@ -750,6 +750,18 @@ namespace CryPixivClient
                 var tt = lstBox.SelectedItem as Translation;
                 if (tt != null) txtSearchQuery.Text = tt.Original;
             };
+            lstBox.MouseDoubleClick += async (a, b) =>
+            {
+                var tt = lstBox.SelectedItem as Translation;
+                if (tt != null) txtSearchQuery.Text = tt.Original;
+
+                if (IsSearching)
+                {
+                    btnSearch_Click(this, null);
+                    await Task.Delay(300);
+                }
+                btnSearch_Click(this, null);
+            };
 
             popupTags.AddContent(txt, lstBox);
 
