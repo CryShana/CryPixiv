@@ -79,7 +79,7 @@
             </Setter>
             <Style.Triggers>
                 <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background" Value="Transparent"/>
+                    <Setter Property="Background" Value="#FFE4E4E4"/>
                 </Trigger>
             </Style.Triggers>
         </Style>
@@ -232,10 +232,10 @@
                                 Height="0" Panel.ZIndex="3" Background="White" MaxHeight="100" MaxWidth="150">
                         <!-- Height goes to 40 when mouse over -->
                         <Button CommandParameter="{Binding}" Command="{Binding OpenBrowserCmd, Source={StaticResource mainViewModel}}" Style="{DynamicResource buttonStyle}">
-                            <Image x:Name="internetImage" RenderOptions.BitmapScalingMode="Fant" Width="35" Source="Images/internet.png" Margin="0,6"/>
+                            <Image x:Name="internetImage" RenderOptions.BitmapScalingMode="Fant" Width="35" Source="Images/internet.png" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="8, 6"/>
                         </Button>
                         <Button CommandParameter="{Binding}" Command="{Binding BookmarkCmd, Source={StaticResource mainViewModel}}" Style="{DynamicResource buttonStyle}">
-                            <Image x:Name="likeImage" RenderOptions.BitmapScalingMode="Fant" Width="35" Margin="0,6">
+                            <Image x:Name="likeImage" RenderOptions.BitmapScalingMode="Fant" Width="35" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="8, 6">
                                 <Image.Style>
                                     <Style TargetType="Image">
                                         <Setter Property="Source" Value="Images\dislike.png" />
