@@ -247,6 +247,15 @@
                                     </Style>
                                 </Image.Style>
                             </Image>
+                            <Button.ContextMenu>
+                                <ContextMenu>
+                                    <MenuItem Header="Private Bookmark" CommandParameter="{Binding}" Command="{Binding PrivateBookmarkCmd, Source={StaticResource mainViewModel}}">
+                                        <MenuItem.Icon>
+                                            <Image Source="Images/padlock.png" RenderOptions.BitmapScalingMode="Fant"/>
+                                        </MenuItem.Icon>
+                                    </MenuItem>
+                                </ContextMenu>
+                            </Button.ContextMenu>
                         </Button>
                     </StackPanel>
 

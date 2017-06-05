@@ -58,6 +58,7 @@ namespace CryPixivClient.ViewModels
         ICommand openbrowsercmd;
         ICommand opencmd;
         ICommand downloadselectedcmd;
+        ICommand privatebookmarkcmd;
         #endregion
 
         #region Properties      
@@ -159,10 +160,11 @@ namespace CryPixivClient.ViewModels
         #endregion
 
         #region Commands
-        public ICommand BookmarkCmd => bookmarkcmd ?? (bookmarkcmd = new RelayCommand<PixivWork>(BookmarkWork));
+        public ICommand BookmarkCmd => bookmarkcmd ?? (bookmarkcmd = new RelayCommand<PixivWork>(a => BookmarkWork(a, false)));
+        public ICommand PrivateBookmarkCmd => privatebookmarkcmd ?? (privatebookmarkcmd = new RelayCommand<PixivWork>(a => BookmarkWork(a, true)));
         public ICommand OpenBrowserCmd => openbrowsercmd ?? (openbrowsercmd = new RelayCommand<PixivWork>(OpenInBrowser));
         public ICommand OpenCmd => opencmd ?? (opencmd = new RelayCommand<PixivWork>(OpenWork));
-        public ICommand DownloadSelectedCmd => downloadselectedcmd ?? (downloadselectedcmd = new RelayCommand<PixivWork>((w) => DownloadSelectedWorks(w)));
+        public ICommand DownloadSelectedCmd => downloadselectedcmd ?? (downloadselectedcmd = new RelayCommand<PixivWork>(w => DownloadSelectedWorks(w)));
         #endregion
 
         public MainViewModel()
@@ -595,7 +597,7 @@ namespace CryPixivClient.ViewModels
         {
             Process.Start($"https://www.pixiv.net/member_illust.php?mode=medium&illust_id={work.Id}");
         }
-        public async void BookmarkWork(PixivWork work)
+        public async void BookmarkWork(PixivWork work, bool isPrivate = false)
         {
             if (work.Id == null) return;
 
@@ -615,7 +617,7 @@ namespace CryPixivClient.ViewModels
                 work.UpdateFavorite();
 
                 // add to bookmarks
-                var result = await MainWindow.Account.AddToBookmarks(work.Id.Value);
+                var result = await MainWindow.Account.AddToBookmarks(work.Id.Value, !isPrivate);
                 if (result.Item1 == false) work.IsBookmarked = false;
                 work.UpdateFavorite();
             }
