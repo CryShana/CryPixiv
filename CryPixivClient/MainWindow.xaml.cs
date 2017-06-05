@@ -11,6 +11,7 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -616,11 +617,40 @@ namespace CryPixivClient
                 return false;
             }
         }
+        public static string GetVersion() => CryPixivUpdater.Program.GetVersionString(System.Reflection.Assembly.GetEntryAssembly().GetName().Version);
 
-        public static string GetVersion()
+        static bool IsCheckingVersion = false;
+        public static async void CheckForUpdates(bool onlyIfAvailable = true)
         {
-            var v = System.Reflection.Assembly.GetEntryAssembly().GetName().Version;
-            return $"v{v.Major}.{v.Minor}.{v.Revision}";
+            if (IsCheckingVersion) return;
+            IsCheckingVersion = true;
+
+            string newerVersion = null;
+            try
+            {
+                newerVersion = await Task.Run(() => CryPixivUpdater.Program.CheckForUpdate(GetVersion()));
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error while trying to check for updates!\n\n" + ex.GetBaseException().Message, "Error!", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+            finally
+            {
+                IsCheckingVersion = false;
+            }
+
+            if (newerVersion == null && onlyIfAvailable) return;
+
+            var result = MessageBox.Show((newerVersion == null) ? "No updates found! You are using the latest version!" :
+                            $"Update found!\n\nA newer version {newerVersion} is available! (Current: {GetVersion()})\nDo you want to update now?",
+                            (newerVersion == null) ? "No updates found!" : "Update found!", (newerVersion == null) ? MessageBoxButton.OK : MessageBoxButton.YesNo, MessageBoxImage.Information);
+
+            if (result == MessageBoxResult.Yes && newerVersion != null)
+            {
+                Process.Start("CryPixivUpdater.exe");
+                currentWindow.Close();
+            }
         }
         #endregion
 
@@ -858,6 +888,7 @@ namespace CryPixivClient
         {
             MessageBox.Show("Not yet implemented.");
         }
+        void checkUpdates_Click(object sender, RoutedEventArgs e) => CheckForUpdates(false);
         #endregion
 
         bool GCRequired = false;
