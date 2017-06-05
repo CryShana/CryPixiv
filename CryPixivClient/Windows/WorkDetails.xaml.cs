@@ -3,7 +3,7 @@ using CryPixivClient.Properties;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Drawing;
+using System.Linq;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -29,9 +29,20 @@ namespace CryPixivClient.Windows
                 {
                     try
                     {
-                        var url = LoadedWork?.User?.ProfileImageUrls?.MainImage;
-                        if (url == null) return null;
-                        img = PixivWork.GetImage(url);
+                        // check cache
+                        var uid = LoadedWork.User.Id.Value;
+                        var artistImg = ArtistThumbnailsCache.GetFromCache(x => x.Item1 == uid);
+
+                        if (artistImg == null)
+                        {
+                            // otherwise download it
+                            var url = LoadedWork?.User?.ProfileImageUrls?.MainImage;
+                            if (url == null) return null;
+                            img = PixivWork.GetImage(url);
+
+                            ArtistThumbnailsCache.Add(new Tuple<long, ImageSource>(uid, img), x => x.Item1 == uid);
+                        }
+                        else img = artistImg.First().Item2;
                     }
                     catch
                     {
@@ -47,51 +58,55 @@ namespace CryPixivClient.Windows
         static AsyncLocker locker = new AsyncLocker();
 
         public PixivWork LoadedWork { get; private set; }
-        Dictionary<int, ImageSource> DownloadedImages = new Dictionary<int, ImageSource>();
+        List<DownloadedImageData> DownloadedImages = new List<DownloadedImageData>();
+        
 
         const int WorkCacheLimit = 6;
-        static List<Tuple<long, Dictionary<int, ImageSource>>> PreviousDownloads = new List<Tuple<long, Dictionary<int, ImageSource>>>();
+        static Cache<Tuple<long, DownloadedImageData>> PreviousDownloadsCache = new Cache<Tuple<long, DownloadedImageData>>(40);
+        static Cache<Tuple<long, ImageSource>> ArtistThumbnailsCache = new Cache<Tuple<long, ImageSource>>(50);
+
         int currentPage = 1;
 
         public WorkDetails(PixivWork work)
         {
             InitializeComponent();
+            // setup window
             SetWindow();
             if (wasMaximized) WindowState = WindowState.Maximized;
 
+            // set datacontext
             DataContext = this;
 
+            // setup event handlers
             this.Closing += WorkDetails_Closing;
             this.StateChanged += (a, b) => wasMaximized = WindowState == WindowState.Maximized;
 
+            // load given work
             LoadWork(work);
         }
 
         bool openedCache = false;
         void LoadWork(PixivWork newWork, bool doAnimation = false)
         {
-            timestamp = DateTime.Now;
-            LoadedWork = newWork;
-            mainImage.Source = null;
+            timestamp = DateTime.Now; // used for doubleclicking
 
+            // load work
+            LoadedWork = newWork;
+
+            // set to initial values
             currentPage = 1;
             DownloadedImages.Clear();
+            mainImage.Source = null;
             img = null;
-            DataContext = null; DataContext = this;
+
+            // reset datacontext to refresh bindings
+            DataContext = null; DataContext = this; 
 
             // load cached results if available
-            var prevd = PreviousDownloads.Find(x => x.Item1 == newWork.Id.Value);
-            if (prevd != null)
-            {
-                DownloadedImages = new Dictionary<int, ImageSource>(prevd.Item2);
-                openedCache = true;
-
-                // add at the beginning
-                PreviousDownloads.Remove(prevd);
-                PreviousDownloads.Add(prevd);
-            }
-            else openedCache = false;
-
+            var prevd = PreviousDownloadsCache.GetFromCache(x => x.Item1 == newWork.Id.Value);
+            if (prevd != null) DownloadedImages = new List<DownloadedImageData>(prevd.Select(x => x.Item2).OrderBy(a => a.Page));
+            
+            // set work info
             comboTags.ItemsSource = GetTranslatedTags(LoadedWork.Tags);
             txtClipboard.Text = "Click on tag to copy it!";
             txtScore.Text = $"Score: {LoadedWork.Stats?.Score ?? LoadedWork.TotalBookmarks}";
@@ -101,18 +116,17 @@ namespace CryPixivClient.Windows
             Title = $"Work Details - ({LoadedWork.Id}) {LoadedWork.Title}";
             SetPageStatus();
 
-            // set thumbnail
-            if (LoadedWork.img != null)
-            {
-                if (doAnimation) AnimateImageShift(() => mainImage.Source = LoadedWork.ImageThumbnail);
-                else mainImage.Source = LoadedWork.ImageThumbnail;
-
-            }
-            if (DownloadedImages.Count >= 1)
+            // set cached image if exists or use thumbnail
+            if (DownloadedImages.Find(x => x.Page == 1) != null)
             {
                 if (doAnimation) AnimateImageShift(() => SetImage(1));
                 else SetImage(1);
             }
+            else if (LoadedWork.img != null)
+            {
+                if (doAnimation) AnimateImageShift(() => mainImage.Source = LoadedWork.ImageThumbnail);
+                else mainImage.Source = LoadedWork.ImageThumbnail;
+            }           
 
             // start downloading images
             DownloadImages();
@@ -127,9 +141,10 @@ namespace CryPixivClient.Windows
         void SetPageStatus()
         {
             txtPage.Text = $"{currentPage}/{LoadedWork.PageCount}" + ((DownloadedImages.Count < LoadedWork.PageCount) ? $" ({DownloadedImages.Count})" : "");
-            if (DownloadedImages.ContainsKey(currentPage))
+            var data = DownloadedImages.Find(x => x.Page == currentPage);
+            if (data != null)
             {
-                var img = (BitmapImage)DownloadedImages[currentPage];
+                var img = (BitmapImage)data.ImageData;
 
                 txtResolution.Text = $"{img.PixelWidth}x{img.PixelHeight}";
             }
@@ -147,16 +162,27 @@ namespace CryPixivClient.Windows
                     if (lworkid != LoadedWork.Id) return;
                     SetProgressBar(true);
 
-                    for (int i = DownloadedImages.Count; i < LoadedWork.PageCount; i++)
+                    for (int i = 0; i < LoadedWork.PageCount; i++)
                     {
-                        if (isClosing || lworkid != LoadedWork.Id) break;
-                        var img = await Task.Run(() => PixivWork.GetImage(LoadedWork.GetImageUri(LoadedWork.OriginalImageUrl, i)));
-                        if (isClosing || lworkid != LoadedWork.Id) break;
+                        // if page is not yet downloaded, download it
+                        ImageSource dimg = null;
 
-                        DownloadedImages.Add(i + 1, img);
-                        CacheDownloads();
+                        var page = DownloadedImages.Find(x => x.Page == i + 1);
+                        if (page == null)
+                        {
+                            // start downloading it - befor and after download - check if work has been switched
+                            if (isClosing || lworkid != LoadedWork.Id) break;
+                            dimg = await Task.Run(() => PixivWork.GetImage(LoadedWork.GetImageUri(LoadedWork.OriginalImageUrl, i)));
+                            if (isClosing || lworkid != LoadedWork.Id) break;
+                        }
+                        else dimg = page.ImageData;
+
+                        // cache image and update status
+                        var dwImage = new DownloadedImageData(i + 1, dimg);
+                        DownloadedImages.Add(dwImage);
+                        CacheDownloads(lworkid.Value, dwImage);
                         SetPageStatus();
-                        ImageDownloaded?.Invoke(this, img);
+                        ImageDownloaded?.Invoke(this, dimg);
                     }
                 }
                 finally
@@ -170,10 +196,13 @@ namespace CryPixivClient.Windows
         public void SetImage(int page)
         {
             if (DownloadedImages.Count == 0 & page == 1) return;
+            var img = DownloadedImages.Find(x => x.Page == page);
+            if (img == null) return;
+
             currentPage = page;
             try
             {
-                mainImage.Source = DownloadedImages[page];
+                mainImage.Source = img.ImageData;
                 SetPageStatus();
             }
             catch (Exception ex)
@@ -278,7 +307,6 @@ namespace CryPixivClient.Windows
         void WorkDetails_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
             if (isOpening == false) SavePos();
-            PreviousDownloads.Clear();
 
             isClosing = true;
         }
@@ -292,32 +320,15 @@ namespace CryPixivClient.Windows
             Settings.Default.Save();
         }
 
-        void CacheDownloads()
-        {
-            if (PreviousDownloads.Count > WorkCacheLimit) PreviousDownloads.RemoveAt(0);
-
-            if (openedCache) return;
-
-            PreviousDownloads.Add(new Tuple<long, Dictionary<int, ImageSource>>(LoadedWork.Id.Value, new Dictionary<int, ImageSource>(DownloadedImages)));
-        }
-
-        void btnInternet_Click(object sender, RoutedEventArgs e)
-        {
-            MainWindow.MainModel.OpenInBrowser(LoadedWork);
-        }
-
-        void btnBookmark_Click(object sender, RoutedEventArgs e)
-        {
-            MainWindow.MainModel.BookmarkWork(LoadedWork);
-        }
-
-        void DownloadSelected(object sender, RoutedEventArgs e)
-        {
-            MainWindow.MainModel.DownloadSelectedWorks(LoadedWork, true);
-        }
+        void CacheDownloads(long wrkId, DownloadedImageData img) => PreviousDownloadsCache.Add(new Tuple<long, DownloadedImageData>(wrkId, img), x => x.Item1 == wrkId && x.Item2.Page == img.Page);        
+        void btnInternet_Click(object sender, RoutedEventArgs e) => MainWindow.MainModel.OpenInBrowser(LoadedWork);      
+        void btnBookmark_Click(object sender, RoutedEventArgs e) => MainWindow.MainModel.BookmarkWork(LoadedWork);       
+        void DownloadSelected(object sender, RoutedEventArgs e) => MainWindow.MainModel.DownloadSelectedWorks(LoadedWork, true);       
 
         void txtArtist_MouseDown(object sender, MouseButtonEventArgs e)
         {
+            if (e.LeftButton == MouseButtonState.Released) return;
+
             // search artist
             MainWindow.currentWindow.Focus();
             MainWindow.ShowUserWork(LoadedWork.User);
@@ -334,7 +345,7 @@ namespace CryPixivClient.Windows
 
         async void CopyImage(object sender, RoutedEventArgs e)
         {
-            if (DownloadedImages.ContainsKey(currentPage) == false)
+            if (DownloadedImages.Count(x => x.Page == currentPage) == 0)
             {
                 MessageBox.Show("Image is not yet fully loaded!", "Not loaded yet!", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
@@ -348,7 +359,7 @@ namespace CryPixivClient.Windows
         public static Queue<string> CreatedTemporaryFiles = new Queue<string>();
         void CopyImageToClipboard()
         {
-            var src = DownloadedImages[currentPage] as BitmapImage;
+            var src = DownloadedImages.Find(x => x.Page == currentPage).ImageData as BitmapImage;
 
             string filename = $"{LoadedWork.Id.Value}_p{currentPage}.png";
             string path = Path.Combine(Path.GetTempPath(), filename);
@@ -405,11 +416,22 @@ namespace CryPixivClient.Windows
             mainImage.BeginAnimation(OpacityProperty, opacityhide);
             mainImage.BeginAnimation(MarginProperty, moveaway);
 
-            await Task.Delay(300);
+            await Task.Delay(200);
             callback();
 
             mainImage.BeginAnimation(OpacityProperty, opacityshow);
             mainImage.BeginAnimation(MarginProperty, movein);
+        }
+
+        public class DownloadedImageData
+        {
+            public int Page { get; set; }
+            public ImageSource ImageData { get; set; }
+            public DownloadedImageData(int page, ImageSource data)
+            {
+                Page = page;
+                ImageData = data;
+            }
         }
     }
 

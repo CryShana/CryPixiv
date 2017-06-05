@@ -73,6 +73,7 @@
     <Compile Include="Downloader.cs" />
     <Compile Include="Objects\AsyncLocker.cs" />
     <Compile Include="Objects\DownloadObject.cs" />
+    <Compile Include="Objects\Cache.cs" />
     <Compile Include="Objects\MyObservableCollection.cs" />
     <Compile Include="Objects\PixivWork.cs" />
     <Compile Include="Scheduler.cs" />
