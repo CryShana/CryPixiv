@@ -71,6 +71,7 @@
     </ApplicationDefinition>
     <Compile Include="Commands\RelayCommand.cs" />
     <Compile Include="Downloader.cs" />
+    <Compile Include="Objects\AsyncLocker.cs" />
     <Compile Include="Objects\DownloadObject.cs" />
     <Compile Include="Objects\MyObservableCollection.cs" />
     <Compile Include="Objects\PixivWork.cs" />

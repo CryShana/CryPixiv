@@ -35,7 +35,7 @@ namespace CryPixivClient.ViewModels
         MyObservableCollection<PixivWork> displayedWorks_Recommended = new MyObservableCollection<PixivWork>();
         MyObservableCollection<PixivWork> displayedWorks_User = new MyObservableCollection<PixivWork>();
 
-        readonly SemaphoreSlim semaphore;
+        readonly AsyncLocker locker;
 
         string status = "Idle";
         string collectionstatus = "-";
@@ -168,7 +168,7 @@ namespace CryPixivClient.ViewModels
         public MainViewModel()
         {
             UIContext = SynchronizationContext.Current;
-            semaphore = new SemaphoreSlim(1);
+            locker = new AsyncLocker(1);
 
             Scheduler_DisplayedWorks_Results = new Scheduler<PixivWork>(ref displayedWorks_Results, PixivWorkEqualityComparer, PixivIdGetter, PixivAccount.WorkMode.Search);
             Scheduler_DisplayedWorks_Ranking = new Scheduler<PixivWork>(ref displayedWorks_Ranking, PixivWorkEqualityComparer, PixivIdGetter, PixivAccount.WorkMode.Ranking);
@@ -248,9 +248,10 @@ namespace CryPixivClient.ViewModels
                             cache.AddRange(works);
                             UIContext.Send(async (a) =>
                             {
-                                await semaphore.WaitAsync();
-                                displayCollection.UpdateWith(works, scheduler, fixInvalid);
-                                semaphore.Release();
+                                using (await locker.LockAsync())
+                                {
+                                    displayCollection.UpdateWith(works, scheduler, fixInvalid);
+                                }
                             }, null);
                         }
                         catch (Exception ex)
@@ -346,9 +347,10 @@ namespace CryPixivClient.ViewModels
 
                             UIContext.Send(async (a) =>
                             {
-                                await semaphore.WaitAsync();
-                                DisplayedWorks_Results.UpdateWith(wworks, Scheduler_DisplayedWorks_Results, false);
-                                semaphore.Release();
+                                using (await locker.LockAsync())
+                                {
+                                    DisplayedWorks_Results.UpdateWith(wworks, Scheduler_DisplayedWorks_Results, false);
+                                }
                             }, null);
 
                             currentPageResults = currentPage;
@@ -438,51 +440,54 @@ namespace CryPixivClient.ViewModels
         }
         public async Task ResetRankingResults(bool autoshow = true)
         {
-            await semaphore.WaitAsync();
-            ranking = new List<PixivWork>();
-            DisplayedWorks_Ranking = new MyObservableCollection<PixivWork>();
-            Scheduler_DisplayedWorks_Ranking.Stop();
-            Scheduler_DisplayedWorks_Ranking = new Scheduler<PixivWork>(ref displayedWorks_Ranking, PixivWorkEqualityComparer, PixivIdGetter, PixivAccount.WorkMode.Ranking, UIContext);
-            semaphore.Release();
+            using (await locker.LockAsync())
+            {
+                ranking = new List<PixivWork>();
+                DisplayedWorks_Ranking = new MyObservableCollection<PixivWork>();
+                Scheduler_DisplayedWorks_Ranking.Stop();
+                Scheduler_DisplayedWorks_Ranking = new Scheduler<PixivWork>(ref displayedWorks_Ranking, PixivWorkEqualityComparer, PixivIdGetter, PixivAccount.WorkMode.Ranking, UIContext);
+            }
 
             if (autoshow) ShowRanking();
         }
 
         public async Task ResetSearchResults()
         {
-            await semaphore.WaitAsync();
-            await Task.Run(() => results.Clear());
+            using (await locker.LockAsync())
+            {
+                await Task.Run(() => results.Clear());
 
-            Finished = false;
-            MainWindow.LimitReached = false;
-            DisplayedWorks_Results = new MyObservableCollection<PixivWork>();
-            Scheduler_DisplayedWorks_Results.Stop();
-            Scheduler_DisplayedWorks_Results = new Scheduler<PixivWork>(ref displayedWorks_Results, PixivWorkEqualityComparer, PixivIdGetter, PixivAccount.WorkMode.Search);
-
-            semaphore.Release();
+                Finished = false;
+                MainWindow.LimitReached = false;
+                DisplayedWorks_Results = new MyObservableCollection<PixivWork>();
+                Scheduler_DisplayedWorks_Results.Stop();
+                Scheduler_DisplayedWorks_Results = new Scheduler<PixivWork>(ref displayedWorks_Results, PixivWorkEqualityComparer, PixivIdGetter, PixivAccount.WorkMode.Search);
+            }
         }
         public async Task ResetRecommended(bool autoshow = true)
         {
             bool wasRecommended = MainWindow.CurrentWorkMode == PixivAccount.WorkMode.Recommended;
 
-            await semaphore.WaitAsync();
-            recommended = new List<PixivWork>();
-            DisplayedWorks_Recommended = new MyObservableCollection<PixivWork>();
-            Scheduler_DisplayedWorks_Recommended.Stop();
-            Scheduler_DisplayedWorks_Recommended = new Scheduler<PixivWork>(ref displayedWorks_Recommended, PixivWorkEqualityComparer, PixivIdGetter, PixivAccount.WorkMode.Recommended, UIContext);
-            semaphore.Release();
+            using (await locker.LockAsync())
+            {
+                recommended = new List<PixivWork>();
+                DisplayedWorks_Recommended = new MyObservableCollection<PixivWork>();
+                Scheduler_DisplayedWorks_Recommended.Stop();
+                Scheduler_DisplayedWorks_Recommended = new Scheduler<PixivWork>(ref displayedWorks_Recommended, PixivWorkEqualityComparer, PixivIdGetter, PixivAccount.WorkMode.Recommended, UIContext);
+            }
 
             if (wasRecommended && autoshow) ShowRecommended();
         }
         public async Task ResetUsers()
         {
-            await semaphore.WaitAsync();
-            user = new List<PixivWork>();
-            DisplayedWorks_User = new MyObservableCollection<PixivWork>();
-            Scheduler_DisplayedWorks_User.Stop();
-            Scheduler_DisplayedWorks_User = new Scheduler<PixivWork>(ref displayedWorks_User,
-                PixivWorkEqualityComparer, PixivIdGetter, PixivAccount.WorkMode.User, UIContext);
-            semaphore.Release();
+            using (await locker.LockAsync())
+            {
+                user = new List<PixivWork>();
+                DisplayedWorks_User = new MyObservableCollection<PixivWork>();
+                Scheduler_DisplayedWorks_User.Stop();
+                Scheduler_DisplayedWorks_User = new Scheduler<PixivWork>(ref displayedWorks_User,
+                    PixivWorkEqualityComparer, PixivIdGetter, PixivAccount.WorkMode.User, UIContext);
+            }
         }
         public void ForceRefreshImages()
         {

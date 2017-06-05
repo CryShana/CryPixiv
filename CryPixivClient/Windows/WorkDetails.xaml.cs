@@ -44,7 +44,7 @@ namespace CryPixivClient.Windows
             }
         }
         static bool wasMaximized = false;
-        static SemaphoreSlim semaphore = new SemaphoreSlim(1);
+        static AsyncLocker locker = new AsyncLocker();
 
         public PixivWork LoadedWork { get; private set; }
         Dictionary<int, ImageSource> DownloadedImages = new Dictionary<int, ImageSource>();
@@ -140,30 +140,30 @@ namespace CryPixivClient.Windows
             if (DownloadedImages.Count >= LoadedWork.PageCount) return;
 
             var lworkid = LoadedWork.Id;
-            await semaphore.WaitAsync();           
-          
-            try
+            using (await locker.LockAsync())
             {
-                if (lworkid != LoadedWork.Id) throw new Exception("Work changed!");
-                SetProgressBar(true);
-
-                for (int i = DownloadedImages.Count; i < LoadedWork.PageCount; i++)
+                try
                 {
-                    if (isClosing || lworkid != LoadedWork.Id) break;
-                    var img = await Task.Run(() => PixivWork.GetImage(LoadedWork.GetImageUri(LoadedWork.OriginalImageUrl, i)));
-                    if (isClosing || lworkid != LoadedWork.Id) break;
+                    if (lworkid != LoadedWork.Id) return;
+                    SetProgressBar(true);
 
-                    DownloadedImages.Add(i + 1, img);
-                    CacheDownloads();
-                    SetPageStatus();
-                    ImageDownloaded?.Invoke(this, img);
+                    for (int i = DownloadedImages.Count; i < LoadedWork.PageCount; i++)
+                    {
+                        if (isClosing || lworkid != LoadedWork.Id) break;
+                        var img = await Task.Run(() => PixivWork.GetImage(LoadedWork.GetImageUri(LoadedWork.OriginalImageUrl, i)));
+                        if (isClosing || lworkid != LoadedWork.Id) break;
+
+                        DownloadedImages.Add(i + 1, img);
+                        CacheDownloads();
+                        SetPageStatus();
+                        ImageDownloaded?.Invoke(this, img);
+                    }
                 }
-            }
-            finally
-            {
-                isClosing = false;
-                SetProgressBar(false);
-                semaphore.Release();
+                finally
+                {
+                    isClosing = false;
+                    SetProgressBar(false);
+                }
             }
         }
 
