@@ -774,7 +774,6 @@ namespace CryPixivClient
             setupcomplete = true;
         }
 
-
         void txtSearchQuery_TextChanged(object sender, TextChangedEventArgs e)
         {
             var text = txtSearchQuery.Text;
@@ -782,11 +781,9 @@ namespace CryPixivClient
             if (text.Length == 0) popupTags?.Hide();
             else popupTags?.Show();
         }
-
         void txtSearchQuery_LostFocus(object sender, RoutedEventArgs e) => popupTags?.Hide();
-
         void txtSearchQuery_GotFocus(object sender, RoutedEventArgs e) => txtSearchQuery_TextChanged(this, null);
-
+        void txtSearchQuery_PreviewMouseDown(object sender, MouseButtonEventArgs e) => popupTags?.Show();
         void popupTags_MouseLeave(object sender, MouseEventArgs e) => popupTags?.Hide();
 
         void list_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -876,6 +873,5 @@ namespace CryPixivClient
 
             GC.Collect();
         }
-
     }
 }
