@@ -758,16 +758,22 @@ namespace Pixeez
             Paginated<Work> foundWorks = new Paginated<Work>();
 
             // go through all entries
+
+            var tasks = new List<Task>();
             foreach(var i in inputs)
             {
                 string content = i.InnerHtml;
                 var workId = long.Parse(Regex.Match(content, @"data-id=""(\d*?)""").Groups[1].Value);
-
-                // get more work data
-                var works = await GetWorksAsync(workId);
-                var work = works.Item1.First();
-                foundWorks.Add(work);
+                Task t = new Task(() =>
+                {
+                    var wrks = GetWorksAsync(workId).Result;
+                    foundWorks.Add(wrks.Item1.First());
+                });
+                tasks.Add(t);
+                t.Start();
             }
+
+            await Task.WhenAll(tasks);
 
             return new Tuple<Paginated<Work>, string>(foundWorks, null); // set paginated works
         }

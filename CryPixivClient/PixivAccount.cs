@@ -121,7 +121,7 @@ namespace CryPixivClient
         #region Getting Data
         public async Task<Paginated<Work>> SearchWorks(string searchQuery, int page = 1)
         {
-            var result = await GetData(() => tokens.SearchWorksAsync(searchQuery, 665 + page, mode: "tag", perPage: MainViewModel.DefaultPerPage, ecd: lastEcd));
+            var result = await GetData(() => tokens.SearchWorksAsync(searchQuery, page, mode: "tag", perPage: MainViewModel.DefaultPerPage, ecd: lastEcd));
 
             if (result == null || result.Item1 == null) return new Paginated<Work>();
 
