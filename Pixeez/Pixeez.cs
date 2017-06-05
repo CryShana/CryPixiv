@@ -10,6 +10,8 @@ using System.IO;
 using System.Text;
 using Newtonsoft.Json;
 using System.Diagnostics;
+using System.Text.RegularExpressions;
+using HtmlAgilityPack;
 
 namespace Pixeez
 {
@@ -18,6 +20,13 @@ namespace Pixeez
         GET = 0,
         POST = 1,
         DELETE = 2,
+    }
+
+    public class PhpLoginInfo
+    {
+        public bool Success { get; set; }
+        public string DeviceToken { get; set; }
+        public string SessionId { get; set; }
     }
 
     public class AsyncResponse : IDisposable
@@ -90,6 +99,70 @@ namespace Pixeez
             return new Tokens(authorize);
         }
 
+        public static async Task<PhpLoginInfo> AuthorizePHPSession(string username, string password, string dToken = null)
+        {
+            try
+            {
+                var httpClient = new HttpClient();
+                httpClient.DefaultRequestHeaders.Add("Referer", "http://www.pixiv.net/");
+                httpClient.DefaultRequestHeaders.Add("User-Agent", "PixivIOSApp/5.8.0");
+
+                // get post key
+                var response = await httpClient.GetAsync("https://accounts.pixiv.net/login?lang=en&source=pc&view_type=page&ref=wwwtop_accounts_index");
+                var content = await response.Content.ReadAsStringAsync();
+
+                content = content.Substring(content.IndexOf("post_key"), 55);
+                var postKey = Regex.Match(content, @".*?value=""(.*?)"".*").Groups[1].Value;
+
+                // login
+                var param = new FormUrlEncodedContent(new Dictionary<string, string>
+                {
+                    { "pixiv_id", username },
+                    { "password", password },
+                    { "captcha", "" },
+                    { "g_recaptcha_response", "" },
+                    { "post_key", postKey },
+                    { "source", "pc" },
+                    { "ref", "wwwtop_accounts_index" }
+                });
+
+                if (string.IsNullOrEmpty(dToken) == false) httpClient.DefaultRequestHeaders.Add("Cookie", $"device_token={dToken};");
+                httpClient.DefaultRequestHeaders.Add("Origin", @"https://accounts.pixiv.net");
+                response = await httpClient.PostAsync("https://accounts.pixiv.net/api/login?lang=en", param);
+                if (response.IsSuccessStatusCode == false) throw new Exception("Bad request!");
+
+                content = await response.Content.ReadAsStringAsync();
+
+                // if success, get Set-Cookie values
+                string deviceToken = null;
+                string phpsessionid = null;
+                response.Headers.TryGetValues("Set-Cookie", out IEnumerable<string> values);
+                foreach (var v in values)
+                {
+                    string phppattern = "PHPSESSID=(.*?);";
+                    string devicepattern = "device_token=(.*?);";
+
+                    if (Regex.IsMatch(v, phppattern)) phpsessionid = Regex.Match(v, phppattern).Groups[1].Value;
+                    else if (Regex.IsMatch(v, devicepattern)) deviceToken = Regex.Match(v, devicepattern).Groups[1].Value;
+                }
+                if (deviceToken == null || phpsessionid == null) throw new Exception("Invalid response received!");
+
+                return new PhpLoginInfo()
+                {
+                    Success = true,
+                    DeviceToken = deviceToken,
+                    SessionId = phpsessionid
+                };
+            }
+            catch
+            {
+                return new PhpLoginInfo()
+                {
+                    Success = false
+                };
+            }
+
+        }
         public static Tokens AuthorizeWithAccessToken(string accessToken, string refreshToken, int expires, DateTime issued)
         {
             return new Tokens(new Authorize()
@@ -577,6 +650,12 @@ namespace Pixeez
             return await this.AccessApiAsyncNew<Paginated<Work>>(MethodType.GET, url, param);
         }
 
+
+        // use this to keep track of ECD pages retreived before renewing the ECD
+        static int ecdPage = 0;
+        static string activeEcd = null;
+        static string searchquery = null;
+
         /// <summary>
         /// <para>Available parameters:</para>
         /// <para>- <c>string</c> q (required)</para>
@@ -589,10 +668,19 @@ namespace Pixeez
         /// <para>- <c>bool</c> includeSanityLevel (optional)</para>
         /// </summary>
         /// <returns>Works. (Pagenated)</returns>
-        public async Task<Tuple<Paginated<Work>, string>> SearchWorksAsync(string query, int page = 1, int perPage = 30, string mode = "text", string period = "all", string order = "desc", string sort = "date", bool includeSanityLevel = true)
+        public async Task<Tuple<Paginated<Work>, string>> SearchWorksAsync(string query, int page = 1, int perPage = 30, string mode = "text",
+            string period = "all", string order = "desc", string sort = "date", bool includeSanityLevel = true, string ecd = null)
         {
-            var url = "https://public-api.secure.pixiv.net/v1/search/works.json";
+            // ecd page tracker should be reset whenever a new search is started
+            if (page <= 2 || query != searchquery)
+            {
+                searchquery = null;
+                activeEcd = null;
+                ecdPage = 0;
+            }
 
+            // start search
+            var url = "https://public-api.secure.pixiv.net/v1/search/works.json";
             var param = new Dictionary<string, string>
             {
                 { "q", query } ,
@@ -609,8 +697,81 @@ namespace Pixeez
                 { "profile_image_sizes", "px_170x170,px_50x50" } ,
             };
 
-            return await this.AccessApiAsync<Paginated<Work>>(MethodType.GET, url, param);
+            // Decide here whether to use the ECD approach
+            bool useEcd = false;
+            bool limitReached = perPage * page >= 20000;
+            bool ecdLimitReached = perPage * ecdPage >= 20000;
+            if (ecd != null && limitReached)
+            {
+                useEcd = true;
+                if (ecdLimitReached)
+                {
+                    // if an existing ECD run reaches it's limit. Renew ECD and reset ECD page counter.
+                    activeEcd = ecd;
+                    ecdPage = 1;
+                }
+                else
+                {
+                    // if existing ECD didn't reach the limit yet, keep increased the page counter
+                    if (ecdPage >= 1)
+                    {
+                        ecdPage++;
+                    }
+                    else
+                    {
+                        // this happens if ECD counter hasn't been started yet.
+                        ecdPage = 1;
+                        searchquery = query;
+                        activeEcd = ecd;
+                    }
+                }
+            }
+
+
+            if (useEcd == false) return await this.AccessApiAsync<Paginated<Work>>(MethodType.GET, url, param);
+            else return await AccessApiAsyncECD();
+
         }
+
+        public async Task<Tuple<Paginated<Work>, string>> AccessApiAsyncECD()
+        {
+            HttpClient client = new HttpClient();
+            client.DefaultRequestHeaders.Add("Referer", "http://spapi.pixiv.net/");
+            client.DefaultRequestHeaders.Add("User-Agent", "PixivIOSApp/5.8.0");
+
+            var response = await client.GetAsync($"https://" +
+                $"www.pixiv.net/search.php?word={searchquery}&order=date_d&p={ecdPage}&ecd={activeEcd}");
+
+            if (response.IsSuccessStatusCode == false) return new Tuple<Paginated<Work>, string>(new Paginated<Work>(), "Bad Request");
+
+            var src = await response.Content.ReadAsStringAsync();
+
+            // parse contents
+            HtmlDocument htmlDoc = new HtmlDocument();
+            htmlDoc.LoadHtml(src);
+
+            var inputs = from input in htmlDoc.DocumentNode.Descendants("li")
+                         where input.Attributes["class"] != null
+                         where input.Attributes["class"].Value == "image-item"
+                         select input;
+
+            Paginated<Work> foundWorks = new Paginated<Work>();
+
+            // go through all entries
+            foreach(var i in inputs)
+            {
+                string content = i.InnerHtml;
+                var workId = long.Parse(Regex.Match(content, @"data-id=""(\d*?)""").Groups[1].Value);
+
+                // get more work data
+                var works = await GetWorksAsync(workId);
+                var work = works.Item1.First();
+                foundWorks.Add(work);
+            }
+
+            return new Tuple<Paginated<Work>, string>(foundWorks, null); // set paginated works
+        }
+
 
         /// <summary>
         /// <para>Available parameters:</para>

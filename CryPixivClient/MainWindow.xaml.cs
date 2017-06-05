@@ -173,7 +173,7 @@ namespace CryPixivClient
         {
             if (Settings.Default.Username.Length < Settings.Default.MinUsernameLength) return;
             Account = new PixivAccount(Settings.Default.Username);
-
+                
             Account.LoginWithAccessToken(
                 Settings.Default.AuthAccessToken,
                 Settings.Default.AuthRefreshToken,

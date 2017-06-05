@@ -18,6 +18,7 @@ namespace CryPixivClient
     {
         public string Username { get; set; }
         public bool IsLoggedIn { get; set; }
+
         public Authorize AuthDetails => tokens?.AuthDetails;
         public static event EventHandler<string> AuthFailed;
 
@@ -99,6 +100,8 @@ namespace CryPixivClient
                 return false;
             }
         }
+
+
         public async Task<Tuple<bool, string>> Login(string password)
         {
             try
@@ -114,12 +117,19 @@ namespace CryPixivClient
             }
         }
 
+        string lastEcd = null;
         #region Getting Data
         public async Task<Paginated<Work>> SearchWorks(string searchQuery, int page = 1)
         {
-            var result = await GetData(() => tokens.SearchWorksAsync(searchQuery, page, mode: "tag", perPage: MainViewModel.DefaultPerPage));
+            var result = await GetData(() => tokens.SearchWorksAsync(searchQuery, 665 + page, mode: "tag", perPage: MainViewModel.DefaultPerPage, ecd: lastEcd));
 
             if (result == null || result.Item1 == null) return new Paginated<Work>();
+
+            // get last ECD
+            var date = result.Item1.First().CreatedTime.Date;
+            lastEcd = date.ToString("yyyy-MM-dd");
+
+            // return
             return result.Item1;
         }
         public async Task<List<PixivWork>> GetRanking(int page = 1, string rtype = "day")
