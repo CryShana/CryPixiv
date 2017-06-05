@@ -6,6 +6,7 @@ using Pixeez.Objects;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Configuration;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
@@ -53,6 +54,7 @@ namespace CryPixivClient
         {
             InitializeComponent();
             currentWindow = this;
+            Settings.Default.Upgrade();
 
             // set up all data
             LoadResources();
