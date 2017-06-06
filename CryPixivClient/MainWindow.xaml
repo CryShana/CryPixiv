@@ -422,9 +422,9 @@
                 <ItemsPanelTemplate>
                     <Grid>
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="0.6*" />
                             <ColumnDefinition Width="0.7*" />
-                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="0.6*" />
+                            <ColumnDefinition Width="1.1*" />
                         </Grid.ColumnDefinitions>
                     </Grid>
                 </ItemsPanelTemplate>

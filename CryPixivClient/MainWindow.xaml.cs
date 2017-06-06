@@ -349,11 +349,15 @@ namespace CryPixivClient
             if (txtSearchQuery.Text.Length < 2) return;
 
             SwitchWorkMode(PixivAccount.WorkMode.Search);
-            if (MainModel?.LastSearchQuery != txtSearchQuery.Text) MainModel.CurrentPageResults = 1;
+            if (MainModel?.LastSearchQuery != txtSearchQuery.Text)
+            {
+                SearchHistory.Insert(0, txtSearchQuery.Text);
+                MainModel.CurrentPageResults = 1;
+            }
 
             IsSearching = true;
             SetSearchButtonState(true);
-            SearchHistory.Insert(0, txtSearchQuery.Text);
+            
             MainModel.ShowSearch(txtSearchQuery.Text, checkPopular.IsChecked == true, MainModel.CurrentPageResults);
         }
         void btnResults_Click(object sender, RoutedEventArgs e)

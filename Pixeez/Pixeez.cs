@@ -713,7 +713,7 @@ namespace Pixeez
                 {
                     // if an existing ECD run reaches it's limit. Renew ECD and reset ECD page counter. (Add day)
                     DateTime d = DateTime.ParseExact(ecd, "yyyy-MM-dd", new CultureInfo("en-US"));
-                    d = d.AddDays(RenewTries);
+                    d = d.AddDays(RenewTries * (-1));
                     ecd = d.ToString("yyyy-MM-dd");
 
                     activeEcd = ecd;
