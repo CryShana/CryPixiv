@@ -137,6 +137,9 @@ namespace CryPixivClient
                 }
             }, null);
 
+            if (JobQueue.Count + PriorityJobQueue.Count >= 500) timer.Interval = TimeSpan.FromMilliseconds(30);
+            else timer.Interval = TimeSpan.FromMilliseconds(60);
+
             JobFinished?.Invoke(this, job, collection);
         }
     }

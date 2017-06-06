@@ -350,8 +350,10 @@ namespace CryPixivClient.ViewModels
                             results.AddToList(wworks);
 
                             // force increase ECD counter
-                            if (results.Count == resultsCountBfr) MainWindow.Account.renewNecessary = true;                          
-                            else MainWindow.Account.renewNecessary = false;
+                            if (results.Count == resultsCountBfr)
+                                MainWindow.Account.renewNecessary = true;                          
+                            else
+                                MainWindow.Account.renewNecessary = false;
 
                             UIContext.Send(async (a) =>
                             {
