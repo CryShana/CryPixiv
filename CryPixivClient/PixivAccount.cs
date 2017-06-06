@@ -5,6 +5,7 @@ using Pixeez;
 using Pixeez.Objects;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
@@ -117,16 +118,25 @@ namespace CryPixivClient
             }
         }
 
+        public bool renewNecessary = false;
         string lastEcd = null;
         #region Getting Data
         public async Task<Paginated<Work>> SearchWorks(string searchQuery, int page = 1)
         {
-            var result = await GetData(() => tokens.SearchWorksAsync(searchQuery, 665 + page, mode: "tag", perPage: MainViewModel.DefaultPerPage, ecd: lastEcd));
+            Tuple<Paginated<Work>, string> result = null;
+            try
+            {
+                result = await GetData(() => tokens.SearchWorksAsync(searchQuery, page, mode: "tag", perPage: MainViewModel.DefaultPerPage, ecd: lastEcd, renew: renewNecessary));
+            }
+            catch (Exception ex)
+            {
+                return null;
+            }
 
             if (result == null || result.Item1 == null) return new Paginated<Work>();
 
             // get last ECD
-            var date = result.Item1.First().CreatedTime.Date;
+            var date = result.Item1.Last().CreatedTime.Date;
             lastEcd = date.ToString("yyyy-MM-dd");
 
             // return

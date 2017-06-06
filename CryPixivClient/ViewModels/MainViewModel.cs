@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -287,7 +288,7 @@ namespace CryPixivClient.ViewModels
             bool otherWasRunning = LastSearchQuery != query && query != null;
 
             if (query == null) query = LastSearchQuery;
-            MaxResults = -1;
+            if (otherWasRunning) MaxResults = -1;
             Finished = false;
             retries = InitialRetries;
             LastSearchQuery = query;
@@ -344,8 +345,13 @@ namespace CryPixivClient.ViewModels
                             }
                             if (MaxResults == -1) MaxResults = works.Pagination.Total ?? 0;
 
+                            int resultsCountBfr = results.Count;
                             var wworks = works.ToPixivWork();
                             results.AddToList(wworks);
+
+                            // force increase ECD counter
+                            if (results.Count == resultsCountBfr) MainWindow.Account.renewNecessary = true;                          
+                            else MainWindow.Account.renewNecessary = false;
 
                             UIContext.Send(async (a) =>
                             {

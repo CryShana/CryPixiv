@@ -366,7 +366,7 @@
         <!-- LIST VIEWS END HERE-->
 
         <TextBox x:Name="txtSearchQuery" TextChanged="txtSearchQuery_TextChanged" Height="24" Margin="10,53,65,0" TextWrapping="Wrap" VerticalAlignment="Top" FontSize="14" MaxLength="300" 
-                 MaxLines="1" TabIndex="1" LostFocus="txtSearchQuery_LostFocus" GotFocus="txtSearchQuery_GotFocus" PreviewMouseDown="txtSearchQuery_PreviewMouseDown"/>
+                 MaxLines="1" TabIndex="1" GotFocus="txtSearchQuery_GotFocus" PreviewMouseDown="txtSearchQuery_PreviewMouseDown"/>
         <Button x:Name="btnSearch" Content="Search" Margin="0,53,10,0" VerticalAlignment="Top" Height="24" BorderBrush="#FFABADB3" HorizontalAlignment="Right" Width="56" IsDefault="True" TabIndex="2" Click="btnSearch_Click"/>
         <ProgressBar x:Name="mainProgessBar" Height="10" Margin="0,112,0,0" VerticalAlignment="Top" Foreground="#FF009CFF" Grid.ColumnSpan="2" IsTabStop="False" 
                      IsIndeterminate="{Binding IsWorking, Source={StaticResource mainViewModel}}"/>

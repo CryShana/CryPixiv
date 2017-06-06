@@ -12,6 +12,8 @@ using Newtonsoft.Json;
 using System.Diagnostics;
 using System.Text.RegularExpressions;
 using HtmlAgilityPack;
+using System.Threading;
+using System.Globalization;
 
 namespace Pixeez
 {
@@ -652,9 +654,11 @@ namespace Pixeez
 
 
         // use this to keep track of ECD pages retreived before renewing the ECD
+        public static bool IsUsingECD = false;
         static int ecdPage = 0;
         static string activeEcd = null;
         static string searchquery = null;
+        static int RenewTries = 0;
 
         /// <summary>
         /// <para>Available parameters:</para>
@@ -669,7 +673,7 @@ namespace Pixeez
         /// </summary>
         /// <returns>Works. (Pagenated)</returns>
         public async Task<Tuple<Paginated<Work>, string>> SearchWorksAsync(string query, int page = 1, int perPage = 30, string mode = "text",
-            string period = "all", string order = "desc", string sort = "date", bool includeSanityLevel = true, string ecd = null)
+            string period = "all", string order = "desc", string sort = "date", bool includeSanityLevel = true, string ecd = null, bool renew = false)
         {
             // ecd page tracker should be reset whenever a new search is started
             if (page <= 2 || query != searchquery)
@@ -678,6 +682,7 @@ namespace Pixeez
                 activeEcd = null;
                 ecdPage = 0;
             }
+            if (renew == false) RenewTries = 0;
 
             // start search
             var url = "https://public-api.secure.pixiv.net/v1/search/works.json";
@@ -704,11 +709,17 @@ namespace Pixeez
             if (ecd != null && limitReached)
             {
                 useEcd = true;
-                if (ecdLimitReached)
+                if (ecdLimitReached || renew)
                 {
-                    // if an existing ECD run reaches it's limit. Renew ECD and reset ECD page counter.
+                    // if an existing ECD run reaches it's limit. Renew ECD and reset ECD page counter. (Add day)
+                    DateTime d = DateTime.ParseExact(ecd, "yyyy-MM-dd", new CultureInfo("en-US"));
+                    d = d.AddDays(RenewTries);
+                    ecd = d.ToString("yyyy-MM-dd");
+
                     activeEcd = ecd;
                     ecdPage = 1;
+
+                    RenewTries++;
                 }
                 else
                 {
@@ -727,10 +738,9 @@ namespace Pixeez
                 }
             }
 
-
-            if (useEcd == false) return await this.AccessApiAsync<Paginated<Work>>(MethodType.GET, url, param);
+            IsUsingECD = useEcd;
+            if (useEcd == false) return await this.AccessApiAsync<Paginated<Work>>(MethodType.GET, url, param);            
             else return await AccessApiAsyncECD();
-
         }
 
         public async Task<Tuple<Paginated<Work>, string>> AccessApiAsyncECD()
@@ -767,7 +777,11 @@ namespace Pixeez
                 Task t = new Task(() =>
                 {
                     var wrks = GetWorksAsync(workId).Result;
-                    foundWorks.Add(wrks.Item1.First());
+
+                    lock (foundWorks)
+                    {
+                        foundWorks.Add(wrks.Item1.First());
+                    }
                 });
                 tasks.Add(t);
                 t.Start();

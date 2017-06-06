@@ -37,7 +37,7 @@ namespace CryPixivClient
         public static bool LimitReached = false;
         public static int DynamicWorksLimit = 100;
         public const int DefaultWorksLimit = 100;
-        public const int SearchHistoryLimit = 25;
+        public const int SearchHistoryLimit = 35;
         public const string HistoryPath = "searchhistory.txt";
         public static PixivAccount.WorkMode CurrentWorkMode;
         public static CollectionViewSource MainCollectionViewSorted;
@@ -693,7 +693,7 @@ namespace CryPixivClient
                 MainModel.Status = "Idle. " + ((toBeAdded > 0) ? $" ({toBeAdded} to be added)" : "");
             }
 
-            MainModel.CollectionStatus = $"Found {cache.Count} items.";
+            MainModel.CollectionStatus = $"Found {cache.Count} items." + ((Pixeez.Tokens.IsUsingECD) ? "  [Slow]" : "");
         }
 
         void btnPause_Click(object sender, RoutedEventArgs e)
@@ -825,7 +825,6 @@ namespace CryPixivClient
             if (text.Length == 0) popupTags?.Hide();
             else popupTags?.Show();
         }
-        void txtSearchQuery_LostFocus(object sender, RoutedEventArgs e) => popupTags?.Hide();
         void txtSearchQuery_GotFocus(object sender, RoutedEventArgs e) => txtSearchQuery_TextChanged(this, null);
         void txtSearchQuery_PreviewMouseDown(object sender, MouseButtonEventArgs e) => popupTags?.Show();
         void popupTags_MouseLeave(object sender, MouseEventArgs e) => popupTags?.Hide();
