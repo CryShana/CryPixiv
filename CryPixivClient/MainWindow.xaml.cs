@@ -924,6 +924,12 @@ namespace CryPixivClient
 
         void srch_Click(object sender, RoutedEventArgs e)
         {
+            if (CurrentWorkMode != PixivAccount.WorkMode.BookmarksPublic)
+            {
+                MessageBox.Show("Switch to Public bookmarks first before filtering it!", "Warning!", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
             // filter bookmarks
             var w = new BookmarkSearch(MainModel.DisplayedWorks_Bookmarks.ToList());
             w.ShowDialog();
@@ -933,10 +939,17 @@ namespace CryPixivClient
             MainCollectionViewBookmarks.Filter -= BookmarkFilter;
             filterTags = w.ToFilter;
             MainCollectionViewBookmarks.Filter += BookmarkFilter;
+            DynamicWorksLimit += 700;
             PublicBookmarksFilterActive = true;
         }
         void srchPrv_Click(object sender, RoutedEventArgs e)
         {
+            if (CurrentWorkMode != PixivAccount.WorkMode.BookmarksPrivate)
+            {
+                MessageBox.Show("Switch to Private bookmarks first before filtering it!", "Warning!", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
             // filter private bookmarks
             var w = new BookmarkSearch(MainModel.DisplayedWorks_BookmarksPrivate.ToList());
             w.ShowDialog();
@@ -946,6 +959,7 @@ namespace CryPixivClient
             MainCollectionViewBookmarksPrivate.Filter -= BookmarkFilterPrivate;
             filterTagsPrivate = w.ToFilter;
             MainCollectionViewBookmarksPrivate.Filter += BookmarkFilterPrivate;
+            DynamicWorksLimit += 700;
             PrivateBookmarksFilterActive = true;
         }
 
