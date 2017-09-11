@@ -933,6 +933,7 @@ namespace CryPixivClient
             MainCollectionViewBookmarks.Filter -= BookmarkFilter;
             filterTags = w.ToFilter;
             MainCollectionViewBookmarks.Filter += BookmarkFilter;
+            PublicBookmarksFilterActive = true;
         }
         void srchPrv_Click(object sender, RoutedEventArgs e)
         {
@@ -945,8 +946,11 @@ namespace CryPixivClient
             MainCollectionViewBookmarksPrivate.Filter -= BookmarkFilterPrivate;
             filterTagsPrivate = w.ToFilter;
             MainCollectionViewBookmarksPrivate.Filter += BookmarkFilterPrivate;
+            PrivateBookmarksFilterActive = true;
         }
 
+        static public bool PublicBookmarksFilterActive = false;
+        static public bool PrivateBookmarksFilterActive = false;
         static List<string> filterTags = new List<string>();
         static List<string> filterTagsPrivate = new List<string>();
         void BookmarkFilter(object sender, FilterEventArgs e)
@@ -966,8 +970,16 @@ namespace CryPixivClient
             e.Accepted = accepted;
         }
 
-        void rmv_Click(object sender, RoutedEventArgs e) => MainCollectionViewBookmarks.Filter -= BookmarkFilter;
+        void rmv_Click(object sender, RoutedEventArgs e)
+        {
+            PublicBookmarksFilterActive = false;
+            MainCollectionViewBookmarks.Filter -= BookmarkFilter;
+        }
 
-        void rmvPrv_Click(object sender, RoutedEventArgs e) => MainCollectionViewBookmarksPrivate.Filter -= BookmarkFilterPrivate;
+        void rmvPrv_Click(object sender, RoutedEventArgs e)
+        {
+            PrivateBookmarksFilterActive = false;
+            MainCollectionViewBookmarksPrivate.Filter -= BookmarkFilterPrivate;
+        }
     }
 }
