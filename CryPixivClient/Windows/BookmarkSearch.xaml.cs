@@ -1,4 +1,5 @@
-﻿using System;
+﻿using CryPixivClient.Objects;
+using System;
 using System.Collections.Generic;
 using System.Windows;
 
@@ -8,14 +9,14 @@ namespace CryPixivClient.Windows
     {
         public List<string> ToFilter { get; set; } = new List<string>();
 
-        public BookmarkSearch()
+        public BookmarkSearch(List<PixivWork> works)
         {
             InitializeComponent();
             txtFilter.Focus();
 
             // get recent tags
             var tags = new List<string>();
-            foreach (var b in MainWindow.MainModel.DisplayedWorks_Bookmarks)
+            foreach (var b in works)
                 foreach (var t in b.Tags) if (tags.Contains(t) == false && tags.Count < 50) tags.Add(t);
             
             ccTags.ItemsSource = WorkDetails.GetTranslatedTags(tags);

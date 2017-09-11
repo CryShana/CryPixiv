@@ -381,7 +381,7 @@
                 Height="23" TabIndex="6" Click="btnBookmarks_Click" Background="#FFFFEAEA" />
             <Grid.ContextMenu>
                 <ContextMenu>
-                    <MenuItem x:Name="srch" Header="Filter Bookmarks" Click="srch_Click">
+                    <MenuItem x:Name="srch" Header="Filter Public Bookmarks" Click="srch_Click">
                         <MenuItem.Icon>
                             <Image RenderOptions.BitmapScalingMode="Fant" Source="Images/search.png" />
                         </MenuItem.Icon>
@@ -390,6 +390,22 @@
                 </ContextMenu>
             </Grid.ContextMenu>
         </Grid>
+
+        <Grid Grid.Column="1" Margin="0,75,28,0" HorizontalAlignment="Right" Width="91" Height="23" VerticalAlignment="Top" >
+            <Button x:Name="btnBookmarksPrivate" Content="Private" HorizontalAlignment="Right" VerticalAlignment="Top" 
+                Width="91" Height="23" TabIndex="6" Click="btnBookmarksPrivate_Click" Background="#FFFFEAEA"/>
+            <Grid.ContextMenu>
+                <ContextMenu>
+                    <MenuItem x:Name="srchPrv" Header="Filter Private Bookmarks" Click="srchPrv_Click">
+                        <MenuItem.Icon>
+                            <Image RenderOptions.BitmapScalingMode="Fant" Source="Images/search.png" />
+                        </MenuItem.Icon>
+                    </MenuItem>
+                    <MenuItem x:Name="rmvPrv" Header="Remove Filter" Click="rmvPrv_Click"/>
+                </ContextMenu>
+            </Grid.ContextMenu>
+        </Grid>
+        
         <Grid Grid.Column="1">
             <Button x:Name="btnRankings" Content="Daily Ranking" HorizontalAlignment="Left" Margin="108,53,0,0" 
                 VerticalAlignment="Top" Width="104" Height="45" Click="btnDailyRankings_Click" TabIndex="3" Background="#FFFFFEEE" HorizontalContentAlignment="Center"/>
@@ -475,7 +491,7 @@
                     Height="23" Background="#FFFFA3A3" Margin="0,0,51,0" Click="btnLogout_Click" IsTabStop="False" Grid.Column="1"/>
         <Button x:Name="btnPause" Content="Pause" HorizontalAlignment="Right" VerticalAlignment="Bottom" Width="78" 
                     Height="23" Background="#FFFFFCBC" Margin="0,0,127,0" Click="btnPause_Click" IsTabStop="False" Grid.Column="1"/>
-        <Button x:Name="btnBookmarksPrivate" Content="Private" Grid.Column="1" HorizontalAlignment="Right" Margin="0,75,28,0" VerticalAlignment="Top" Width="91" Height="23" TabIndex="6" Click="btnBookmarksPrivate_Click" Background="#FFFFEAEA"/>
+
         <TextBlock Grid.Column="1" HorizontalAlignment="Right" Margin="0,33,60,0" TextWrapping="Wrap" Text="Bookmarks" VerticalAlignment="Top"/>
         <TextBlock HorizontalAlignment="Left" Margin="10,32,0,0" TextWrapping="Wrap" Text="Search by tag:" VerticalAlignment="Top"/>
         <CheckBox x:Name="checkNSFW" Content="NSFW" HorizontalAlignment="Right" Margin="0,82,10,0" VerticalAlignment="Top" IsChecked="True" Click="checkNSFW_Click"/>

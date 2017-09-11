@@ -925,7 +925,7 @@ namespace CryPixivClient
         void srch_Click(object sender, RoutedEventArgs e)
         {
             // filter bookmarks
-            var w = new BookmarkSearch();
+            var w = new BookmarkSearch(MainModel.DisplayedWorks_Bookmarks.ToList());
             w.ShowDialog();
 
             if (w.ToFilter.Count == 0) return;
@@ -934,8 +934,21 @@ namespace CryPixivClient
             filterTags = w.ToFilter;
             MainCollectionViewBookmarks.Filter += BookmarkFilter;
         }
+        void srchPrv_Click(object sender, RoutedEventArgs e)
+        {
+            // filter private bookmarks
+            var w = new BookmarkSearch(MainModel.DisplayedWorks_BookmarksPrivate.ToList());
+            w.ShowDialog();
+
+            if (w.ToFilter.Count == 0) return;
+
+            MainCollectionViewBookmarksPrivate.Filter -= BookmarkFilterPrivate;
+            filterTagsPrivate = w.ToFilter;
+            MainCollectionViewBookmarksPrivate.Filter += BookmarkFilterPrivate;
+        }
 
         static List<string> filterTags = new List<string>();
+        static List<string> filterTagsPrivate = new List<string>();
         void BookmarkFilter(object sender, FilterEventArgs e)
         {
             var w = (PixivWork)e.Item;
@@ -944,7 +957,17 @@ namespace CryPixivClient
             foreach (var t in filterTags) foreach(var ot in w.Tags) if (ot.ToLower() == t.ToLower()) { accepted = true; break; }
             e.Accepted = accepted;
         }
+        void BookmarkFilterPrivate(object sender, FilterEventArgs e)
+        {
+            var w = (PixivWork)e.Item;
+
+            bool accepted = false;
+            foreach (var t in filterTagsPrivate) foreach (var ot in w.Tags) if (ot.ToLower() == t.ToLower()) { accepted = true; break; }
+            e.Accepted = accepted;
+        }
 
         void rmv_Click(object sender, RoutedEventArgs e) => MainCollectionViewBookmarks.Filter -= BookmarkFilter;
+
+        void rmvPrv_Click(object sender, RoutedEventArgs e) => MainCollectionViewBookmarksPrivate.Filter -= BookmarkFilterPrivate;
     }
 }
