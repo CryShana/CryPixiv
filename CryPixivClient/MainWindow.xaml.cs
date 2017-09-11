@@ -925,20 +925,26 @@ namespace CryPixivClient
         void srch_Click(object sender, RoutedEventArgs e)
         {
             // filter bookmarks
-            MainCollectionViewBookmarks.Filter += (a, b) =>
-            {
-                var tag = "Fate/GrandOrder";
+            var w = new BookmarkSearch();
+            w.ShowDialog();
 
-                var w = b.Item as PixivWork;
+            if (w.ToFilter.Count == 0) return;
 
-                if (w.Tags.Contains(tag)) b.Accepted = true;
-                else b.Accepted = false;
-            };
+            MainCollectionViewBookmarks.Filter -= BookmarkFilter;
+            filterTags = w.ToFilter;
+            MainCollectionViewBookmarks.Filter += BookmarkFilter;
         }
 
-        void rmv_Click(object sender, RoutedEventArgs e)
+        static List<string> filterTags = new List<string>();
+        void BookmarkFilter(object sender, FilterEventArgs e)
         {
-            // remove filter
+            var w = (PixivWork)e.Item;
+
+            bool accepted = false;
+            foreach (var t in filterTags) foreach(var ot in w.Tags) if (ot.ToLower() == t.ToLower()) { accepted = true; break; }
+            e.Accepted = accepted;
         }
+
+        void rmv_Click(object sender, RoutedEventArgs e) => MainCollectionViewBookmarks.Filter -= BookmarkFilter;
     }
 }

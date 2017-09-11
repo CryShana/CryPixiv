@@ -1,0 +1,28 @@
+﻿<Window x:Class="CryPixivClient.Windows.BookmarkSearch"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:CryPixivClient.Windows"
+        mc:Ignorable="d"
+        Title="Bookmark Filter" Height="180.409" Width="442.629" WindowStartupLocation="CenterOwner" Topmost="True" ShowInTaskbar="False" ResizeMode="NoResize">
+    <Grid>
+        <TextBox x:Name="txtFilter" Height="23" Margin="10,31,10,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top"/>
+        <TextBlock HorizontalAlignment="Left" Margin="10,10,0,0" TextWrapping="Wrap" Text="Only posts with following tags will be displayed: (Tags are not case sensitive)" VerticalAlignment="Top"/>
+        <TextBlock HorizontalAlignment="Left" Margin="10,59,0,0" TextWrapping="Wrap" Text="(Seperate multiple tags with the word OR)" VerticalAlignment="Top" Foreground="#FF979797"/>
+        <Button Content="Confirm" HorizontalAlignment="Right" Margin="0,0,10,10" VerticalAlignment="Bottom" Width="108" Height="30" Click="ConfirmClick" IsDefault="True"/>
+        <ComboBox x:Name="ccTags" HorizontalAlignment="Left" Margin="10,0,0,10" VerticalAlignment="Bottom" Width="291" IsReadOnly="True" SelectionChanged="ccTags_SelectionChanged" >
+            <ComboBox.ItemTemplate>
+                <DataTemplate>
+                    <StackPanel x:Name="stackpanel" Orientation="Horizontal">
+                        <TextBlock Text="{Binding Original}" />
+                        <TextBlock Text="  " />
+                        <TextBlock Text="{Binding Translated, IsAsync=True}" Foreground="#FFB9B9B9" />
+                    </StackPanel>
+                </DataTemplate>
+            </ComboBox.ItemTemplate>
+        </ComboBox>
+        <TextBlock HorizontalAlignment="Left" Margin="10,0,0,37" TextWrapping="Wrap" Text="Recent tags in your bookmarks: (Click tag to copy)" VerticalAlignment="Bottom" Foreground="Black"/>
+
+    </Grid>
+</Window>

@@ -98,6 +98,9 @@
     <Compile Include="Translator.cs" />
     <Compile Include="ViewModels\MainViewModel.cs" />
     <Compile Include="VirtualizingPanel\VirtualizingTilePanel.cs" />
+    <Compile Include="Windows\BookmarkSearch.xaml.cs">
+      <DependentUpon>BookmarkSearch.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Windows\DownloadManager.xaml.cs">
       <DependentUpon>DownloadManager.xaml</DependentUpon>
     </Compile>
@@ -122,6 +125,10 @@
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Page Include="Windows\BookmarkSearch.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Windows\DownloadManager.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>

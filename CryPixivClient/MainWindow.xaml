@@ -248,10 +248,10 @@
                             <ScaleTransform x:Name="scaleTransform" ScaleX="0" ScaleY="0"></ScaleTransform>
                         </StackPanel.RenderTransform>
 
-                        <Button CommandParameter="{Binding}" Command="{Binding OpenBrowserCmd, Source={StaticResource mainViewModel}}" Style="{DynamicResource buttonStyle}">
+                        <Button CommandParameter="{Binding}" Command="{Binding OpenBrowserCmd, Source={StaticResource mainViewModel}}" Style="{StaticResource buttonStyle}">
                             <Image x:Name="internetImage" RenderOptions.BitmapScalingMode="Fant" Width="35" Source="Images/internet.png" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="8, 6"/>
                         </Button>
-                        <Button CommandParameter="{Binding}" Command="{Binding BookmarkCmd, Source={StaticResource mainViewModel}}" Style="{DynamicResource buttonStyle}">
+                        <Button CommandParameter="{Binding}" Command="{Binding BookmarkCmd, Source={StaticResource mainViewModel}}" Style="{StaticResource buttonStyle}">
                             <Image x:Name="likeImage" RenderOptions.BitmapScalingMode="Fant" Width="35" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="8, 6">
                                 <Image.Style>
                                     <Style TargetType="Image">
