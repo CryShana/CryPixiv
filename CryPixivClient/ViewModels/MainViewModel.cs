@@ -55,11 +55,7 @@ namespace CryPixivClient.ViewModels
         int currentPageResults = 1;
         SynchronizationContext UIContext;
 
-        ICommand bookmarkcmd;
-        ICommand openbrowsercmd;
-        ICommand opencmd;
-        ICommand downloadselectedcmd;
-        ICommand privatebookmarkcmd;
+        ICommand opencmd, opencmdnew, downloadselectedcmd, privatebookmarkcmd, openbrowsercmd, bookmarkcmd;
         #endregion
 
         #region Properties      
@@ -165,6 +161,7 @@ namespace CryPixivClient.ViewModels
         public ICommand PrivateBookmarkCmd => privatebookmarkcmd ?? (privatebookmarkcmd = new RelayCommand<PixivWork>(a => BookmarkWork(a, true)));
         public ICommand OpenBrowserCmd => openbrowsercmd ?? (openbrowsercmd = new RelayCommand<PixivWork>(OpenInBrowser));
         public ICommand OpenCmd => opencmd ?? (opencmd = new RelayCommand<PixivWork>(OpenWork));
+        public ICommand OpenCmdNew => opencmdnew ?? (opencmdnew = new RelayCommand<PixivWork>(OpenWorkNew));
         public ICommand DownloadSelectedCmd => downloadselectedcmd ?? (downloadselectedcmd = new RelayCommand<PixivWork>(w => DownloadSelectedWorks(w)));
         #endregion
 
@@ -632,6 +629,33 @@ namespace CryPixivClient.ViewModels
         }
 
         public List<WorkDetails> OpenWorkWindows = new List<WorkDetails>();
+        public void OpenWorkNew(PixivWork work)
+        {
+            var window = OpenWorkWindows.Find(x => x.LoadedWork.Id == work.Id);
+            if (window != null)
+            {
+                window.Focus();
+                return;
+            }
+
+            // to avoid opening new window on exact same location, offset it a bit
+            var l = Settings.Default.DetailWindowLeft;
+            var t = Settings.Default.DetailWindowTop;
+            var w = OpenWorkWindows.Find(x => x.Left == l && x.Top == t);
+
+            if (w != null)
+            {
+                Settings.Default.DetailWindowLeft = l + 20;
+                Settings.Default.DetailWindowTop = t + 20;
+                Settings.Default.Save();
+            }
+
+
+            WorkDetails form = new WorkDetails(work);
+            OpenWorkWindows.Add(form);
+            form.Closing += (a, b) => OpenWorkWindows.Remove((WorkDetails)a);
+            form.Show();
+        }
         public void OpenWork(PixivWork work)
         {
             var window = OpenWorkWindows.Find(x => x.LoadedWork.Id == work.Id);
@@ -641,10 +665,20 @@ namespace CryPixivClient.ViewModels
                 return;
             }
 
-            WorkDetails form = new WorkDetails(work);
-            OpenWorkWindows.Add(form);
-            form.Closing += (a, b) => OpenWorkWindows.Remove((WorkDetails)a);
-            form.Show();
+            var w = OpenWorkWindows.Find(x => x.IsFocused == true) ?? OpenWorkWindows.FirstOrDefault();
+
+            if (w == null)
+            {
+                WorkDetails form = new WorkDetails(work);
+                OpenWorkWindows.Add(form);
+                form.Closing += (a, b) => OpenWorkWindows.Remove((WorkDetails)a);
+                form.Show();
+            }
+            else
+            {
+                w.LoadWork(work, false);
+                w.Focus();
+            }
         }
 
         public List<DownloadManager> RunningDownloadManagers = new List<DownloadManager>();

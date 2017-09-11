@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:CryPixivClient.Windows"
         mc:Ignorable="d"
         Title="Work Details" MinHeight="560" MinWidth="570" Height="560" Width="408" WindowStartupLocation="Manual"
-        PreviewKeyDown="Window_PreviewKeyDown" Icon="/CryPixivClient;component/Images/pixiv.ico">
+        PreviewKeyDown="Window_PreviewKeyDown" Icon="/CryPixivClient;component/Images/pixiv.ico" LocationChanged="Window_LocationChanged">
     <Window.Resources>
         <Style x:Key="buttonStyle" TargetType="Button">
             <Setter Property="Width" Value="45"/>

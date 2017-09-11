@@ -284,6 +284,11 @@
                                     <Image Source="Images/open.png" RenderOptions.BitmapScalingMode="Fant"/>
                                 </MenuItem.Icon>
                             </MenuItem>
+                            <MenuItem Header="Open in New Window" CommandParameter="{Binding}" Command="{Binding OpenCmdNew, Source={StaticResource mainViewModel}}">
+                                <MenuItem.Icon>
+                                    <Image Source="Images/open.png" RenderOptions.BitmapScalingMode="Fant"/>
+                                </MenuItem.Icon>
+                            </MenuItem>
                             <Separator/>
                             <MenuItem Header="{Binding BookmarkText}" CommandParameter="{Binding}" Command="{Binding BookmarkCmd, Source={StaticResource mainViewModel}}">
                                 <MenuItem.Icon>
@@ -326,7 +331,7 @@
 
         <wnd:PopUp x:Name="popupTags" Panel.ZIndex="10" Margin="10,77,0,0" Grid.ColumnSpan="2" Height="297" VerticalAlignment="Top" HorizontalAlignment="Left" Width="351" MouseLeave="popupTags_MouseLeave"/>
         <wnd:PopUp x:Name="followUserPopup" Panel.ZIndex="10" Grid.Column="1" Margin="0,0,20,10" HorizontalAlignment="Right" Width="262" Height="227" VerticalAlignment="Bottom" ClickedOnMinimizedArea="followUserPopup_ClickedOnMinimizedArea"/>
-        
+
         <!-- LIST VIEWS START HERE-->
         <ListView x:Name="mainListSorted" Margin="{Binding ListMargin}" ItemsSource="{Binding Mode=OneWay, Source={StaticResource ItemListViewSourceSorted}}" DataContext="{StaticResource mainViewModel}" 
                   Grid.ColumnSpan="2" ScrollViewer.ScrollChanged="mainList_ScrollChanged" HorizontalContentAlignment="Center"
@@ -370,8 +375,21 @@
         <Button x:Name="btnSearch" Content="Search" Margin="0,53,10,0" VerticalAlignment="Top" Height="24" BorderBrush="#FFABADB3" HorizontalAlignment="Right" Width="56" IsDefault="True" TabIndex="2" Click="btnSearch_Click"/>
         <ProgressBar x:Name="mainProgessBar" Height="10" Margin="0,112,0,0" VerticalAlignment="Top" Foreground="#FF009CFF" Grid.ColumnSpan="2" IsTabStop="False" 
                      IsIndeterminate="{Binding IsWorking, Source={StaticResource mainViewModel}}"/>
-        <Button x:Name="btnBookmarks" Content="Public" Grid.Column="1" HorizontalAlignment="Right" Margin="0,53,28,0" VerticalAlignment="Top" Width="91" Height="23" TabIndex="6" Click="btnBookmarks_Click" Background="#FFFFEAEA"/>
 
+        <Grid Grid.Column="1" Margin="0,53,28,0" HorizontalAlignment="Right" Width="91" Height="22" VerticalAlignment="Top">
+            <Button x:Name="btnBookmarks" Content="Public" HorizontalAlignment="Right" Margin="0,0,0,-1" VerticalAlignment="Top" Width="91" 
+                Height="23" TabIndex="6" Click="btnBookmarks_Click" Background="#FFFFEAEA" />
+            <Grid.ContextMenu>
+                <ContextMenu>
+                    <MenuItem x:Name="srch" Header="Filter Bookmarks" Click="srch_Click">
+                        <MenuItem.Icon>
+                            <Image RenderOptions.BitmapScalingMode="Fant" Source="Images/search.png" />
+                        </MenuItem.Icon>
+                    </MenuItem>
+                    <MenuItem x:Name="rmv" Header="Remove Filter" Click="rmv_Click"/>
+                </ContextMenu>
+            </Grid.ContextMenu>
+        </Grid>
         <Grid Grid.Column="1">
             <Button x:Name="btnRankings" Content="Daily Ranking" HorizontalAlignment="Left" Margin="108,53,0,0" 
                 VerticalAlignment="Top" Width="104" Height="45" Click="btnDailyRankings_Click" TabIndex="3" Background="#FFFFFEEE" HorizontalContentAlignment="Center"/>

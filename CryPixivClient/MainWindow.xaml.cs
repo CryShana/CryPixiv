@@ -921,5 +921,24 @@ namespace CryPixivClient
 
             GC.Collect();
         }
+
+        void srch_Click(object sender, RoutedEventArgs e)
+        {
+            // filter bookmarks
+            MainCollectionViewBookmarks.Filter += (a, b) =>
+            {
+                var tag = "Fate/GrandOrder";
+
+                var w = b.Item as PixivWork;
+
+                if (w.Tags.Contains(tag)) b.Accepted = true;
+                else b.Accepted = false;
+            };
+        }
+
+        void rmv_Click(object sender, RoutedEventArgs e)
+        {
+            // remove filter
+        }
     }
 }

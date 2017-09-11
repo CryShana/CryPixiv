@@ -85,7 +85,7 @@ namespace CryPixivClient.Windows
             LoadWork(work);
         }
 
-        void LoadWork(PixivWork newWork, bool doAnimation = false)
+        public void LoadWork(PixivWork newWork, bool doAnimation = false)
         {
             timestamp = DateTime.Now; // used for doubleclicking
 
@@ -433,6 +433,8 @@ namespace CryPixivClient.Windows
                 ImageData = data;
             }
         }
+
+        void Window_LocationChanged(object sender, EventArgs e) => SavePos();
     }
 
     public class Translation : INotifyPropertyChanged
