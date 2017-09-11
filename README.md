@@ -10,6 +10,7 @@ Unofficial Pixiv client
 - Follow/Unfollow users
 - Search by tag
 - Autosort search results by popularity
+- Filter your Public/Private Bookmarks
 - Hide NSFW works
 - Bookmark works
 - Download selected works
