@@ -314,8 +314,11 @@ namespace CryPixivClient.Windows
         {
             Settings.Default.DetailWindowHeight = Height;
             Settings.Default.DetailWindowWidth = Width;
-            Settings.Default.DetailWindowLeft = Left;
-            Settings.Default.DetailWindowTop = Top;
+            if (Left >= 0 && Top >= 0)
+            {
+                Settings.Default.DetailWindowLeft = Left;
+                Settings.Default.DetailWindowTop = Top;
+            }
             Settings.Default.Save();
         }
 
