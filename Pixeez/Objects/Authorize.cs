@@ -24,7 +24,10 @@ namespace Pixeez.Objects
 
         [JsonProperty("refresh_token")]
         public string RefreshToken { get; set; }
-        
+
+        [JsonProperty("device_token")]
+        public string DeviceToken { get; set; }
+
         [JsonProperty("user")]
         public User User { get; set; }
 

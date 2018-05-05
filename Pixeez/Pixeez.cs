@@ -72,7 +72,7 @@ namespace Pixeez
         /// <para>- <c>string</c> password (required)</para>
         /// </summary>
         /// <returns>Tokens.</returns>
-        public static async Task<Tokens> AuthorizeAsync(string username, string password)
+        public static async Task<Tokens> AuthorizeAsync(string username, string password, string deviceToken = "")
         {
             var httpClient = new HttpClient();
             httpClient.DefaultRequestHeaders.Add("Referer", "http://www.pixiv.net/");
@@ -87,6 +87,7 @@ namespace Pixeez
                 { "grant_type", "password" },
                 { "client_id", ClientId },
                 { "client_secret", ClientSecret },
+                { "device_token", deviceToken }
             });
 
             var requestIssued = DateTime.Now;

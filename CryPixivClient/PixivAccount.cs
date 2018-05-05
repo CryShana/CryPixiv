@@ -87,9 +87,10 @@ namespace CryPixivClient
             try
             {
                 var pass = DecryptPassword(encPassword, AuthDetails.RefreshToken);
-                tokens = await Auth.AuthorizeAsync(Username, pass);
+                tokens = await Auth.AuthorizeAsync(Username, pass, Settings.Default.DeviceToken);
 
                 // encrypt password again with the new refresh token
+                Settings.Default.DeviceToken = tokens.AuthDetails.DeviceToken;
                 Settings.Default.AuthPassword = EncryptPassword(pass, MainWindow.Account.AuthDetails.RefreshToken);
                 Settings.Default.Save();
 
@@ -107,7 +108,10 @@ namespace CryPixivClient
         {
             try
             {
-                tokens = await Auth.AuthorizeAsync(Username, password);
+                tokens = await Auth.AuthorizeAsync(Username, password, Settings.Default.DeviceToken);
+
+                Settings.Default.DeviceToken = tokens.AuthDetails.DeviceToken;
+                Settings.Default.Save();
 
                 IsLoggedIn = true;
                 return new Tuple<bool, string>(true, "Success");

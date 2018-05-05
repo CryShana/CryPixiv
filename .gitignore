@@ -8,3 +8,5 @@ Pixeez/obj/
 CryPixivUpdater/obj/
 CryPixivUpdater/bin/
 .vs/CryPixivClient/v15/sqlite3/storage.ide
+
+\.vs/CryPixivClient/v15/Server/sqlite3/
