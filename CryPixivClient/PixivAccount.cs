@@ -162,10 +162,21 @@ namespace CryPixivClient
         }
         public async Task<List<PixivWork>> GetBookmarks(int page = 1, Publicity publicity = Publicity.Public)
         {
-            var result = await GetData(() => tokens.GetMyFavoriteWorksAsync(page: page, publicity: publicity.ToString().ToLower(), perPage: MainViewModel.DefaultPerPage));
+            MainWindow.ShowingError = false;
+            if (AuthDetails.IsExpired) throw new Exception("Expired session! Please login again!");
 
-            if (result == null || result.Item1 == null) return new List<PixivWork>();
-            return result.Item1.Select(x => x.Work).ToPixivWork();
+            try
+            {
+                var result = await tokens.GetMyFavoriteWorksAsync(page: page, publicity: publicity.ToString().ToLower(), perPage: MainViewModel.DefaultPerPage);
+
+                if (result == null) return new List<PixivWork>();
+                return result.ToPixivWork();
+            }
+            catch (Exception ex)
+            {
+                ShowError(ex.Message);
+                return new List<PixivWork>();
+            }
         }
         public async Task<List<PixivWork>> GetRecommended(int page = 1)
         {
@@ -217,17 +228,17 @@ namespace CryPixivClient
         }
         #endregion
 
-        public async Task<Tuple<bool, long?>> AddToBookmarks(long workId, bool isPublic = true)
+        public async Task<bool> AddToBookmarks(long workId, bool isPublic = true)
         {
             try
             {
                 var result = await tokens.AddMyFavoriteWorksAsync(workId, publicity: ((isPublic) ? "public" : "private"));
                 if (result == null || string.IsNullOrEmpty(result.Item2) == false) ShowError((result == null) ? "Unknown error." : result.Item2);
-                return new Tuple<bool, long?>(true, result.Item1.First().Id);
+                return true;
             }
             catch
             {
-                return new Tuple<bool, long?>(false, null); ;
+                return false;
             }
         }
         public async Task<bool> RemoveFromBookmarks(long workId)

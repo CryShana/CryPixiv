@@ -623,7 +623,7 @@ namespace CryPixivClient.ViewModels
 
                 // add to bookmarks
                 var result = await MainWindow.Account.AddToBookmarks(work.Id.Value, !isPrivate);
-                if (result.Item1 == false) work.IsBookmarked = false;
+                if (result == false) work.IsBookmarked = false;
                 work.UpdateFavorite();
             }
         }

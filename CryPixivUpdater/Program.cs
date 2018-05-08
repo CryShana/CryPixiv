@@ -186,7 +186,7 @@ namespace CryPixivUpdater
             }
         }
 
-        public static string GetVersionString(Version v) => $"v{v.Major}.{v.MajorRevision}.{v.Minor}.{v.MinorRevision}";
+        public static string GetVersionString(Version v) => $"v{v.Major}.{v.Minor}.{v.Build}.{v.Revision}";
         public static string CheckForUpdate(string version = null)
         {
             // get actual download link

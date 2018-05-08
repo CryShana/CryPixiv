@@ -266,7 +266,8 @@ namespace Pixeez
         }
 
         public const string AccessTokenErrorMessage = "Access token expired.";
-        private async Task<Tuple<T, string>> AccessApiAsync<T>(MethodType type, string url, IDictionary<string, string> param, IDictionary<string, string> headers = null)
+        private async Task<Tuple<T, string>> AccessApiAsync<T>(MethodType type, string url, IDictionary<string, string> param,
+            IDictionary<string, string> headers = null)
         {
             using (var response = await this.SendRequestAsync(type, url, param, headers))
             {
@@ -303,6 +304,7 @@ namespace Pixeez
 
                 if (obj is IPagenated)
                     ((IPagenated)obj).Pagination = JToken.Parse(json).SelectToken("pagination").ToObject<Pagination>();
+
 
                 return new Tuple<T, string>(obj, null);
             }
@@ -433,22 +435,31 @@ namespace Pixeez
         /// <para>- <c>bool</c> includeSanityLevel (optional)</para>
         /// </summary>
         /// <returns>UsersFavoriteWorks. (Pagenated)</returns>
-        public async Task<Tuple<Paginated<UsersFavoriteWork>, string>> GetMyFavoriteWorksAsync(int page = 1, int perPage = 30, string publicity = "public", bool includeSanityLevel = true)
+        public async Task<List<Work>> GetMyFavoriteWorksAsync(int page = 1, int perPage = 30, string publicity = "public", bool includeSanityLevel = true)
         {
-            var url = "https://public-api.secure.pixiv.net/v1/me/favorite_works.json";
+            // var url = "https://public-api.secure.pixiv.net/v1/me/favorite_works.json";
+            var url = "https://app-api.pixiv.net/v1/user/bookmarks/illust";
+
+            int offset = perPage * (page - 1);
 
             var param = new Dictionary<string, string>
             {
-                { "page", page.ToString() } ,
-                { "per_page", perPage.ToString() } ,
-                { "publicity", publicity } ,
-                { "include_stats", "1" } ,
-                { "include_sanity_level", Convert.ToInt32(includeSanityLevel).ToString() } ,
-                { "image_sizes", "px_128x128,small,medium,large,px_480mw" } ,
-                { "profile_image_sizes", "px_170x170,px_50x50" } ,
+                { "offset", offset.ToString() } ,
+                { "user_id", AuthDetails.User.Id.ToString() } ,
+                { "restrict", publicity }
             };
 
-            return await this.AccessApiAsync<Paginated<UsersFavoriteWork>>(MethodType.GET, url, param);
+            using (var response = await this.SendRequestAsync(MethodType.GET, url, param, null))
+            {
+                var json = await response.GetResponseStringAsync();
+
+                var json2 = JToken.Parse(json).SelectToken("illusts").ToString();
+                var res = JsonConvert.DeserializeObject<List<NewIllustration>>(json2);
+
+                List<Work> wrks = new List<Work>();
+                foreach (var r in res) wrks.Add(r.GetWork());
+                return wrks;
+            }
         }
 
         /// <summary>
@@ -457,21 +468,17 @@ namespace Pixeez
         /// <para>- <c>string</c> publicity (optional) [ public, private ]</para>
         /// </summary>
         /// <returns>UsersWorks. (Pagenated)</returns>
-        public async Task<Tuple<List<UsersFavoriteWork>, string>> AddMyFavoriteWorksAsync(long workId, string comment = "", IEnumerable<string> tags = null, string publicity = "public")
+        public async Task<Tuple<Paginated<UsersFavoriteWork>, string>> AddMyFavoriteWorksAsync(long workId, string comment = "", IEnumerable<string> tags = null, string publicity = "public")
         {
-            var url = "https://public-api.secure.pixiv.net/v1/me/favorite_works.json";
+            var url = "https://app-api.pixiv.net/v2/illust/bookmark/add";
 
             var param = new Dictionary<string, string>
             {
-                { "work_id", workId.ToString() } ,
-                { "publicity", publicity } ,
-                { "comment", comment } ,
+                { "illust_id", workId.ToString() } ,
+                { "restrict", publicity } ,
             };
 
-            if (tags != null)
-                param.Add("tags", string.Join(",", tags));
-
-            return await this.AccessApiAsync<List<UsersFavoriteWork>>(MethodType.POST, url, param);
+            return await this.AccessApiAsync<Paginated<UsersFavoriteWork>>(MethodType.POST, url, param);
         }
 
         /// <summary>
@@ -740,7 +747,7 @@ namespace Pixeez
             }
 
             IsUsingECD = useEcd;
-            if (useEcd == false) return await this.AccessApiAsync<Paginated<Work>>(MethodType.GET, url, param);            
+            if (useEcd == false) return await this.AccessApiAsync<Paginated<Work>>(MethodType.GET, url, param);
             else return await AccessApiAsyncECD();
         }
 
@@ -771,7 +778,7 @@ namespace Pixeez
             // go through all entries
 
             var tasks = new List<Task>();
-            foreach(var i in inputs)
+            foreach (var i in inputs)
             {
                 string content = i.InnerHtml;
                 var workId = long.Parse(Regex.Match(content, @"data-id=""(\d*?)""").Groups[1].Value);
