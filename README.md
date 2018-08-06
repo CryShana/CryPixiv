@@ -1,3 +1,5 @@
+# PROJECT NOW MOVED TO UWP PLATFORM (Please check [CryPixiv-UWP](https://github.com/CryShana/CryPixiv-UWP))
+
 # CryPixiv
 Unofficial Pixiv client
 
